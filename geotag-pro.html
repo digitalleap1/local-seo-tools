@@ -1251,7 +1251,7 @@ kbd{
 <div id="footer">
   <span class="dev-tag">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-    Developed by <strong style="color:var(--accent);margin-left:3px">Mukesh Kr</strong>
+    
   </span>
   <span class="dev-by">|</span>
   <a href="tel:+919797366099" title="Call">
@@ -2319,7 +2319,7 @@ function buildExifIntoFile(idx, opts){
         e[piexif.ExifIFD.UserComment] = 'ASCII\0\0\0' + txt;
       }
       // Always stamp software tag
-      z[piexif.ImageIFD.Software] = z[piexif.ImageIFD.Software] || 'GeoTag Pro by Mukesh Kr';
+      z[piexif.ImageIFD.Software] = z[piexif.ImageIFD.Software] || 'GeoTag Pro';
     }
     if(opts.meta){
       const nd = gv('m_Desc'); if(nd) z[piexif.ImageIFD.ImageDescription] = nd;
@@ -2486,7 +2486,7 @@ function buildGpxString(f){
   const name = (f.seo.title || f.name).replace(/[<>&]/g,'');
   const desc = (f.seo.alt || f.seo.caption || 'GPS exported from GeoTag Pro').replace(/[<>&]/g,'');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="GeoTag Pro by Mukesh Kr" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="GeoTag Pro" xmlns="http://www.topografix.com/GPX/1/1">
   <metadata><time>${now}</time><name>${name}</name></metadata>
   <wpt lat="${f.lat.toFixed(7)}" lon="${f.lng.toFixed(7)}">
     <ele>${alt}</ele>
@@ -2501,7 +2501,7 @@ function buildJsonSidecar(f){
     file: f.name,
     kind: f.kind,
     exportedAt: new Date().toISOString(),
-    exportedBy: 'GeoTag Pro by Mukesh Kr',
+    exportedBy: 'GeoTag Pro',
     dimensions: f.width ? { width:f.width, height:f.height } : null,
     duration: f.duration || null,
     fileSize: f.file.size,

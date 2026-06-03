@@ -245,6 +245,35 @@
     return false;
   }
 
+  /* ---------- SINGLE-HEADER / TOOL-PANEL DETECTION ---------- */
+  const GN_PANEL_SEL = '#left,#sidebar,#ref-panel,#left-panel,#biz-panel';
+  function findToolPanel(){ try{ return document.querySelector(GN_PANEL_SEL); }catch(e){ return null; } }
+  // A page header is "chrome-only" (safe to hide) if it carries no functional controls —
+  // only branding, stat read-outs, nav links and the theme / mobile-menu buttons.
+  function pageHeaderIsChrome(hdr){
+    if(!hdr) return false;
+    if(hdr.querySelector('input,select,textarea')) return false;
+    const acts = hdr.querySelectorAll('button,[onclick]');
+    for(let i=0;i<acts.length;i++){
+      const el = acts[i];
+      if(el.classList.contains('theme-toggle') || el.classList.contains('mobile-toggle')) continue;
+      const oc = el.getAttribute('onclick') || '';
+      if(/toggleTheme|classList\.toggle\(['"]open['"]\)/.test(oc)) continue;
+      if(oc.trim()) return false; // a real action lives here → keep the header
+    }
+    return true;
+  }
+  // Decide per page whether to collapse to a single (global) header, and whether a
+  // tool-panel toggle is needed on mobile. Sets classes consumed by injectStyles().
+  function applyLayoutClasses(){
+    const root = document.documentElement;
+    const hdr = document.getElementById('header');
+    if(pageHeaderIsChrome(hdr)) root.classList.add('gn-hide-pagehdr');
+    else root.classList.remove('gn-hide-pagehdr');
+    if(findToolPanel()) root.classList.add('gn-has-panel');
+    else root.classList.remove('gn-has-panel');
+  }
+
   /* ---------- STYLES ---------- */
   const STYLE_ID = 'global-nav-styles';
   function injectStyles(){
@@ -383,6 +412,18 @@
 .gn-foot-theme:hover{color:var(--text,#0f1a2e);border-color:#2563eb}
 .gn-foot-theme svg{width:13px;height:13px}
 @media (max-width:680px){ .gn-foot-in{padding:9px 10px;gap:8px} .gn-foot-meta{display:none} }
+/* ---- SINGLE-HEADER REFACTOR: hide redundant page chrome, one bar + one footer ---- */
+html.gn-hide-pagehdr #header{display:none !important}
+#footer{display:none !important}
+/* global tool-panel toggle — replaces the hidden page header's mobile menu button */
+.gn-panel-btn{display:none;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:transparent;border:none;color:var(--text2,#5b6b88);cursor:pointer;flex-shrink:0}
+.gn-panel-btn:hover{background:var(--bg3,#e9eef7);color:var(--text,#0f1a2e)}
+.gn-panel-btn svg{width:17px;height:17px}
+@media (max-width:920px){ html.gn-has-panel.gn-hide-pagehdr .gn-panel-btn{display:flex} }
+/* keep current-tool breadcrumb visible on mobile now that the page header is gone */
+@media (max-width:980px){ #gn-bar .gn-crumb{display:flex;max-width:40vw} }
+@media (max-width:520px){ #gn-bar .gn-crumb{max-width:32vw} .gn-search-box{width:120px} }
+@media (max-width:400px){ #gn-bar .gn-home span{display:none} }
 `;
     document.head.appendChild(s);
   }
@@ -398,25 +439,17 @@
       ? `<span class="gn-crumb" title="${escapeAttr(cur.desc||cur.name)}"><span class="gn-cb" style="background:${cur.color||'#64748b'}">${escapeHtml(cur.code||'?')}</span>${escapeHtml(cur.name)}</span>`
       : '';
     bar.innerHTML = `
-      <button class="gn-menu-btn" id="gn-menu-btn" title="Browse all tools (drawer)">
+      <button class="gn-menu-btn" id="gn-menu-btn" title="Browse all tools & categories">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <a class="gn-home" href="dashboard.html" title="Command Center">
+      <a class="gn-home" href="index.html" title="Home — Command Center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         <span>SEO Hub</span>
       </a>
       ${crumb}
-      <span class="gn-sep"></span>
-      <div id="gn-cats"></div>
-      <span class="gn-sep"></span>
-      <a class="gn-icon-btn" href="guide.html" title="Guides &amp; How-To for every tool">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        <span class="gn-lbl">Guides</span>
-      </a>
-      <a class="gn-icon-btn" href="ai-assistant.html" title="AI Assistant">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-        <span class="gn-lbl">AI</span>
-      </a>
+      <button class="gn-panel-btn" id="gn-panel-btn" title="Tool options panel" aria-label="Open tool options">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
       <div class="gn-spacer"></div>
       <div class="gn-search-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -426,13 +459,6 @@
       <button class="gn-icon-btn" id="gn-theme-btn" title="Toggle light / dark (global)">
         <span data-gn-theme-icon></span>
         <span class="gn-lbl gn-theme-lbl">Light</span>
-      </button>
-      <button class="gn-icon-btn" id="gn-add-btn" title="Register a new tool">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span class="gn-lbl">Add</span>
-      </button>
-      <button class="gn-icon-btn" id="gn-hide-btn" title="Hide chrome (Alt+M to show again)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     `;
     return bar;
@@ -479,23 +505,8 @@
 
   /* ---------- INTERACTIONS ---------- */
   function attachInteractions(bar){
-    // Category dropdowns
-    bar.addEventListener('click', e=>{
-      const btn = e.target.closest('.gn-cat-btn');
-      if(btn){
-        const cat = btn.closest('.gn-cat');
-        const wasOpen = cat.classList.contains('open');
-        bar.querySelectorAll('.gn-cat.open').forEach(c=>c.classList.remove('open'));
-        if(!wasOpen) cat.classList.add('open');
-        e.stopPropagation();
-        return;
-      }
-    });
-    // Close on outside click
+    // Close search results on outside click
     document.addEventListener('click', e=>{
-      if(!e.target.closest('#gn-bar .gn-cat')){
-        bar.querySelectorAll('.gn-cat.open').forEach(c=>c.classList.remove('open'));
-      }
       if(!e.target.closest('#gn-bar .gn-search-box')){
         document.getElementById('gn-search-results')?.classList.remove('show');
       }
@@ -525,17 +536,13 @@
         sres.classList.remove('show'); sinp.value=''; sinp.blur();
       }
     });
-    // Menu (drawer)
+    // Menu (drawer — the sidebar holding every category & page)
     bar.querySelector('#gn-menu-btn').addEventListener('click', openDrawer);
     // Global theme toggle
     bar.querySelector('#gn-theme-btn').addEventListener('click', gnToggleTheme);
-    // Add tool
-    bar.querySelector('#gn-add-btn').addEventListener('click', openAddTool);
-    // Hide chrome (bar + footer)
-    bar.querySelector('#gn-hide-btn').addEventListener('click', ()=>{
-      setChromeHidden(true);
-      gnToast('Chrome hidden — press Alt+M to show');
-    });
+    // Tool-panel toggle (mobile) — opens the current tool's off-canvas input panel
+    const pbtn = bar.querySelector('#gn-panel-btn');
+    if(pbtn) pbtn.addEventListener('click', ()=>{ const p = findToolPanel(); if(p) p.classList.toggle('open'); });
     // Alt+M hotkey + Esc closes drawer
     document.addEventListener('keydown', e=>{
       if(e.altKey && (e.key==='m' || e.key==='M')){
@@ -673,7 +680,7 @@
     const here = currentPage();
     const allTools = getAllTools();
     const cats = getAllCats();
-    const quick = ['dashboard','tools','guide'].map(id=>allTools[id]).filter(Boolean);
+    const quick = ['dashboard','tools','guide','ai'].map(id=>allTools[id]).filter(Boolean);
     let html = '';
     // quick links row
     if(!q){
@@ -713,19 +720,21 @@
       <div class="gn-foot-in">
         <span class="gn-foot-brand"><span class="gn-fl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>SEO Hub</span>
         <span class="gn-foot-links">
-          <a href="dashboard.html">Dashboard</a>
+          <a href="index.html">Home</a>
           <a href="tools.html">All Tools</a>
           <a href="guide.html">Guides</a>
           <a href="ai-assistant.html">AI Assistant</a>
           <a href="glossary.html">Glossary</a>
+          <a href="#" id="gn-foot-add">Add Tool</a>
         </span>
         <span class="gn-foot-sp"></span>
-        <span class="gn-foot-meta">${n} tools · Local SEO Suite · <a href="mailto:techie1418@gmail.com">Mukesh&nbsp;Kr</a></span>
+        <span class="gn-foot-meta">${n} tools · Local SEO Suite</span>
         <button class="gn-foot-theme" id="gn-foot-theme" title="Toggle light / dark (global)"><span data-gn-theme-icon></span><span class="gn-theme-lbl">Light</span></button>
       </div>
     `;
     document.body.appendChild(f);
     f.querySelector('#gn-foot-theme').addEventListener('click', gnToggleTheme);
+    f.querySelector('#gn-foot-add').addEventListener('click', e=>{ e.preventDefault(); openAddTool(); });
     _foot = f;
   }
 
@@ -734,8 +743,8 @@
   function inject(){
     if(_bar && document.body.contains(_bar)) return;
     injectStyles();
+    applyLayoutClasses();
     _bar = buildBar();
-    buildCats(_bar);
     attachInteractions(_bar);
     // Insert at very top of body
     if(document.body.firstChild){
@@ -749,7 +758,6 @@
 
   function refresh(){
     if(!_bar) return;
-    buildCats(_bar);
     if(_drawer) renderDrawer(document.getElementById('gn-dr-search-inp')?.value.toLowerCase().trim()||'');
   }
 

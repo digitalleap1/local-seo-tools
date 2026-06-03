@@ -360,8 +360,8 @@ input,select,textarea{font-family:var(--mono);outline:none}
   </div>
   <div class="ft-item"><span>SERP: <strong id="ft-prov">none</strong> · AI: <strong id="ft-ai">offline</strong></span></div>
   <div class="ft-spacer"></div>
-  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
-  <a class="ft-link" href="mailto:techie1418@gmail.com">
+  <div class="ft-item"><span>Built by <strong>Local SEO Tools</strong></span></div>
+  <a class="ft-link" href="mailto:">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
     Email
   </a>
@@ -513,7 +513,7 @@ function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString
   try {
     if(!Object.keys(state.serp.keys).length){
       const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
-      if(cf?.settings?.keys){ state.serp.keys = clone(cf.settings.keys); state.serp.provider = cf.settings.provider || state.serp.provider; }
+      if(cf?.settings?.keys){ state.serp.keys = clone(cf.settings.keys); if(cf.settings.provider && SERP_PROVIDERS[cf.settings.provider]) state.serp.provider = cf.settings.provider; }
     }
     if(!Object.keys(state.ai.keys).length){
       ['gbp_state_v1','rr_state_v1','ai_state_v1','kw_state_v1','ps_state_v1','sm_state_v1','cb_state_v1','ctr_state_v1'].forEach(k=>{
@@ -611,6 +611,7 @@ function fillInputs(){
 }
 function selSerp(id){state.serp.provider=id;saveState();document.querySelectorAll('#prov-pills .pp').forEach(b=>b.classList.toggle('active',b.textContent.includes(SERP_PROVIDERS[id].label)));renderSerpCfg();}
 function renderSerpCfg(){
+  if(!SERP_PROVIDERS[state.serp.provider]) state.serp.provider = Object.keys(SERP_PROVIDERS)[0];
   const p=SERP_PROVIDERS[state.serp.provider]; const k=state.serp.keys[state.serp.provider]||{};
   document.getElementById('prov-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="serp-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveSerpKey()"></div>`).join('');
   document.getElementById('ft-prov').textContent = p.label;
@@ -618,6 +619,7 @@ function renderSerpCfg(){
 function saveSerpKey(){const p=SERP_PROVIDERS[state.serp.provider]; const keys=state.serp.keys[state.serp.provider]||{}; p.fields.forEach(f=>{keys[f.key]=document.getElementById('serp-'+f.key).value.trim();}); state.serp.keys[state.serp.provider]=keys; saveState();}
 function selAi(id){state.ai.provider=id;saveState();document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active',b.textContent.includes(AI_PROVIDERS[id].label)));renderAiCfg();}
 function renderAiCfg(){
+  if(!AI_PROVIDERS[state.ai.provider]) state.ai.provider = Object.keys(AI_PROVIDERS)[0];
   const p=AI_PROVIDERS[state.ai.provider]; const k=state.ai.keys[state.ai.provider]||{};
   document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('') + (p.note?`<div class="f"><div class="hint">${p.note}</div></div>`:'');
   document.getElementById('ft-ai').textContent = state.ai.keys[state.ai.provider]?.key ? p.label : 'offline';
