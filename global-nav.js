@@ -55,7 +55,7 @@
     {id:'content',   name:'Content & Keywords',     sub:'Keywords, briefs, FAQ, mapping, headings',color:'#ea580c', tools:['kw','cb','vf','aiw','aiss','cc','ha','km']},
     {id:'technical', name:'Technical SEO',          sub:'Schema, audits, crawl, mobile, redirects', color:'#0891b2', tools:['sch','sa','pa','sc','rs','iseo','il','mux','bsch','ba','hl','rd']},
     {id:'backlinks', name:'Backlinks & Outreach',   sub:'Profile, outreach, anchors, velocity',    color:'#9333ea', tools:['bl','lo','dis','at','bv']},
-    {id:'visual',    name:'Visual & Media',         sub:'Geotag, image SEO, photos',               color:'#16a34a', tools:['gt']},
+    {id:'visual',    name:'Visual & Media',         sub:'Image tools, geotag, photos',             color:'#16a34a', tools:['tools','gt']},
     {id:'ai',        name:'AI Search & Strategy',   sub:'AI, GEO/AEO, strategy, workspace, glossary', color:'#2563eb', tools:['ai','sg','roi','geo','wlr','cp','lcl','hm','ob','gl','ws']},
   ];
 
@@ -63,7 +63,7 @@
   const GN_TOOLS = {
     // Hub
     dashboard: {url:'dashboard.html',          name:'Command Center',          code:'HUB',color:'#2563eb', key:null,           desc:'Unified dashboard'},
-    tools:     {url:'tools.html',              name:'Tools Hub',               code:'IDX',color:'#2563eb', key:null,           desc:'Original tools index'},
+    tools:     {url:'tools.html',              name:'Image Tools',             code:'IMG',color:'#16a34a', key:null,           desc:'Convert, compress, resize, crop & optimize images'},
     guide:     {url:'guide.html',              name:'Guides & How-To',         code:'?',  color:'#2563eb', key:null,           desc:'Step-by-step guide for every tool'},
 
     // Citations & Listings
@@ -105,7 +105,7 @@
     pa:  {url:'page-auditor.html',       name:'Page Auditor',           code:'PA', color:'#0891b2', key:'pa_state_v1',  desc:'On-page local SEO audit'},
     sc:  {url:'site-crawler.html',       name:'Site Crawler',           code:'SC', color:'#0891b2', key:'sc_state_v1',  desc:'Full-site technical crawler'},
     rs:  {url:'robots-sitemap.html',     name:'Robots/Sitemap',         code:'RS', color:'#0891b2', key:'rs_state_v1',  desc:'robots.txt + sitemap.xml builder'},
-    iseo:{url:'image-seo.html',          name:'Image SEO Auditor',      code:'IMG',color:'#0891b2', key:'iseo_state_v1',desc:'Alt text, file names, image SEO scan', isNew:true},
+    iseo:{url:'image-seo.html',          name:'Image SEO Auditor',      code:'ISA',color:'#0891b2', key:'iseo_state_v1',desc:'Alt text, file names, image SEO scan', isNew:true},
 
     // Backlinks
     bl:  {url:'backlink-profile.html',   name:'Backlink Profile',       code:'BL', color:'#9333ea', key:'bl_state_v1',  desc:'Link profile + toxicity analyzer'},
@@ -424,6 +424,15 @@ html.gn-hide-pagehdr #header{display:none !important}
 @media (max-width:980px){ #gn-bar .gn-crumb{display:flex;max-width:40vw} }
 @media (max-width:520px){ #gn-bar .gn-crumb{max-width:32vw} .gn-search-box{width:120px} }
 @media (max-width:400px){ #gn-bar .gn-home span{display:none} }
+/* ---- NO-OVERFLOW / NO-OVERLAY: stop any sideways scroll across the suite ---- */
+html{overflow-x:hidden}
+/* kept tool headers (functional pages) wrap instead of spilling off-screen; single-row stays ~56px */
+html:not(.gn-hide-pagehdr) #header{flex-wrap:wrap;height:auto;min-height:52px;row-gap:6px}
+@media (max-width:980px){
+  /* common in-page sub-toolbars / input rows wrap on small screens */
+  #input-bar,.target-row,.toolbar,.hdr-row,.input-bar,.controls,.filters{flex-wrap:wrap}
+  html:not(.gn-hide-pagehdr) #header{padding-top:7px;padding-bottom:7px}
+}
 `;
     document.head.appendChild(s);
   }
@@ -680,7 +689,7 @@ html.gn-hide-pagehdr #header{display:none !important}
     const here = currentPage();
     const allTools = getAllTools();
     const cats = getAllCats();
-    const quick = ['dashboard','tools','guide','ai'].map(id=>allTools[id]).filter(Boolean);
+    const quick = ['dashboard','guide','ai'].map(id=>allTools[id]).filter(Boolean);
     let html = '';
     // quick links row
     if(!q){
@@ -715,20 +724,20 @@ html.gn-hide-pagehdr #header{display:none !important}
     const f = document.createElement('footer');
     f.id = 'gn-foot';
     if(localStorage.getItem('gn_hidden')==='1') f.classList.add('gn-hidden');
-    const n = Object.keys(GN_TOOLS).filter(k=>!['dashboard','tools','guide'].includes(k)).length;
+    const n = Object.keys(GN_TOOLS).filter(k=>!['dashboard','guide'].includes(k)).length;
     f.innerHTML = `
       <div class="gn-foot-in">
         <span class="gn-foot-brand"><span class="gn-fl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>SEO Hub</span>
         <span class="gn-foot-links">
           <a href="index.html">Home</a>
-          <a href="tools.html">All Tools</a>
+          <a href="tools.html">Image Tools</a>
           <a href="guide.html">Guides</a>
           <a href="ai-assistant.html">AI Assistant</a>
           <a href="glossary.html">Glossary</a>
           <a href="#" id="gn-foot-add">Add Tool</a>
         </span>
         <span class="gn-foot-sp"></span>
-        <span class="gn-foot-meta">${n} tools · Local SEO Suite</span>
+        <span class="gn-foot-meta">${n} tools · Local SEO Suite · Developed by <a href="mailto:techie1418@gmail.com">Mukesh&nbsp;Kr</a></span>
         <button class="gn-foot-theme" id="gn-foot-theme" title="Toggle light / dark (global)"><span data-gn-theme-icon></span><span class="gn-theme-lbl">Light</span></button>
       </div>
     `;
