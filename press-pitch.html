@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local PR Pitch Generator - AI-Generated Press Releases & Journalist Pitches</title>
+<meta name="description" content="Generate local press releases, journalist pitch emails, and HARO responses with AI. 8 pitch angle templates (community impact, milestone, expansion, expert opinion, seasonal), embedded boilerplate, contact-tracking, multi-version export.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#db2777; --accent-h:#be185d; --accent-soft:rgba(219,39,119,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#ec4899; --accent-h:#f472b6; --accent-soft:rgba(236,72,153,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.pitches strong{color:var(--accent);font-size:14px}
+.hdr-stat.sent strong{color:var(--success)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text);font-family:var(--font)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{resize:vertical;min-height:80px}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+.angle-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.angle{padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:11.5px;transition:all .12s}
+.angle:hover{border-color:var(--accent);transform:translateX(2px)}
+.angle.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.angle .name{font-weight:700;display:flex;align-items:center;gap:7px}
+.angle .desc{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px;line-height:1.4}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.6;cursor:not-allowed}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.draft-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);margin-bottom:14px;overflow:hidden}
+.draft-hdr{padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.draft-hdr h3{font-size:13.5px;font-weight:800;flex:1}
+.draft-hdr .meta{font-family:var(--mono);font-size:10.5px;color:var(--text3);font-weight:700}
+.draft-body{padding:18px 22px;font-size:13.5px;line-height:1.7}
+.draft-body h1{font-size:22px;font-weight:900;margin-bottom:8px;letter-spacing:-.4px}
+.draft-body h2{font-size:16px;font-weight:700;margin:18px 0 8px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;font-size:11px}
+.draft-body .dateline{font-size:11.5px;color:var(--text3);font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.draft-body p{margin-bottom:11px}
+.draft-body p:last-child{margin-bottom:0}
+.draft-body .boilerplate{padding:11px 14px;background:var(--bg);border-left:3px solid var(--accent);border-radius:5px;font-size:12px;color:var(--text2);line-height:1.55;font-style:italic;margin-top:14px}
+.draft-body .contact{font-size:12px;color:var(--text2);background:var(--bg);padding:11px 14px;border-radius:7px;margin-top:14px;line-height:1.55}
+.draft-body .contact strong{color:var(--text);font-weight:800}
+.draft-actions{padding:11px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:6px;flex-wrap:wrap}
+
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:11px}
+.contact-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;box-shadow:var(--shadow-sm)}
+.contact-card .name{font-size:13.5px;font-weight:800}
+.contact-card .role{font-size:11.5px;color:var(--text2);font-family:var(--mono);margin-top:1px}
+.contact-card .outlet{font-size:11px;color:var(--accent);font-weight:700;margin-top:4px}
+.contact-card .email{font-size:11px;font-family:var(--mono);color:var(--text2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact-card .beats{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.contact-card .beat-pill{font-size:9.5px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:11px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.contact-card .actions{display:flex;gap:5px;margin-top:9px}
+.contact-card .actions button{flex:1;padding:5px 9px;font-size:10.5px;font-weight:700;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer}
+.contact-card .actions button:hover{border-color:var(--accent);color:var(--accent)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000}
+.busy.show{display:flex}
+.busy .card{background:var(--bg2);padding:24px 30px;border-radius:14px;border:1px solid var(--border);text-align:center;max-width:340px}
+.busy .sp{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg3);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 11l18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></div>
+    <div><div class="logo-name">Press<span>Pitch</span></div></div>
+    <span class="logo-tag">PR</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat pitches">Drafts: <strong id="stat-drafts">0</strong></div>
+  <div class="hdr-stat sent">Sent: <strong id="stat-sent">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="link-outreach.html" class="hdr-link" style="border-color:rgba(147,51,234,.4);color:var(--purple)">Outreach</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Pitch Setup</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business Info</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name</label><input id="i-name" oninput="onChange()"></div>
+          <div class="f"><label>City</label><input id="i-city" oninput="onChange()"></div>
+          <div class="f"><label>Industry / category</label><input id="i-cat" oninput="onChange()"></div>
+          <div class="f"><label>Founder / spokesperson</label><input id="i-spokes" oninput="onChange()"></div>
+          <div class="f"><label>Contact email</label><input id="i-email" oninput="onChange()"></div>
+          <div class="f"><label>Contact phone</label><input id="i-phone" oninput="onChange()"></div>
+          <div class="f"><label>Website</label><input id="i-url" oninput="onChange()"></div>
+          <div class="f"><label>Boilerplate (2-3 sentences about business)</label><textarea id="i-boilerplate" rows="3" oninput="onChange()"></textarea></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ From Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Pitch Angle</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="angle-grid" id="angle-list"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Story Details</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Headline angle (what's newsworthy?)</label><input id="i-angle" placeholder="Local plumber donates services to flooded homes" oninput="onChange()"></div>
+          <div class="f"><label>Key facts (3-5 bullet points)</label><textarea id="i-facts" rows="5" placeholder="• Statistic, data point, or quote
+• Date or timeline
+• Specific number or impact" oninput="onChange()"></textarea></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Provider</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Provider</label><select id="prov-sel" onchange="onProvChange()">
+            <option value="gemini">Gemini (free)</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+            <option value="groq">Groq (free)</option>
+          </select></div>
+          <div class="f"><label>API key</label><input id="i-key" placeholder="paste" oninput="saveKey()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" id="btn-gen" onclick="generate()">✨ Generate Pitch</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="drafts" onclick="setTab('drafts')">Drafts</button>
+      <button class="tab" data-tab="contacts" onclick="setTab('contacts')">Journalist Contacts</button>
+      <button class="tab" data-tab="haro" onclick="setTab('haro')">HARO Templates</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">PR Playbook</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Generate local PR pitches + press releases</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+<div class="busy" id="busy"><div class="card"><div class="sp"></div><h3 id="busy-title">Generating…</h3><p id="busy-msg" style="font-size:11.5px;color:var(--text2);font-family:var(--mono)">…</p></div></div>
+
+<script>
+const STORE_KEY='press_state_v1';
+
+const ANGLES=[
+  {id:'community', name:'🤝 Community Impact', desc:'Charity, volunteering, donations, local hero stories'},
+  {id:'milestone', name:'🏆 Milestone / Anniversary', desc:'5/10/25-year anniversary, 1000th customer, etc.'},
+  {id:'expansion', name:'📈 Expansion / Growth', desc:'New location, hiring, service launch'},
+  {id:'expert',    name:'🎓 Expert Opinion', desc:'You as expert source on industry topic'},
+  {id:'seasonal',  name:'🍂 Seasonal / Timely', desc:'Holiday, weather event, current news tie-in'},
+  {id:'award',     name:'🥇 Award / Recognition', desc:'Won an award, recognized as best-in-class'},
+  {id:'data',      name:'📊 Data / Study', desc:'Published research, survey results, industry data'},
+  {id:'event',     name:'🎉 Event / Workshop', desc:'Free workshop, open house, charity event'},
+];
+
+const SAMPLE_CONTACTS=[
+  {name:'Local Daily News - Newsroom', role:'General assignment editor', outlet:'Local Daily News', email:'tips@localdaily.com', beats:['local news','business']},
+  {name:'Industry Pub - Editor', role:'Industry editor', outlet:'TradePub.com', email:'editor@tradepub.com', beats:['industry','b2b']},
+  {name:'Community Blog - Founder', role:'Editor-in-chief', outlet:'CityCommunity.com', email:'hello@citycommunity.com', beats:['community','events']},
+  {name:'Local TV News Assignment Desk', role:'Assignment desk', outlet:'Local TV', email:'newsroom@localtv.com', beats:['breaking','local']},
+  {name:'Business Journal Reporter', role:'Business reporter', outlet:'Business Journal', email:'business@journal.com', beats:['small business','startups']},
+];
+
+const defaultState={
+  biz:{name:'',city:'',cat:'',spokes:'',email:'',phone:'',url:'',boilerplate:''},
+  angle:'community', angleData:{headline:'',facts:''},
+  provider:'gemini',apiKeys:{gemini:'',openai:'',claude:'',groq:''},
+  drafts:[], sent:{}, view:'drafts'
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function setBusy(s,t,m){const b=document.getElementById('busy');if(t)document.getElementById('busy-title').textContent=t;if(m)document.getElementById('busy-msg').textContent=m;b.classList.toggle('show',s);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillInputs(){
+  Object.entries({name:'name',city:'city',cat:'cat',spokes:'spokes',email:'email',phone:'phone',url:'url',boilerplate:'boilerplate'}).forEach(([id,k])=>{const el=document.getElementById('i-'+id);if(el)el.value=state.biz[k]||'';});
+  document.getElementById('i-angle').value=state.angleData.headline||'';
+  document.getElementById('i-facts').value=state.angleData.facts||'';
+  document.getElementById('prov-sel').value=state.provider;
+  document.getElementById('i-key').value=state.apiKeys[state.provider]||'';
+}
+function onChange(){
+  Object.entries({name:'name',city:'city',cat:'cat',spokes:'spokes',email:'email',phone:'phone',url:'url',boilerplate:'boilerplate'}).forEach(([id,k])=>{const el=document.getElementById('i-'+id);if(el)state.biz[k]=el.value;});
+  state.angleData.headline=document.getElementById('i-angle').value;
+  state.angleData.facts=document.getElementById('i-facts').value;
+  saveState();
+}
+function onProvChange(){state.provider=document.getElementById('prov-sel').value;document.getElementById('i-key').value=state.apiKeys[state.provider]||'';saveState();}
+function saveKey(){state.apiKeys[state.provider]=document.getElementById('i-key').value.trim();saveState();}
+function syncFromCitation(){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.biz.name=b.name||'';state.biz.city=b.city||'';state.biz.cat=b.category||'';state.biz.phone=b.phone||'';state.biz.url=b.website||'';saveState();fillInputs();toast('Synced','success');}}catch(e){}}
+
+function setAngle(a){state.angle=a;saveState();renderAngles();}
+function renderAngles(){document.getElementById('angle-list').innerHTML=ANGLES.map(a=>`<div class="angle ${state.angle===a.id?'active':''}" onclick="setAngle('${a.id}')"><div class="name">${escapeHtml(a.name)}</div><div class="desc">${escapeHtml(a.desc)}</div></div>`).join('');}
+
+async function generate(){
+  onChange();
+  if(!state.biz.name){toast('Business name required','err');return;}
+  if(!state.angleData.headline){toast('Headline angle required','err');return;}
+  const angle=ANGLES.find(a=>a.id===state.angle);
+  const key=state.apiKeys[state.provider];
+  if(!key){
+    // Offline template
+    const draft=offlineDraft();
+    state.drafts.unshift(draft);saveState();setTab('drafts');toast('Generated (offline template)','success');return;
+  }
+  setBusy(true,'Generating pitch…',state.provider);
+  const prompt=`Write a local press release and a journalist pitch email for this story:
+
+BUSINESS: ${state.biz.name}${state.biz.city?' in '+state.biz.city:''}${state.biz.cat?' ('+state.biz.cat+')':''}
+SPOKESPERSON: ${state.biz.spokes||'(owner)'}
+CONTACT: ${state.biz.email||'(email)'} / ${state.biz.phone||'(phone)'}
+WEBSITE: ${state.biz.url||''}
+BOILERPLATE: ${state.biz.boilerplate||'(no boilerplate set)'}
+
+PITCH ANGLE: ${angle.name} (${angle.desc})
+HEADLINE / NEWS HOOK: ${state.angleData.headline}
+KEY FACTS:
+${state.angleData.facts}
+
+REQUIREMENTS:
+- Format with 3 sections: (1) PRESS RELEASE, (2) JOURNALIST EMAIL PITCH, (3) SOCIAL POST
+- Press release: standard format with FOR IMMEDIATE RELEASE / dateline / 3-4 paragraphs / boilerplate / contact info
+- Journalist email: under 150 words, personalized opening, 3-bullet why-it-matters, clear ask, signature
+- Social post: 280 chars for X, suitable for LinkedIn
+- Tone: professional, factual, local-focused. No hype.
+- AP Style for press release. Active voice.
+
+Return ONLY the three sections separated by ---PRESS--- ---EMAIL--- ---SOCIAL---`;
+  try{
+    let text=await askAI(prompt, key);
+    const parts={press:'',email:'',social:''};
+    const pMatch=text.match(/---PRESS---([\s\S]*?)---EMAIL---/);if(pMatch)parts.press=pMatch[1].trim();
+    const eMatch=text.match(/---EMAIL---([\s\S]*?)---SOCIAL---/);if(eMatch)parts.email=eMatch[1].trim();
+    const sMatch=text.match(/---SOCIAL---([\s\S]*?)$/);if(sMatch)parts.social=sMatch[1].trim();
+    if(!parts.press)parts.press=text;
+    const draft={id:'d_'+Math.random().toString(36).slice(2,9), createdAt:'2026-05-29', angle:state.angle, headline:state.angleData.headline, press:parts.press, email:parts.email, social:parts.social};
+    state.drafts.unshift(draft);saveState();
+    setBusy(false);setTab('drafts');
+    toast('Pitch generated','success');
+  }catch(e){setBusy(false);toast('AI failed: '+e.message,'err');}
+}
+
+async function askAI(prompt, key){
+  if(state.provider==='gemini'){const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:2000}})});if(!r.ok)throw new Error('Gemini '+r.status);const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||'';}
+  if(state.provider==='openai'){const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],temperature:0.7,max_tokens:2000})});if(!r.ok)throw new Error('OpenAI '+r.status);const j=await r.json();return j.choices?.[0]?.message?.content||'';}
+  if(state.provider==='claude'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content:prompt}]})});if(!r.ok)throw new Error('Claude '+r.status);const j=await r.json();return j.content?.[0]?.text||'';}
+  if(state.provider==='groq'){const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.7})});if(!r.ok)throw new Error('Groq '+r.status);const j=await r.json();return j.choices?.[0]?.message?.content||'';}
+}
+
+function offlineDraft(){
+  const angle=ANGLES.find(a=>a.id===state.angle);
+  const dateline=`${(state.biz.city||'CITY').toUpperCase()} — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  const press=`FOR IMMEDIATE RELEASE\n\n${state.angleData.headline}\n\n${dateline} — ${state.biz.name}${state.biz.city?', '+state.biz.city+'-based '+state.biz.cat:''}, today announced ${state.angleData.headline.toLowerCase()}.\n\n${state.angleData.facts}\n\n"${state.angleData.headline}," said ${state.biz.spokes||state.biz.name}. "This represents our continued commitment to ${state.biz.city||'our community'}."\n\nAbout ${state.biz.name}:\n${state.biz.boilerplate||state.biz.name+' is a '+state.biz.cat+' serving '+state.biz.city+'.'}\n\nMedia Contact:\n${state.biz.spokes||'PR Team'}\n${state.biz.email||''}\n${state.biz.phone||''}\n${state.biz.url||''}`;
+  const email=`Subject: Story idea: ${state.angleData.headline}\n\nHi [Reporter name],\n\nI hope you're well. I noticed your recent reporting on ${state.biz.city||'local'} ${state.biz.cat||'businesses'}, and I have a story you might be interested in:\n\n${state.angleData.headline}\n\nWhy it matters:\n• ${(state.angleData.facts||'').split('\n')[0]||'(facts here)'}\n• ${(state.angleData.facts||'').split('\n')[1]||''}\n• Local angle for your ${state.biz.city||'(city)'} readers\n\nI'd be happy to provide an interview, quotes, or photos. Press release attached/below.\n\nBest,\n${state.biz.spokes||state.biz.name}\n${state.biz.email||''}\n${state.biz.phone||''}`;
+  const social=`📰 ${state.angleData.headline}\n\n${(state.angleData.facts||'').split('\n')[0]||''}\n\n${state.biz.url||''}\n\n#${(state.biz.city||'').replace(/\s/g,'')} #LocalBusiness`;
+  return {id:'d_'+Math.random().toString(36).slice(2,9), createdAt:'2026-05-29', angle:state.angle, headline:state.angleData.headline, press, email, social};
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function deleteDraft(id){if(!confirm('Delete draft?'))return;state.drafts=state.drafts.filter(d=>d.id!==id);saveState();render();toast('Deleted','success');}
+function markSent(id){state.sent[id]={date:'2026-05-29'};saveState();render();toast('Marked sent','success');}
+function copyDraft(text){navigator.clipboard.writeText(text);toast('Copied','success');}
+
+function render(){
+  document.getElementById('stat-drafts').textContent=state.drafts.length;
+  document.getElementById('stat-sent').textContent=Object.keys(state.sent).length;
+  if(state.view==='drafts') return renderDrafts();
+  if(state.view==='contacts') return renderContacts();
+  if(state.view==='haro') return renderHaro();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderDrafts(){
+  if(!state.drafts.length){document.getElementById('cbody').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l18-5v12L3 13z"/></svg><div class="et">Generate Your First Pitch</div><div class="ed">Fill in your business info + story details, pick an angle, and click ✨ Generate Pitch. The AI creates a full press release, journalist email, and social post — ready to copy and send.</div></div>`;return;}
+  document.getElementById('cbody').innerHTML=state.drafts.map(d=>{
+    const angle=ANGLES.find(a=>a.id===d.angle);
+    const isSent=state.sent[d.id];
+    return `<div class="draft-card">
+      <div class="draft-hdr">
+        <div><h3>${escapeHtml(d.headline)}</h3><div class="meta">${angle?angle.name:''} · ${escapeHtml(d.createdAt)}${isSent?' · ✓ SENT '+escapeHtml(isSent.date):''}</div></div>
+      </div>
+      <div class="draft-body">
+        <h2>Press Release</h2>
+        <div style="white-space:pre-wrap;font-family:Georgia,serif;font-size:13px;line-height:1.65">${escapeHtml(d.press)}</div>
+        ${d.email?`<h2 style="margin-top:24px">Journalist Email Pitch</h2><div style="white-space:pre-wrap;font-size:13px;background:var(--bg);padding:12px 16px;border-radius:7px;font-family:var(--font)">${escapeHtml(d.email)}</div>`:''}
+        ${d.social?`<h2 style="margin-top:24px">Social Media Post</h2><div style="background:var(--bg);padding:12px 16px;border-radius:7px;font-size:13px;line-height:1.55">${escapeHtml(d.social)}</div>`:''}
+      </div>
+      <div class="draft-actions">
+        <button class="cb-btn" onclick="copyDraft(${JSON.stringify(d.press).replace(/"/g,'&quot;')})">Copy Press</button>
+        ${d.email?`<button class="cb-btn" onclick="copyDraft(${JSON.stringify(d.email).replace(/"/g,'&quot;')})">Copy Email</button>`:''}
+        ${d.social?`<button class="cb-btn" onclick="copyDraft(${JSON.stringify(d.social).replace(/"/g,'&quot;')})">Copy Social</button>`:''}
+        ${!isSent?`<button class="cb-btn primary" onclick="markSent('${d.id}')">Mark Sent</button>`:''}
+        <button class="cb-btn" style="color:var(--danger)" onclick="deleteDraft('${d.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderContacts(){
+  document.getElementById('cbody').innerHTML=`<div style="margin-bottom:14px;font-size:12.5px;color:var(--text2);background:var(--bg2);padding:11px 14px;border-radius:8px;border-left:3px solid var(--accent);line-height:1.55">Sample journalist contact patterns. Real journalist info should come from outlets' staff pages, MuckRack, or LinkedIn — these are placeholders showing the contact-card format.</div>
+    <div class="contacts-grid">${SAMPLE_CONTACTS.map(c=>`<div class="contact-card"><div class="name">${escapeHtml(c.name)}</div><div class="role">${escapeHtml(c.role)}</div><div class="outlet">${escapeHtml(c.outlet)}</div><div class="email">${escapeHtml(c.email)}</div><div class="beats">${c.beats.map(b=>`<span class="beat-pill">${escapeHtml(b)}</span>`).join('')}</div><div class="actions"><button onclick="window.location='mailto:${escapeAttr(c.email)}'">Email</button><button onclick="navigator.clipboard.writeText('${escapeAttr(c.email)}');toast('Email copied','success')">Copy</button></div></div>`).join('')}</div>
+    <div class="empty" style="margin-top:24px;height:auto"><div class="et">Build Your Real Media List</div><div class="ed">Best sources for real journalist contacts: MuckRack, Cision, Press List, LinkedIn (filter by "journalist" + your city), or directly from the outlets' staff/about pages. Track outreach + responses in the <a href="link-outreach.html" style="color:var(--accent)">Link Outreach</a> tool.</div></div>`;
+}
+
+function renderHaro(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>HARO / Qwoted Response Template</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <p style="margin-bottom:14px">HARO (Help A Reporter Out, now Connectively), Qwoted, and SourceBottle send daily journalist requests. Responding gets you quoted in major outlets.</p>
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Response Format That Wins</h4>
+    <pre style="background:var(--bg);padding:14px;border-radius:8px;font-family:Georgia,serif;font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin-top:8px;border:1px solid var(--border)">Subject: HARO Pitch: [reporter's topic] — [your unique angle]
+
+Hi [Reporter name],
+
+[1-sentence specific answer to their question]
+
+Here's the longer take:
+
+[2-3 paragraph quotable answer — written so they can paste directly into their story. Speak in third person about yourself: "Smith says..." not "I think..."]
+
+About me / why I'm qualified:
+- ${state.biz.spokes||'[Your name]'}, ${state.biz.spokes?'Founder':'Owner'} of ${state.biz.name||'[business]'}
+- ${state.biz.cat?'Expert in '+state.biz.cat:'[Your credential]'}
+- [Notable experience/years/clients]
+- Headshot: [link]
+
+Happy to do a phone interview, provide more details, or supply photos/data. Reply by [deadline].
+
+Best,
+${state.biz.spokes||state.biz.name}
+${state.biz.email||''}
+${state.biz.phone||''}
+${state.biz.url||''}</pre>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Winning HARO Tactics</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Respond within 2 hours</strong> — most queries get 100+ responses; early = read</li>
+      <li><strong>Match their exact tone</strong> — read what they wrote; mirror it</li>
+      <li><strong>Quotable in third person</strong> — they can paste your text directly</li>
+      <li><strong>Specific examples</strong> — not generic advice. "We saw X result for Y client"</li>
+      <li><strong>Subject line previews exact angle</strong> — "[Topic] — [your unique POV in 5 words]"</li>
+      <li><strong>One angle per response</strong> — don't try to cover multiple points</li>
+      <li><strong>Credentials in bullets</strong> — easy to scan</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Common HARO Mistakes</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>First person quotes (must be third person for direct use)</li>
+      <li>Promotional language ("our award-winning team...")</li>
+      <li>Vague answers (specifics + numbers always win)</li>
+      <li>Late response (after 24 hours, ignore)</li>
+      <li>No credentials (why should they trust you?)</li>
+      <li>Too long (200 words max for the answer)</li>
+    </ul>
+  </div></div>`;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Local PR Playbook</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Why Local PR For Local SEO</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Local press links are high-authority + high-relevance</li>
+      <li>Build entity signals for knowledge panel</li>
+      <li>Trust + recognition compounds over time</li>
+      <li>Often translates to additional backlinks (syndication)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">The 8 Angles That Work</h4>
+    <p>Pick the one that fits your news. Don't stretch — journalists smell fake stories.</p>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li><strong>Community impact</strong> — Donations, volunteering, scholarships, charity event sponsorship</li>
+      <li><strong>Milestone</strong> — 5/10/25-year anniversary, 1000th customer, expansion</li>
+      <li><strong>Expansion / growth</strong> — New location, new service, hiring</li>
+      <li><strong>Expert opinion</strong> — Tie to current news; offer expertise</li>
+      <li><strong>Seasonal / timely</strong> — Holiday hours, weather event response, current news angle</li>
+      <li><strong>Award / recognition</strong> — Won industry award; reverse-pitch as "local company recognized nationally"</li>
+      <li><strong>Data / study</strong> — Original research; even small surveys can land coverage</li>
+      <li><strong>Event / workshop</strong> — Free public workshop, open house, charity event you're hosting</li>
+    </ol>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Press Release Anatomy</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Headline:</strong> 80 chars max, factual, no hype</li>
+      <li><strong>Dateline:</strong> CITY — Month Day, Year</li>
+      <li><strong>Lead paragraph:</strong> Who, what, where, when, why — answer in 2-3 sentences</li>
+      <li><strong>Body paragraphs:</strong> Details, quotes, context (1-2 quotes typical)</li>
+      <li><strong>Boilerplate:</strong> About [company] — 2-3 sentences</li>
+      <li><strong>Contact:</strong> Spokesperson name, email, phone</li>
+      <li><strong>End marker:</strong> ### or -30-</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Distribution Strategy</h4>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li><strong>Direct pitch first</strong> — 5-10 specific local reporters who cover your beat</li>
+      <li><strong>Local news outlets second</strong> — General tip lines for smaller papers/TV</li>
+      <li><strong>Industry publications</strong> — If trade-relevant</li>
+      <li><strong>Distribution services last</strong> — PRWeb, EIN Presswire (low quality, but cheap citations)</li>
+      <li><strong>Post on your site</strong> — /press or /news subfolder for SEO</li>
+      <li><strong>Social syndication</strong> — LinkedIn (best for B2B), Facebook (local), X (concise teaser)</li>
+    </ol>
+  </div></div>`;
+}
+
+function exportCSV(){
+  if(!state.drafts.length){toast('Nothing to export','err');return;}
+  const rows=[['date','angle','headline','press','email','social','sent']];
+  state.drafts.forEach(d=>{const angle=ANGLES.find(a=>a.id===d.angle);rows.push([d.createdAt, angle?angle.name:d.angle, d.headline, d.press, d.email, d.social, state.sent[d.id]?'yes':'no']);});
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='press-pitches.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function clearAll(){if(!confirm('Clear all drafts?'))return;state.drafts=[];state.sent={};saveState();render();toast('Cleared','success');}
+
+/* Inherit */
+(function(){
+  if(!state.biz.name){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.biz.name=b.name||'';state.biz.city=b.city||'';state.biz.cat=b.category||'';state.biz.phone=b.phone||'';state.biz.url=b.website||'';saveState();}}catch(e){}}
+  ['ai_state_v1','geo_state_v1','sg_state_v1','aiw_state_v1','cc_state_v1'].forEach(k=>{try{const o=JSON.parse(localStorage.getItem(k)||'null');if(o?.apiKeys)Object.entries(o.apiKeys).forEach(([id,v])=>{if(v&&!state.apiKeys[id])state.apiKeys[id]=v;});if(o?.ai?.keys)Object.entries(o.ai.keys).forEach(([id,k2])=>{if(k2?.key&&!state.apiKeys[id])state.apiKeys[id]=k2.key;});}catch(e){}});
+})();
+
+fillInputs();
+renderAngles();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

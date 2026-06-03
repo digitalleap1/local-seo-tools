@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Panel Optimizer - Entity SEO & Right-Side Panel Optimization</title>
+<meta name="description" content="Optimize for Google's right-side Knowledge Panel. Audit entity signals (Wikipedia, Wikidata, sameAs links), claim your panel via GBP, verify entity consistency, and generate Organization schema with all required properties for knowledge graph inclusion.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#4285f4; --accent-h:#1a73e8; --accent-soft:rgba(66,133,244,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#60a5fa; --accent-h:#93c5fd; --accent-soft:rgba(96,165,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--purple);border:1px solid var(--purple);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.score strong{color:var(--accent);font-size:14px}
+.hdr-stat.signals strong{color:var(--success)}
+.hdr-stat.missing strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text);font-family:var(--mono)}
+.f input:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{resize:vertical;min-height:90px}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+/* KP preview */
+.kp-preview{background:#fff;border:1px solid #dadce0;border-radius:8px;box-shadow:0 1px 6px rgba(32,33,36,.28);padding:0;overflow:hidden;font-family:Arial,sans-serif;color:#202124;max-width:420px;margin-left:auto;margin-right:auto}
+[data-theme="dark"] .kp-preview{background:#1f1f1f;border-color:#3c4043;color:#e8eaed}
+.kp-preview .cover{height:160px;background:linear-gradient(135deg,#4285f4,#7c3aed);position:relative;overflow:hidden}
+.kp-preview .cover img{width:100%;height:100%;object-fit:cover}
+.kp-preview .body{padding:20px}
+.kp-preview .title{font-size:22px;font-weight:400;letter-spacing:-.2px;margin-bottom:3px}
+.kp-preview .subtitle{font-size:13px;color:#5f6368}
+[data-theme="dark"] .kp-preview .subtitle{color:#9aa0a6}
+.kp-preview .rating-row{display:flex;align-items:center;gap:7px;margin:10px 0 14px;font-size:13px}
+.kp-preview .stars{color:#f59e0b;font-size:14px;letter-spacing:1px}
+.kp-preview .rating-num{font-weight:500}
+.kp-preview .review-count{color:#5f6368}
+.kp-preview .row{display:flex;align-items:start;gap:14px;padding:8px 0;border-bottom:1px solid #e8eaed;font-size:13px}
+[data-theme="dark"] .kp-preview .row{border-color:#3c4043}
+.kp-preview .row:last-child{border-bottom:none}
+.kp-preview .row .ico{width:18px;height:18px;color:#5f6368;flex-shrink:0;margin-top:1px}
+[data-theme="dark"] .kp-preview .row .ico{color:#9aa0a6}
+.kp-preview .row .val{flex:1;line-height:1.5}
+.kp-preview .row .val a{color:#1a0dab;text-decoration:none}
+[data-theme="dark"] .kp-preview .row .val a{color:#8ab4f8}
+.kp-preview .actions{display:flex;gap:6px;margin:14px 0 0}
+.kp-preview .action-btn{flex:1;padding:9px 0;border:1px solid #dadce0;border-radius:6px;color:#1a73e8;font-size:13px;font-weight:500;background:#fff;text-align:center}
+[data-theme="dark"] .kp-preview .action-btn{border-color:#3c4043;background:#1f1f1f;color:#8ab4f8}
+.kp-preview .desc{font-size:13px;line-height:1.5;color:#5f6368;margin-top:14px}
+[data-theme="dark"] .kp-preview .desc{color:#bdc1c6}
+.kp-preview .desc .src{color:#1a73e8;text-decoration:none}
+.kp-preview .social-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.kp-preview .social-row a{padding:5px 10px;border:1px solid #dadce0;border-radius:14px;font-size:11px;font-weight:600;color:#5f6368;text-decoration:none}
+[data-theme="dark"] .kp-preview .social-row a{border-color:#3c4043;color:#bdc1c6}
+
+.score-banner{display:grid;grid-template-columns:auto 1fr;gap:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-sm);margin-bottom:14px;align-items:center}
+.score-circle{position:relative;width:140px;height:140px}
+.score-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-circle .bg{stroke:var(--bg3);stroke-width:11;fill:none}
+.score-circle .fg{stroke:var(--accent);stroke-width:11;fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s}
+.score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-text .v{font-size:36px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1}
+.score-text .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:700;text-transform:uppercase}
+.banner-info h2{font-size:20px;font-weight:800;margin-bottom:5px}
+.banner-info .sub{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.banner-info .pills{display:flex;gap:6px;flex-wrap:wrap;font-size:10.5px;font-family:var(--mono);font-weight:700}
+.banner-info .pill{padding:3px 9px;border-radius:11px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.banner-info .pill.ok{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.banner-info .pill.miss{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.signal-row{padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr auto;gap:11px;align-items:start;font-size:12px;cursor:pointer}
+.signal-row:last-child{border-bottom:none}
+.signal-row:hover{background:var(--bg)}
+.signal-row .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;margin-top:1px}
+.signal-row.pass .icon{background:rgba(22,163,74,.15);color:var(--success)}
+.signal-row.warn .icon{background:rgba(245,158,11,.15);color:var(--warn)}
+.signal-row.fail .icon{background:rgba(220,38,38,.15);color:var(--danger)}
+.signal-row .body .title{font-size:12.5px;font-weight:700}
+.signal-row .body .desc{font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px}
+.signal-row .meta{font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:800;text-align:right}
+
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--text2);overflow-x:auto;white-space:pre-wrap;max-height:500px;overflow-y:auto}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .score-banner{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><circle cx="8" cy="14" r="1"/><line x1="11" y1="14" x2="17" y2="14"/></svg></div>
+    <div><div class="logo-name">Knowledge<span>Panel</span></div></div>
+    <span class="logo-tag">ENTITY</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat score">Score: <strong id="stat-score">—</strong></div>
+  <div class="hdr-stat signals">Signals: <strong id="stat-signals">0</strong></div>
+  <div class="hdr-stat missing">Missing: <strong id="stat-missing">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="brand-serp.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">Brand SERP</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Entity Setup</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business Identity</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name *</label><input id="i-name" oninput="onChange()"></div>
+          <div class="f"><label>Category / type</label><input id="i-type" oninput="onChange()" placeholder="Plumbing service"></div>
+          <div class="f"><label>City</label><input id="i-city" oninput="onChange()"></div>
+          <div class="f"><label>Phone</label><input id="i-phone" oninput="onChange()"></div>
+          <div class="f"><label>Website</label><input id="i-url" oninput="onChange()"></div>
+          <div class="f"><label>Logo URL</label><input id="i-logo" oninput="onChange()"></div>
+          <div class="f"><label>Description (250 chars)</label><textarea id="i-desc" rows="3" oninput="onChange()"></textarea></div>
+          <div class="f"><label>Founded year</label><input id="i-founded" type="number" min="1800" max="2030" oninput="onChange()"></div>
+          <div class="f"><label>Founder / owner</label><input id="i-founder" oninput="onChange()"></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ From Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Entity Signals (sameAs)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Wikipedia URL</label><input id="i-wikipedia" placeholder="https://en.wikipedia.org/wiki/..." oninput="onChange()"></div>
+          <div class="f"><label>Wikidata ID</label><input id="i-wikidata" placeholder="Q12345" oninput="onChange()"></div>
+          <div class="f"><label>Facebook URL</label><input id="i-fb" oninput="onChange()"></div>
+          <div class="f"><label>X / Twitter URL</label><input id="i-twitter" oninput="onChange()"></div>
+          <div class="f"><label>LinkedIn URL</label><input id="i-linkedin" oninput="onChange()"></div>
+          <div class="f"><label>Instagram URL</label><input id="i-instagram" oninput="onChange()"></div>
+          <div class="f"><label>YouTube URL</label><input id="i-youtube" oninput="onChange()"></div>
+          <div class="f"><label>Other authority links (one per line)</label><textarea id="i-other" rows="2" placeholder="https://www.bbb.org/...
+https://www.crunchbase.com/..." oninput="onChange()"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="generate()">Generate Schema</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="copySchema()">Copy JSON</button>
+        <button class="btn-sub" onclick="exportReport()">Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="preview" onclick="setTab('preview')">KP Preview</button>
+      <button class="tab" data-tab="signals" onclick="setTab('signals')">Signals Audit</button>
+      <button class="tab" data-tab="schema" onclick="setTab('schema')">Schema</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Strategy Guide</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Optimize entity signals for knowledge panel inclusion</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='kp_state_v1';
+const defaultState={
+  name:'',type:'',city:'',phone:'',url:'',logo:'',desc:'',founded:'',founder:'',
+  wikipedia:'',wikidata:'',fb:'',twitter:'',linkedin:'',instagram:'',youtube:'',other:'',
+  view:'overview'
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillInputs(){['name','type','city','phone','url','logo','desc','founded','founder','wikipedia','wikidata','fb','twitter','linkedin','instagram','youtube','other'].forEach(k=>{const el=document.getElementById('i-'+k);if(el)el.value=state[k]||'';});}
+function onChange(){['name','type','city','phone','url','logo','desc','founded','founder','wikipedia','wikidata','fb','twitter','linkedin','instagram','youtube','other'].forEach(k=>{const el=document.getElementById('i-'+k);if(el)state[k]=el.value;});saveState();render();}
+function syncFromCitation(){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.name=b.name||'';state.city=b.city||'';state.phone=b.phone||'';state.url=b.website||'';state.type=b.category||'';saveState();fillInputs();render();toast('Synced','success');}}catch(e){}}
+
+const SIGNALS=[
+  {key:'name', label:'Business name set', desc:'Required — defines the entity', weight:15, required:true},
+  {key:'logo', label:'Logo URL set', desc:'Shown in knowledge panel + AI search', weight:6, required:true},
+  {key:'desc', label:'Description set', desc:'Appears below the name in KP', weight:5, required:true},
+  {key:'url', label:'Website URL set', desc:'Anchor URL for the entity', weight:8, required:true},
+  {key:'phone', label:'Phone number', desc:'Click-to-call in panel', weight:5},
+  {key:'city', label:'City / address', desc:'Local entity grounding', weight:5},
+  {key:'type', label:'Business type / category', desc:'Subtitle in KP ("Plumber" etc)', weight:4},
+  {key:'founded', label:'Founded year', desc:'Strong entity signal — adds longevity context', weight:4},
+  {key:'founder', label:'Founder / owner', desc:'Entity relationship — links person + org', weight:3},
+  {key:'wikipedia', label:'Wikipedia entry', desc:'Strongest entity signal — primary source for KP data', weight:15},
+  {key:'wikidata', label:'Wikidata ID (Q-number)', desc:'Machine-readable entity identifier — improves disambiguation', weight:10},
+  {key:'fb', label:'Facebook profile', desc:'sameAs anchor', weight:4},
+  {key:'twitter', label:'X / Twitter profile', desc:'sameAs anchor — high-trust', weight:4},
+  {key:'linkedin', label:'LinkedIn page', desc:'sameAs anchor — strong for B2B', weight:5},
+  {key:'instagram', label:'Instagram profile', desc:'sameAs anchor', weight:3},
+  {key:'youtube', label:'YouTube channel', desc:'sameAs anchor + video signal', weight:3},
+];
+
+function auditSignals(){
+  return SIGNALS.map(s=>{
+    let val=state[s.key];
+    const present=val && String(val).trim().length>0;
+    return {...s, present, val};
+  });
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function getScore(){
+  const audit=auditSignals();
+  let total=0, earned=0;
+  audit.forEach(a=>{total+=a.weight;if(a.present)earned+=a.weight;});
+  return total?Math.round(earned/total*100):0;
+}
+
+function buildSchema(){
+  const sameAs=['wikipedia','wikidata','fb','twitter','linkedin','instagram','youtube'].map(k=>state[k]).filter(Boolean);
+  if(state.wikidata && !sameAs.find(s=>s.includes('wikidata.org'))){sameAs[sameAs.indexOf(state.wikidata)]=`https://www.wikidata.org/wiki/${state.wikidata}`;}
+  const other=(state.other||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  sameAs.push(...other);
+  const s={'@context':'https://schema.org','@type':'Organization', name:state.name, url:state.url, logo:state.logo, description:state.desc};
+  if(sameAs.length) s.sameAs=sameAs;
+  if(state.founded) s.foundingDate=state.founded;
+  if(state.founder) s.founder={'@type':'Person', name:state.founder};
+  if(state.phone) s.telephone=state.phone;
+  if(state.city) s.address={'@type':'PostalAddress', addressLocality:state.city};
+  // Clean empty
+  Object.keys(s).forEach(k=>{if(s[k]===''||s[k]==null)delete s[k];});
+  return s;
+}
+
+function render(){
+  const audit=auditSignals();
+  const score=getScore();
+  const present=audit.filter(a=>a.present).length;
+  const missing=audit.length-present;
+  document.getElementById('stat-score').textContent=score+'/100';
+  document.getElementById('stat-signals').textContent=present;
+  document.getElementById('stat-missing').textContent=missing;
+  if(state.view==='overview') return renderOverview(audit, score);
+  if(state.view==='preview') return renderPreview();
+  if(state.view==='signals') return renderSignals(audit);
+  if(state.view==='schema') return renderSchema();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(audit, score){
+  const col=score>=80?'#16a34a':score>=60?'#d97706':'#dc2626';
+  const dash=2*Math.PI*60;const off=dash*(1-score/100);
+  const critical=audit.filter(a=>!a.present && a.weight>=10);
+  document.getElementById('cbody').innerHTML=`
+    <div class="score-banner">
+      <div class="score-circle"><svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="60" class="bg"/><circle cx="70" cy="70" r="60" class="fg" style="stroke:${col};stroke-dasharray:${dash};stroke-dashoffset:${off}"/></svg><div class="score-text"><div class="v" style="color:${col}">${score}</div><div class="l">/ 100</div></div></div>
+      <div class="banner-info">
+        <h2>Knowledge Panel Readiness</h2>
+        <div class="sub">${state.name?escapeHtml(state.name):'Set business name first'} · ${audit.filter(a=>a.present).length}/${audit.length} entity signals present. ${score>=80?'Strong entity profile — high panel likelihood.':score>=60?'Decent foundation — fill critical gaps.':'Weak entity profile — focus on Wikipedia/Wikidata/sameAs links.'}</div>
+        <div class="pills">
+          ${audit.slice(0,8).map(a=>`<span class="pill ${a.present?'ok':'miss'}">${a.present?'✓':'✗'} ${escapeHtml(a.label.split(' ')[0])}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    ${critical.length?`<div class="section"><div class="section-hdr"><h3>Critical Missing Signals (high-weight)</h3><span class="badge">${critical.length}</span></div><div>
+      ${critical.map(c=>`<div class="signal-row fail"><div class="icon">✗</div><div class="body"><div class="title">${escapeHtml(c.label)}</div><div class="desc">${escapeHtml(c.desc)}</div></div><div class="meta">${c.weight}pt</div></div>`).join('')}
+    </div></div>`:''}
+    <div class="section"><div class="section-hdr"><h3>Quick Wins</h3></div><div style="padding:14px;font-size:12.5px;line-height:1.7;color:var(--text2)">
+      <ul style="padding-left:22px">
+        <li><strong>Wikipedia + Wikidata:</strong> The single highest-impact signal pair. If you have a Wikipedia entry, ensure Wikidata Q-number is correctly cross-referenced.</li>
+        <li><strong>Organization schema</strong> with full <code>sameAs</code> array including all social + authority links — generated in the Schema tab.</li>
+        <li><strong>Consistent NAP</strong> across all sameAs links — see <a href="nap-checker.html" style="color:var(--accent)">NAP Checker</a>.</li>
+        <li><strong>GBP verification</strong> — only after your KP appears can you claim it via "Claim this knowledge panel" link in GBP.</li>
+      </ul>
+    </div></div>
+  `;
+}
+
+function renderPreview(){
+  const sameAs=[
+    state.fb && {label:'Facebook', url:state.fb},
+    state.twitter && {label:'X', url:state.twitter},
+    state.linkedin && {label:'LinkedIn', url:state.linkedin},
+    state.instagram && {label:'Instagram', url:state.instagram},
+    state.youtube && {label:'YouTube', url:state.youtube},
+  ].filter(Boolean);
+  document.getElementById('cbody').innerHTML=`
+    <div style="margin-bottom:14px;font-size:12.5px;color:var(--text2);background:var(--bg2);padding:11px 14px;border-radius:8px;border-left:3px solid var(--accent);line-height:1.55">Approximation of how your KP <strong>could</strong> appear in Google with current data. Actual panels depend on Google's entity ranking + verification.</div>
+    <div class="kp-preview">
+      <div class="cover">${state.logo?`<img src="${escapeAttr(state.logo)}" onerror="this.style.display='none'">`:''}</div>
+      <div class="body">
+        <div class="title">${escapeHtml(state.name||'Your Business Name')}</div>
+        <div class="subtitle">${escapeHtml(state.type||'Business type')}${state.city?' in '+escapeHtml(state.city):''}</div>
+        <div class="rating-row"><span class="stars">★★★★★</span><span class="rating-num">4.8</span><span class="review-count">· 124 Google reviews</span></div>
+        <div class="actions">
+          <a class="action-btn">Website</a>
+          <a class="action-btn">Directions</a>
+          <a class="action-btn">Call</a>
+        </div>
+        ${state.desc?`<div class="desc">${escapeHtml(state.desc.substring(0,180))}${state.desc.length>180?'…':''}${state.wikipedia?` <a href="${escapeAttr(state.wikipedia)}" class="src">Wikipedia</a>`:''}</div>`:''}
+        ${state.founded||state.founder?`<div class="row"><div class="ico">📅</div><div class="val">${state.founded?`Founded: <strong>${escapeHtml(state.founded)}</strong>`:''}${state.founded&&state.founder?'<br>':''}${state.founder?`Founder: <strong>${escapeHtml(state.founder)}</strong>`:''}</div></div>`:''}
+        ${state.phone?`<div class="row"><div class="ico">📞</div><div class="val">${escapeHtml(state.phone)}</div></div>`:''}
+        ${state.url?`<div class="row"><div class="ico">🌐</div><div class="val"><a href="${escapeAttr(state.url)}">${escapeHtml(state.url.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a></div></div>`:''}
+        ${sameAs.length?`<div class="social-row">${sameAs.map(s=>`<a href="${escapeAttr(s.url)}" target="_blank">${escapeHtml(s.label)}</a>`).join('')}</div>`:''}
+      </div>
+    </div>
+  `;
+}
+
+function renderSignals(audit){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>All Entity Signals (${audit.length})</h3></div><div>
+    ${audit.map(a=>`<div class="signal-row ${a.present?'pass':a.weight>=10?'fail':'warn'}"><div class="icon">${a.present?'✓':a.weight>=10?'✗':'!'}</div><div class="body"><div class="title">${escapeHtml(a.label)}</div><div class="desc">${escapeHtml(a.desc)}${a.present?'<br><strong>Value:</strong> <code style="font-family:var(--mono);font-size:11px;color:var(--text)">'+escapeHtml(String(a.val).substring(0,80))+'</code>':''}</div></div><div class="meta">${a.weight}pt</div></div>`).join('')}
+  </div></div>`;
+}
+
+function renderSchema(){
+  const s=buildSchema();
+  const json=JSON.stringify(s, null, 2);
+  const html=`<head>\n  <!-- ... other head tags ... -->\n  <script type="application/ld+json">\n${json}\n  <\/script>\n</head>`;
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>Generated Organization Schema</h3><button class="cb-btn" onclick="copySchema()">Copy JSON</button></div><div style="padding:14px"><pre class="code-block">${escapeHtml(json)}</pre></div></div>
+    <div class="section"><div class="section-hdr"><h3>HTML Embed Snippet</h3><button class="cb-btn" onclick="copyHtml()">Copy</button></div><div style="padding:14px"><pre class="code-block">${escapeHtml(html)}</pre></div></div>
+    <div class="section"><div class="section-hdr"><h3>How To Use</h3></div><div style="padding:14px;font-size:12.5px;line-height:1.7;color:var(--text2)">
+      <ol style="padding-left:22px">
+        <li>Add the JSON-LD &lt;script&gt; tag to the &lt;head&gt; of your homepage (and a few key pages)</li>
+        <li>Verify with <a href="https://search.google.com/test/rich-results" target="_blank" style="color:var(--accent)">Rich Results Test</a></li>
+        <li>Submit homepage to Google Search Console for re-crawl</li>
+        <li>Wait 2-8 weeks for Google to update its knowledge graph</li>
+        <li>Validate the schema with the <a href="schema-auditor.html" style="color:var(--accent)">Schema Auditor</a></li>
+      </ol>
+    </div></div>
+  `;
+}
+function copySchema(){navigator.clipboard.writeText(JSON.stringify(buildSchema(),null,2));toast('JSON copied','success');}
+function copyHtml(){const s=buildSchema();const html=`<script type="application/ld+json">\n${JSON.stringify(s,null,2)}\n<\/script>`;navigator.clipboard.writeText(html);toast('HTML copied','success');}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Knowledge Panel Strategy Guide</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">What is a Knowledge Panel?</h4>
+    <p>The right-side info box Google shows for entity searches (your brand name). Powered by Google's Knowledge Graph — sourced from GBP, structured data, Wikipedia/Wikidata, and authoritative web mentions.</p>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Why Optimize</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Dominates branded SERP real estate</li>
+      <li>Increases CTR + trust</li>
+      <li>Provides instant entity recognition for AI search (Perplexity, ChatGPT, etc.)</li>
+      <li>Once claimed, you can suggest edits to inaccurate info</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">The 4 Tiers of Entity Signals</h4>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li><strong>Tier 1 — Definitive</strong>: Wikipedia entry, Wikidata Q-number, GBP listing</li>
+      <li><strong>Tier 2 — Strong</strong>: Organization schema, Crunchbase, LinkedIn company page, BBB accreditation</li>
+      <li><strong>Tier 3 — Supporting</strong>: Social profiles (Facebook, Twitter, Instagram), industry directories, press mentions</li>
+      <li><strong>Tier 4 — Contextual</strong>: Founder/owner identity, founding date, address, products/services</li>
+    </ol>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Getting on Wikipedia (Hardest, Best Tier)</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Notability: requires significant independent coverage in reliable sources</li>
+      <li>Don't write your own article — Wikipedia detects conflict of interest</li>
+      <li>Build press first: get covered in local news, industry pubs, business journals</li>
+      <li>Then someone independent may create the article based on those sources</li>
+      <li>Most small local businesses won't qualify — focus on Tier 2+ instead</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Wikidata (Easier Than Wikipedia)</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Lower notability bar than Wikipedia</li>
+      <li>Anyone can create an entity</li>
+      <li>Link to your website + add basic properties (instance of, country, etc.)</li>
+      <li>Get a Q-number — use in your schema's <code>identifier</code> field</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">sameAs Strategy</h4>
+    <p>The <code>sameAs</code> array in Organization schema tells Google "all these URLs are the same entity." Include:</p>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Your social profiles (Facebook, Twitter, LinkedIn, Instagram, YouTube)</li>
+      <li>Wikidata + Wikipedia (if applicable)</li>
+      <li>Crunchbase, BBB, Yelp listing, industry directories</li>
+      <li>Any other authoritative profile</li>
+    </ul>
+    <p style="margin-top:8px">Use the schema tab to generate this automatically.</p>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Claiming Your Panel</h4>
+    <p>Once a knowledge panel exists for your business:</p>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li>Search your brand name on Google</li>
+      <li>Click "Claim this knowledge panel" at the bottom</li>
+      <li>Verify through GBP or social media login</li>
+      <li>You can now suggest edits and respond to changes</li>
+    </ol>
+  </div></div>`;
+}
+
+function exportReport(){toast('Use Schema tab → Copy JSON','success');}
+
+/* Inherit */
+(function(){
+  if(!state.name){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.name=b.name||'';state.city=b.city||'';state.phone=b.phone||'';state.url=b.website||'';state.type=b.category||'';saveState();}}catch(e){}}
+  if(!state.logo){try{const s=JSON.parse(localStorage.getItem('sch_state_v1')||'null');if(s?.logo)state.logo=s.logo;}catch(e){}}
+})();
+
+fillInputs();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

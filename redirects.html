@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>301 Redirect Mapper - Plan and Validate Local SEO Migrations</title>
+<meta name="description" content="Plan, map, and validate 301 redirects for site migrations, URL restructuring, and location consolidation. Bulk import old/new URL pairs, validate live redirects, detect redirect chains, generate .htaccess + Nginx + Cloudflare Workers + Next.js configs.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#7c3aed; --accent-h:#6d28d9; --accent-soft:rgba(124,58,237,.1);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#a78bfa; --accent-h:#c4b5fd; --accent-soft:rgba(167,139,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--font);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.primary strong{color:var(--accent);font-size:14px}
+.hdr-stat.success strong{color:var(--success)}
+.hdr-stat.warn strong{color:var(--warn)}
+.hdr-stat.err strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.f .hint{font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cb-btn.primary:hover{background:var(--accent-h)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-body{padding:14px}
+
+.rd-row{padding:10px 12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto 1fr auto auto;gap:10px;align-items:center;font-size:12px;font-family:var(--mono)}
+.rd-row:last-child{border-bottom:none}
+.rd-row .num{font-size:11px;font-weight:800;color:var(--text3);min-width:24px;text-align:right}
+.rd-row .url{word-break:break-all;line-height:1.4}
+.rd-row .url.from{color:var(--danger)}
+.rd-row .url.to{color:var(--success)}
+.rd-row .arrow{font-family:var(--mono);font-weight:800;color:var(--text3);font-size:14px}
+.rd-row .code{font-size:10px;font-weight:800;padding:3px 7px;border-radius:4px;color:#fff;background:var(--accent)}
+.rd-row .code.r302{background:var(--warn)}
+.rd-row .code.r307{background:var(--blue)}
+.rd-row .status{font-size:10px;font-weight:800;padding:3px 7px;border-radius:4px}
+.rd-row .status.ok{background:rgba(22,163,74,.15);color:var(--success)}
+.rd-row .status.warn{background:rgba(245,158,11,.15);color:var(--warn)}
+.rd-row .status.err{background:rgba(220,38,38,.15);color:var(--danger)}
+.rd-row .status.notest{background:var(--bg3);color:var(--text2)}
+.rd-row .actions{display:flex;gap:4px}
+.rd-row .actions button{padding:4px 8px;font-size:10px;font-weight:700;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;font-family:var(--font)}
+.rd-row .actions button:hover{border-color:var(--accent);color:var(--accent)}
+.rd-row .actions button.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+.add-form{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;padding:14px;background:var(--bg);border-bottom:1px solid var(--border)}
+.add-form .f input,.add-form .f select{font-family:var(--mono);font-size:12px}
+
+.code-block{font-family:var(--mono);font-size:11.5px;line-height:1.6;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;white-space:pre;overflow-x:auto;max-height:520px;overflow-y:auto;color:var(--text)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-card .lbl{font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.stat-card .val{font-size:24px;font-weight:800;font-family:var(--mono)}
+.stat-card .sub{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.empty{padding:34px 18px;text-align:center;color:var(--text3)}
+.empty svg{width:48px;height:48px;opacity:.3;margin-bottom:10px}
+.empty .et{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.empty .ed{font-size:12px;line-height:1.55;max-width:520px;margin:0 auto}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .add-form{grid-template-columns:1fr}
+  .rd-row{grid-template-columns:auto 1fr auto auto;font-size:11px}
+  .rd-row .arrow,.rd-row > .url:nth-child(4){display:none}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">☰</button>
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></div>
+    <div><div class="logo-name">Redirect<span>Mapper</span></div></div>
+    <span class="logo-tag">301 / 302 / 307</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat primary">Total: <strong id="stat-total">0</strong></div>
+  <div class="hdr-stat success">Validated: <strong id="stat-valid">0</strong></div>
+  <div class="hdr-stat warn">Warnings: <strong id="stat-warn">0</strong></div>
+  <div class="hdr-stat err">Issues: <strong id="stat-err">0</strong></div>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="page-auditor.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--accent)">Page Auditor</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Migration Settings</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Project Info</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Project name</label><input id="i-project" oninput="saveProj()" placeholder="ABC Plumbing site migration"></div>
+          <div class="f"><label>Migration type</label><select id="i-type" onchange="saveProj()">
+            <option value="redesign">Site redesign</option>
+            <option value="cms">CMS migration</option>
+            <option value="domain">Domain change</option>
+            <option value="http_https">HTTP → HTTPS</option>
+            <option value="www">www → non-www (or reverse)</option>
+            <option value="restructure">URL restructure</option>
+            <option value="consolidation">Page consolidation</option>
+            <option value="multi_location">Multi-location merge</option>
+          </select></div>
+          <div class="f"><label>Old domain</label><input id="i-olddom" oninput="saveProj()" placeholder="https://old.example.com"></div>
+          <div class="f"><label>New domain</label><input id="i-newdom" oninput="saveProj()" placeholder="https://www.example.com"></div>
+          <div class="f"><label>Target date</label><input type="date" id="i-date" onchange="saveProj()"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Validation Settings</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>CORS proxy (optional)</label><select id="i-proxy" onchange="saveProj()">
+            <option value="">None (browser blocks most)</option>
+            <option value="allorigins">AllOrigins (recommended)</option>
+            <option value="corsproxy">CorsProxy.io</option>
+            <option value="codetabs">Codetabs</option>
+          </select><div class="hint">Browser can't directly fetch most URLs. Use a proxy to validate live redirects.</div></div>
+          <div class="f"><label>Default redirect code</label><select id="i-defcode" onchange="saveProj()">
+            <option value="301">301 (Permanent — recommended)</option>
+            <option value="302">302 (Temporary)</option>
+            <option value="307">307 (Temporary, preserves method)</option>
+            <option value="308">308 (Permanent, preserves method)</option>
+          </select></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Bulk URL Discovery</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Sitemap URL</label><input id="i-sitemap" placeholder="https://old.example.com/sitemap.xml"></div>
+          <button class="btn-sub" onclick="fetchSitemap()">Fetch URLs from Sitemap</button>
+          <div class="f hint">Pulls URLs from XML sitemap. Use them as your "from" URLs to plan redirects to new URLs.</div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="setTab('bulk')">+ Bulk Add</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportJson()">Export</button>
+        <button class="btn-sub" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="list" onclick="setTab('list')">Redirects</button>
+      <button class="tab" data-tab="bulk" onclick="setTab('bulk')">Bulk Add</button>
+      <button class="tab" data-tab="validate" onclick="setTab('validate')">Validate</button>
+      <button class="tab" data-tab="config" onclick="setTab('config')">Server Config</button>
+      <button class="tab" data-tab="checklist" onclick="setTab('checklist')">Migration Checklist</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Best Practices</button>
+      <div class="cb-sp"></div>
+      <button class="cb-btn" onclick="detectIssues()">Detect Issues</button>
+      <button class="cb-btn primary" onclick="validateAll()">Validate All</button>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Plan migrations carefully — bad redirects can destroy years of SEO value</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='rd_state_v1';
+const defaultState={
+  project:{name:'',type:'redesign',oldDomain:'',newDomain:'',date:'',proxy:'allorigins',defCode:'301'},
+  redirects:[],
+  view:'list'
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),3000);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+function uid(){return 'r'+Math.random().toString(36).slice(2,9)}
+
+function saveProj(){
+  state.project.name=document.getElementById('i-project').value;
+  state.project.type=document.getElementById('i-type').value;
+  state.project.oldDomain=document.getElementById('i-olddom').value.replace(/\/$/,'');
+  state.project.newDomain=document.getElementById('i-newdom').value.replace(/\/$/,'');
+  state.project.date=document.getElementById('i-date').value;
+  state.project.proxy=document.getElementById('i-proxy').value;
+  state.project.defCode=document.getElementById('i-defcode').value;
+  saveState();
+}
+function loadProj(){
+  const p=state.project;
+  document.getElementById('i-project').value=p.name||'';
+  document.getElementById('i-type').value=p.type||'redesign';
+  document.getElementById('i-olddom').value=p.oldDomain||'';
+  document.getElementById('i-newdom').value=p.newDomain||'';
+  document.getElementById('i-date').value=p.date||'';
+  document.getElementById('i-proxy').value=p.proxy||'allorigins';
+  document.getElementById('i-defcode').value=p.defCode||'301';
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function addRedirect(from,to,code){
+  if(!from||!to){toast('From + To required','err');return;}
+  from=from.trim().replace(/\s+/g,'');to=to.trim().replace(/\s+/g,'');
+  if(state.redirects.some(r=>r.from===from)){toast('Already exists: '+from,'err');return;}
+  state.redirects.push({id:uid(),from,to,code:code||state.project.defCode||'301',status:null,statusDetail:null,note:''});
+  saveState();updateStats();render();
+}
+function delRedirect(id){state.redirects=state.redirects.filter(r=>r.id!==id);saveState();updateStats();render();}
+function clearAll(){if(!confirm('Clear all redirects?'))return;state.redirects=[];saveState();updateStats();render();toast('Cleared','success');}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=state.redirects.length;
+  document.getElementById('stat-valid').textContent=state.redirects.filter(r=>r.status==='ok').length;
+  document.getElementById('stat-warn').textContent=state.redirects.filter(r=>r.status==='warn').length;
+  document.getElementById('stat-err').textContent=state.redirects.filter(r=>r.status==='err').length;
+}
+
+function render(){
+  if(state.view==='list')return renderList();
+  if(state.view==='bulk')return renderBulk();
+  if(state.view==='validate')return renderValidate();
+  if(state.view==='config')return renderConfig();
+  if(state.view==='checklist')return renderChecklist();
+  if(state.view==='guide')return renderGuide();
+}
+
+function renderList(){
+  let html='';
+  // Stats
+  const total=state.redirects.length;
+  const codes={};state.redirects.forEach(r=>{codes[r.code]=(codes[r.code]||0)+1;});
+  html+=`<div class="stat-grid">
+    <div class="stat-card"><div class="lbl">Total Redirects</div><div class="val" style="color:var(--accent)">${total}</div><div class="sub">in this project</div></div>
+    <div class="stat-card"><div class="lbl">301 Permanent</div><div class="val" style="color:var(--success)">${codes['301']||0}</div><div class="sub">recommended</div></div>
+    <div class="stat-card"><div class="lbl">302 Temp</div><div class="val" style="color:var(--warn)">${codes['302']||0}</div><div class="sub">${codes['302']?'review usage':'—'}</div></div>
+    <div class="stat-card"><div class="lbl">Other</div><div class="val">${(codes['307']||0)+(codes['308']||0)}</div><div class="sub">307 + 308</div></div>
+  </div>`;
+  // Add form
+  html+=`<div class="section"><div class="section-hdr"><h3>Quick Add</h3></div><div class="add-form">
+    <div class="f"><label>From URL (old)</label><input id="qa-from" placeholder="/old-page or full URL" onkeydown="if(event.key==='Enter')quickAdd()"></div>
+    <div class="f"><label>To URL (new)</label><input id="qa-to" placeholder="/new-page or full URL" onkeydown="if(event.key==='Enter')quickAdd()"></div>
+    <div class="f"><label>Code</label><select id="qa-code"><option value="301">301</option><option value="302">302</option><option value="307">307</option><option value="308">308</option></select></div>
+    <button class="cb-btn primary" onclick="quickAdd()" style="grid-column:1/-1;justify-content:center;padding:10px">+ Add Redirect</button>
+  </div></div>`;
+  // List
+  if(!total){
+    html+=`<div class="section"><div class="section-body empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+      <div class="et">No redirects mapped yet</div>
+      <div class="ed">Add redirects above one-at-a-time, or click <strong>Bulk Add</strong> to paste many at once. Use <strong>Bulk URL Discovery</strong> in the left panel to pull URLs from your old sitemap.</div>
+    </div></div>`;
+  } else {
+    html+=`<div class="section"><div class="section-hdr"><h3>Redirect Map</h3><span class="badge">${total} redirects</span></div><div>`;
+    state.redirects.forEach((r,i)=>{
+      let statusClass='notest', statusText='Not tested';
+      if(r.status==='ok'){statusClass='ok';statusText='Valid';}
+      else if(r.status==='warn'){statusClass='warn';statusText='Warning';}
+      else if(r.status==='err'){statusClass='err';statusText='Issue';}
+      const codeClass=r.code==='301'?'':'r'+r.code;
+      html+=`<div class="rd-row">
+        <div class="num">${i+1}</div>
+        <div class="url from" title="${escapeHtml(r.from)}">${escapeHtml(r.from)}</div>
+        <div class="arrow">→</div>
+        <div class="url to" title="${escapeHtml(r.to)}">${escapeHtml(r.to)}</div>
+        <div><span class="code ${codeClass}">${escapeHtml(r.code)}</span></div>
+        <div class="status ${statusClass}" title="${escapeHtml(r.statusDetail||'')}">${escapeHtml(statusText)}</div>
+        <div class="actions">
+          <button onclick="validateOne('${r.id}')">Test</button>
+          <button class="danger" onclick="delRedirect('${r.id}')">✕</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  }
+  document.getElementById('cbody').innerHTML=html;
+}
+function quickAdd(){const f=document.getElementById('qa-from').value;const t=document.getElementById('qa-to').value;const c=document.getElementById('qa-code').value;addRedirect(f,t,c);document.getElementById('qa-from').value='';document.getElementById('qa-to').value='';document.getElementById('qa-from').focus();}
+
+function renderBulk(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Bulk Add Redirects</h3></div><div class="section-body" style="display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:12.5px;color:var(--text2);line-height:1.6">
+      Paste redirect mappings — one per line. Multiple formats supported:
+      <ul style="padding-left:18px;margin-top:6px;font-family:var(--mono);font-size:11.5px">
+        <li>/from → /to</li>
+        <li>/from , /to</li>
+        <li>/from | /to | 301</li>
+        <li>/from /to (space)</li>
+        <li>CSV with from,to columns</li>
+      </ul>
+    </div>
+    <textarea id="bulk-in" rows="14" style="padding:11px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);resize:vertical">/old-services → /services
+/locations/old-city → /locations/new-city
+/blog/2024/old-post-slug → /blog/new-post-slug | 301</textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="cb-btn primary" onclick="bulkParse()">Import All</button>
+      <button class="cb-btn" onclick="document.getElementById('bulk-in').value=''">Clear</button>
+      <div style="flex:1"></div>
+      <button class="cb-btn" onclick="bulkExport()">Export Current as List</button>
+    </div>
+    <div style="background:var(--bg);border-left:3px solid var(--warn);padding:11px 14px;font-size:12px;color:var(--text2);line-height:1.6;border-radius:6px">
+      <strong style="color:var(--warn)">Auto-rules:</strong> When you set old + new domains in the left panel, common redirect rules can be auto-generated. Click <button class="cb-btn" style="display:inline-flex;padding:3px 8px" onclick="autoGenerate()">Auto-Generate Domain Rules</button>
+    </div>
+  </div></div>`;
+}
+function bulkParse(){
+  const raw=document.getElementById('bulk-in').value;const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0,dups=0;
+  lines.forEach(l=>{
+    let parts;
+    if(l.includes('→'))parts=l.split('→').map(p=>p.trim());
+    else if(l.includes('|'))parts=l.split('|').map(p=>p.trim());
+    else if(l.includes(','))parts=l.split(',').map(p=>p.trim());
+    else parts=l.split(/\s+/).filter(Boolean);
+    if(parts.length<2)return;
+    const from=parts[0],to=parts[1],code=parts[2]||state.project.defCode||'301';
+    if(state.redirects.some(r=>r.from===from)){dups++;return;}
+    state.redirects.push({id:uid(),from,to,code,status:null,statusDetail:null,note:''});n++;
+  });
+  saveState();updateStats();toast(`Added ${n}${dups?' (skipped '+dups+' dups)':''}`,'success');
+}
+function bulkExport(){const lines=state.redirects.map(r=>`${r.from} → ${r.to} | ${r.code}`);document.getElementById('bulk-in').value=lines.join('\n');toast('Loaded current','success');}
+function autoGenerate(){
+  const p=state.project;
+  let n=0;
+  if(p.type==='http_https' && p.newDomain){
+    const dom=p.newDomain.replace(/^https?:\/\//,'').replace(/^www\./,'');
+    addRedirect(`http://${dom}/(.*)`,`https://${dom}/$1`,'301');n++;
+  }
+  if(p.type==='www' && p.oldDomain && p.newDomain){
+    const oldDom=p.oldDomain.replace(/^https?:\/\//,'');
+    const newDom=p.newDomain.replace(/^https?:\/\//,'');
+    addRedirect(`${oldDom}/(.*)`,`${newDom}/$1`,'301');n++;
+  }
+  if(p.type==='domain' && p.oldDomain && p.newDomain){
+    const oldDom=p.oldDomain.replace(/^https?:\/\//,'');
+    addRedirect(`${oldDom}/(.*)`,`${p.newDomain}/$1`,'301');n++;
+  }
+  if(n){toast(`Generated ${n} rules`,'success');render();}
+  else{toast('Set migration type + domains first','err');}
+}
+
+function renderValidate(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Live Redirect Validation</h3><button class="cb-btn primary" onclick="validateAll()">Validate All</button></div><div class="section-body" style="font-size:13px;color:var(--text2);line-height:1.7">
+    <p>Click <strong>Validate All</strong> (also available in the toolbar) to test each redirect against the live site. Validation runs through your selected CORS proxy and:</p>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Fetches the "from" URL via the configured proxy</li>
+      <li>Confirms the response status code matches expected (301/302/etc)</li>
+      <li>Validates the Location header points to the configured "to" URL</li>
+      <li>Detects redirect chains (multiple hops)</li>
+      <li>Detects redirect loops</li>
+    </ul>
+    <p style="margin-top:14px"><strong>Tip:</strong> Validate after you push redirect rules to staging or production. Pre-launch validation catches typos before they affect real users.</p>
+    <p style="margin-top:14px"><strong>Note:</strong> Browser-based validation requires a CORS proxy because most servers don't allow cross-origin fetches. Validation results show response codes from the proxy, not the actual browser request a user would make. Results should match in most cases but may not match if your server returns different headers for proxies.</p>
+    <p style="margin-top:14px">Best paired with a server-side check (curl, Screaming Frog) for high-stakes migrations.</p>
+  </div></div>`;
+}
+
+async function validateOne(id){
+  const r=state.redirects.find(x=>x.id===id);if(!r)return;
+  await testRedirect(r);saveState();render();updateStats();
+}
+async function validateAll(){
+  if(!state.redirects.length){toast('Nothing to validate','err');return;}
+  toast(`Validating ${state.redirects.length}…`);
+  for(const r of state.redirects){await testRedirect(r);saveState();render();updateStats();}
+  toast('Validation complete','success');
+}
+async function testRedirect(r){
+  try{
+    const old=state.project.oldDomain||'';
+    let fromUrl=r.from;
+    if(!fromUrl.match(/^https?:\/\//))fromUrl=old+(fromUrl.startsWith('/')?fromUrl:'/'+fromUrl);
+    const proxyId=state.project.proxy||'allorigins';
+    let proxied;
+    if(proxyId==='allorigins')proxied='https://api.allorigins.win/raw?url='+encodeURIComponent(fromUrl);
+    else if(proxyId==='corsproxy')proxied='https://corsproxy.io/?'+encodeURIComponent(fromUrl);
+    else if(proxyId==='codetabs')proxied='https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(fromUrl);
+    else{r.status='warn';r.statusDetail='No proxy configured — cannot test from browser';return;}
+    const resp=await fetch(proxied,{method:'HEAD',redirect:'manual'}).catch(()=>fetch(proxied,{redirect:'follow'}));
+    if(resp.redirected){
+      const target=resp.url;
+      const expected=r.to.match(/^https?:\/\//)?r.to:(state.project.newDomain||'')+(r.to.startsWith('/')?r.to:'/'+r.to);
+      const normTarget=target.replace(/\/$/,'');const normExp=expected.replace(/\/$/,'');
+      if(normTarget===normExp || normTarget.endsWith(r.to.replace(/^\//,''))){r.status='ok';r.statusDetail=`Redirected to ${target}`;}
+      else{r.status='warn';r.statusDetail=`Redirected, but to ${target} (expected ${expected})`;}
+    } else if(resp.ok){
+      r.status='err';r.statusDetail=`No redirect — returned 200 (expected ${r.code})`;
+    } else{
+      r.status='err';r.statusDetail=`HTTP ${resp.status}`;
+    }
+  } catch(e){r.status='warn';r.statusDetail='Test failed: '+e.message;}
+}
+
+function detectIssues(){
+  let chain=0, loop=0, dups=0;
+  const fromSet=new Set();
+  const toFromMap={};
+  state.redirects.forEach(r=>{
+    if(fromSet.has(r.from))dups++;
+    fromSet.add(r.from);
+    toFromMap[r.to]=r.from;
+  });
+  state.redirects.forEach(r=>{
+    if(toFromMap[r.from] && toFromMap[r.from]!==r.to){
+      // r.from is target of some other redirect — chain
+      chain++;
+    }
+    if(r.from===r.to)loop++;
+  });
+  const msgs=[];
+  if(dups)msgs.push(`${dups} duplicate "from" URLs`);
+  if(chain)msgs.push(`${chain} redirect chains detected`);
+  if(loop)msgs.push(`${loop} redirect loops (from = to)`);
+  if(!msgs.length){toast('No issues detected','success');return;}
+  toast(msgs.join(' · '),'err');
+}
+
+function renderConfig(){
+  const list=state.redirects;
+  const code=state.project.defCode||'301';
+  const escapeRegex=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  // .htaccess
+  const htaccess='# Apache .htaccess redirects\n# Generated: '+(new Date()).toISOString().slice(0,10)+'\n# Project: '+(state.project.name||'untitled')+'\n\n'+
+    'RewriteEngine On\n\n'+
+    list.map(r=>{
+      const isRegex=r.from.includes('(.*)')||r.from.includes('$');
+      if(isRegex)return `RewriteRule ^${r.from.replace(/^\//,'')} ${r.to} [R=${r.code},L]`;
+      return `Redirect ${r.code} ${r.from} ${r.to}`;
+    }).join('\n');
+  // Nginx
+  const nginx='# nginx redirects\n# Generated: '+(new Date()).toISOString().slice(0,10)+'\n# Add inside your server { … } block\n\n'+
+    list.map(r=>{
+      const isRegex=r.from.includes('(.*)')||r.from.includes('$');
+      if(isRegex)return `rewrite ^${r.from.replace(/^\//,'')}$ ${r.to} permanent;`;
+      return `location = ${r.from} { return ${r.code} ${r.to}; }`;
+    }).join('\n');
+  // Next.js
+  const nextjs='// next.config.js — paste this redirects() function\n// Generated: '+(new Date()).toISOString().slice(0,10)+'\n\n'+
+    `module.exports = {\n  async redirects() {\n    return [\n${list.map(r=>`      { source: '${r.from}', destination: '${r.to}', permanent: ${r.code==='301'||r.code==='308'} },`).join('\n')}\n    ];\n  },\n};`;
+  // Cloudflare Workers
+  const cf='// Cloudflare Workers redirect script\n// Generated: '+(new Date()).toISOString().slice(0,10)+'\n\n'+
+    `const REDIRECTS = {\n${list.map(r=>`  '${r.from}': { to: '${r.to}', code: ${r.code} },`).join('\n')}\n};\n\nexport default {\n  async fetch(req) {\n    const url = new URL(req.url);\n    const target = REDIRECTS[url.pathname];\n    if (target) return Response.redirect(target.to.startsWith('http') ? target.to : url.origin + target.to, target.code);\n    return fetch(req);\n  },\n};`;
+  // Vercel
+  const vercel='// vercel.json — add to root\n// Generated: '+(new Date()).toISOString().slice(0,10)+'\n\n'+
+    JSON.stringify({redirects:list.map(r=>({source:r.from,destination:r.to,permanent:r.code==='301'||r.code==='308'}))},null,2);
+  // CSV
+  const csv='from,to,code\n'+list.map(r=>`"${r.from.replace(/"/g,'""')}","${r.to.replace(/"/g,'""')}",${r.code}`).join('\n');
+
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>🟧 Apache .htaccess</h3><span class="badge">${list.length} rules</span><button class="cb-btn" onclick="copyCode('htaccess')">Copy</button><button class="cb-btn" onclick="downloadCode('.htaccess','htaccess')">Download</button></div><pre class="code-block" id="code-htaccess">${escapeHtml(htaccess)}</pre></div>
+    <div class="section"><div class="section-hdr"><h3>🟩 Nginx</h3><span class="badge">${list.length} rules</span><button class="cb-btn" onclick="copyCode('nginx')">Copy</button><button class="cb-btn" onclick="downloadCode('nginx-redirects.conf','nginx')">Download</button></div><pre class="code-block" id="code-nginx">${escapeHtml(nginx)}</pre></div>
+    <div class="section"><div class="section-hdr"><h3>⚫ Next.js</h3><span class="badge">${list.length} rules</span><button class="cb-btn" onclick="copyCode('nextjs')">Copy</button><button class="cb-btn" onclick="downloadCode('next.config.js','nextjs')">Download</button></div><pre class="code-block" id="code-nextjs">${escapeHtml(nextjs)}</pre></div>
+    <div class="section"><div class="section-hdr"><h3>⚪ Vercel</h3><span class="badge">${list.length} rules</span><button class="cb-btn" onclick="copyCode('vercel')">Copy</button><button class="cb-btn" onclick="downloadCode('vercel.json','vercel')">Download</button></div><pre class="code-block" id="code-vercel">${escapeHtml(vercel)}</pre></div>
+    <div class="section"><div class="section-hdr"><h3>🟠 Cloudflare Workers</h3><span class="badge">${list.length} rules</span><button class="cb-btn" onclick="copyCode('cf')">Copy</button><button class="cb-btn" onclick="downloadCode('worker.js','cf')">Download</button></div><pre class="code-block" id="code-cf">${escapeHtml(cf)}</pre></div>
+    <div class="section"><div class="section-hdr"><h3>📄 CSV Export</h3><span class="badge">${list.length} rows</span><button class="cb-btn" onclick="copyCode('csv')">Copy</button><button class="cb-btn" onclick="downloadCode('redirects.csv','csv')">Download</button></div><pre class="code-block" id="code-csv">${escapeHtml(csv)}</pre></div>
+  `;
+}
+function copyCode(id){const el=document.getElementById('code-'+id);if(!el)return;navigator.clipboard.writeText(el.textContent);toast('Copied','success');}
+function downloadCode(fname,id){const el=document.getElementById('code-'+id);if(!el)return;const blob=new Blob([el.textContent],{type:'text/plain'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Downloaded','success');}
+
+function renderChecklist(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Migration Checklist</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">2-3 Weeks Before Migration</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>☐ Crawl old site (Screaming Frog) — record all URLs, status codes, titles, H1s</li>
+      <li>☐ Export Google Search Console: top pages, top queries, indexed URLs</li>
+      <li>☐ Map every old URL → new URL (this tool!)</li>
+      <li>☐ Test redirects on staging environment</li>
+      <li>☐ Identify URLs to consolidate (4 old pages → 1 new page is fine; many-to-one)</li>
+      <li>☐ Decide what URLs to drop (404 vs 410 vs redirect to category)</li>
+      <li>☐ Verify backlinks pointing to top old URLs (Ahrefs/Moz) — those MUST redirect</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">1 Week Before</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>☐ Update XML sitemap with NEW URLs only</li>
+      <li>☐ Update internal links on the new site (don't rely on redirects)</li>
+      <li>☐ Verify GBP website URL is current</li>
+      <li>☐ Update social profile bio links</li>
+      <li>☐ Update email signature template if you have one</li>
+      <li>☐ Update Google Analytics + Search Console for new domain (if changing)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Launch Day</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>☐ Push redirects to production</li>
+      <li>☐ Submit new sitemap to GSC</li>
+      <li>☐ Use GSC "Change of Address" tool if changing domain</li>
+      <li>☐ Validate top 20 redirects manually</li>
+      <li>☐ Validate all redirects (this tool's Validate All)</li>
+      <li>☐ Spot-check from search results — Google your top 5 keywords + click results</li>
+      <li>☐ Monitor real-time GA for traffic anomalies</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Week 1 Post-Launch</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>☐ Check GSC for crawl errors daily</li>
+      <li>☐ Compare organic traffic in GA (small dip is normal; >20% sustained is a problem)</li>
+      <li>☐ Re-validate any redirects flagged as warnings</li>
+      <li>☐ Watch for redirect chains (Google says max 3 hops before they may stop following)</li>
+      <li>☐ Reach out to top backlink sources for direct link updates if domain changed</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Month 1-3</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>☐ Keep redirects in place (don't remove for at least 12 months; ideally permanently)</li>
+      <li>☐ Monitor rankings weekly — recovery often takes 4-12 weeks</li>
+      <li>☐ Check GSC for "redirect error" pages weekly</li>
+      <li>☐ Update citations to new URL/domain (use a citation manager)</li>
+    </ul>
+  </div></div>`;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Redirect Best Practices</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Choosing the Right Status Code</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>301 (Permanent):</strong> Default for migrations, restructuring, consolidations. Tells Google to transfer ranking signals. Use ~95% of the time.</li>
+      <li><strong>302 (Temporary):</strong> A/B testing, geo-rotation, maintenance pages. Google may treat 302s as 301s if they persist, but explicit is better.</li>
+      <li><strong>307 (Temporary, preserves method):</strong> Rare. Use when POST/PUT must remain after redirect.</li>
+      <li><strong>308 (Permanent, preserves method):</strong> Same as 301 but preserves request method. Less common.</li>
+      <li><strong>410 (Gone):</strong> Use for permanently removed content with no equivalent — better signal than 404.</li>
+      <li><strong>404 (Not Found):</strong> Default for missing pages. Don't redirect everything — sometimes a 404 is correct.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Common Migration Patterns</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Domain change (acme.com → newacme.com):</strong> Wildcard 301 from old to new + use Search Console "Change of Address" tool</li>
+      <li><strong>HTTPS migration:</strong> Wildcard http → https redirect. Update HSTS header for future automatic upgrade.</li>
+      <li><strong>WWW canonicalization:</strong> Pick one (www or non-www) and redirect the other. Doesn't matter which.</li>
+      <li><strong>URL restructure:</strong> Map old structure to new structure 1:1 where possible. For many-to-one, redirect to the most relevant new URL (not just the homepage).</li>
+      <li><strong>Site consolidation:</strong> When merging 2 sites, audit which has more authority + redirect the weaker into the stronger.</li>
+      <li><strong>Multi-location consolidation:</strong> If closing a location, redirect to a parent location page (not the homepage) so visitors stay in context.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">SEO Pitfalls to Avoid</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Redirecting everything to homepage:</strong> Worst-case scenario. Google treats this as soft-404 + loses page-level rankings. Always preserve topic relevance.</li>
+      <li><strong>Redirect chains:</strong> /old → /interim → /new burns crawl budget. Update old links to point directly to /new.</li>
+      <li><strong>Redirect loops:</strong> A → B → A. Site goes down. This tool's <strong>Detect Issues</strong> button catches these.</li>
+      <li><strong>Removing redirects too early:</strong> Keep redirects active for at least 12 months. Some external links take years to be updated.</li>
+      <li><strong>Not testing on staging:</strong> One typo in regex can break the entire site. Test before pushing to production.</li>
+      <li><strong>Forgetting non-HTTP entry points:</strong> RSS feeds, sitemaps, APIs may have their own URL patterns.</li>
+      <li><strong>Internal links pointing to redirected URLs:</strong> Update internal links to point directly to new URLs. Internal redirects are pure overhead.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Local SEO Specific Considerations</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>GBP website URL:</strong> Must be updated to new URL same day as launch. Otherwise GBP links 404.</li>
+      <li><strong>Citation updates:</strong> Top 50 citations need URL updates. Use citation manager or do manually.</li>
+      <li><strong>Local schema NAPU:</strong> Update Name/Address/Phone/URL in LocalBusiness schema everywhere.</li>
+      <li><strong>Location page URLs:</strong> If restructuring /locations, redirect each old location URL to its matching new one — never to /locations index.</li>
+      <li><strong>Service page consolidation:</strong> Many small service pages → consolidated mega-page is common. Redirect each small page → the relevant section anchor on the mega-page.</li>
+    </ul>
+  </div></div>`;
+}
+
+async function fetchSitemap(){
+  const url=document.getElementById('i-sitemap').value.trim();
+  if(!url){toast('Enter sitemap URL','err');return;}
+  const proxyId=state.project.proxy||'allorigins';
+  let proxied;
+  if(proxyId==='allorigins')proxied='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
+  else if(proxyId==='corsproxy')proxied='https://corsproxy.io/?'+encodeURIComponent(url);
+  else if(proxyId==='codetabs')proxied='https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(url);
+  else{toast('Set a CORS proxy first','err');return;}
+  try{
+    toast('Fetching sitemap…');
+    const r=await fetch(proxied);
+    const xml=await r.text();
+    const matches=Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).map(m=>m[1]);
+    if(!matches.length){toast('No URLs found','err');return;}
+    if(!confirm(`Found ${matches.length} URLs. Pre-fill these as "from" URLs (you'll set "to" manually)?`))return;
+    matches.forEach(u=>{
+      if(!state.redirects.some(r=>r.from===u)){
+        state.redirects.push({id:uid(),from:u,to:'',code:state.project.defCode||'301',status:null,statusDetail:null,note:'From sitemap'});
+      }
+    });
+    saveState();updateStats();render();toast(`Added ${matches.length} URLs`,'success');
+  } catch(e){toast('Fetch failed: '+e.message,'err');}
+}
+
+function exportJson(){
+  const json=JSON.stringify({project:state.project,redirects:state.redirects,exportedAt:'2026-05-30'},null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=`redirects-${(state.project.name||'project').replace(/[^a-z0-9]+/gi,'-')}.json`;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Exported','success');
+}
+
+loadProj();
+render();
+updateStats();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

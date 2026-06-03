@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Schema Generator - Multi-Location & Multi-Page JSON-LD at Scale</title>
+<meta name="description" content="Generate JSON-LD schema markup for many pages/locations at once from CSV input. Supports LocalBusiness (all subtypes), Service, Product, FAQPage, BreadcrumbList, HowTo, Event, Article schemas. Bulk export per-URL JSON-LD ready to inject.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0891b2; --accent-h:#0e7490; --accent-soft:rgba(8,145,178,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#22d3ee; --accent-h:#67e8f9; --accent-soft:rgba(34,211,238,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--blue);border:1px solid var(--blue);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.rows strong{color:var(--accent)}
+.hdr-stat.gen strong{color:var(--success);font-size:14px}
+.hdr-stat.errs strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{resize:vertical;min-height:200px;font-family:var(--mono);font-size:11px;line-height:1.5}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.schema-type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;padding:11px 13px;background:var(--bg);border-bottom:1px solid var(--border)}
+.schema-type{padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:11.5px;text-align:center;font-weight:700;transition:all .12s}
+.schema-type:hover{border-color:var(--accent);color:var(--accent)}
+.schema-type.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:22px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.row-result{padding:10px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1fr auto;gap:11px;align-items:center;font-size:12px}
+.row-result:last-child{border-bottom:none}
+.row-result .num{width:28px;height:28px;border-radius:7px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:900;font-family:var(--mono);font-size:11px;color:var(--text2)}
+.row-result.ok .num{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.row-result.err .num{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.row-result .info .url{font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px}
+.row-result .info .name{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-result .info .err-msg{font-size:11px;color:var(--danger);margin-top:3px}
+.row-result .actions{display:flex;flex-direction:column;gap:4px}
+.row-result .actions button{padding:4px 10px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.row-result .actions button:hover{border-color:var(--accent);color:var(--accent)}
+
+.preview-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000;padding:14px}
+.preview-modal.show{display:flex}
+.preview-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:780px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+.preview-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.preview-hdr h3{font-size:14px;font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-hdr .x{padding:6px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;font-weight:700;cursor:pointer}
+.preview-body{padding:16px 18px;overflow-y:auto}
+.preview-body pre{font-family:var(--mono);font-size:11.5px;line-height:1.6;background:var(--bg);padding:14px;border-radius:8px;border:1px solid var(--border);overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.preview-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg></div>
+    <div><div class="logo-name">Bulk<span>Schema</span></div></div>
+    <span class="logo-tag">JSON-LD</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat rows">Rows: <strong id="stat-rows">0</strong></div>
+  <div class="hdr-stat gen">Generated: <strong id="stat-gen">0</strong></div>
+  <div class="hdr-stat errs">Errors: <strong id="stat-errs">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="schema-generator.html" class="hdr-link" style="border-color:rgba(8,145,178,.4);color:var(--accent)">Single Schema</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>CSV Input</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Schema Type</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Type</label><select id="i-type" onchange="onTypeChange()">
+            <option value="LocalBusiness">LocalBusiness</option>
+            <option value="Restaurant">Restaurant</option>
+            <option value="MedicalOrganization">MedicalOrganization</option>
+            <option value="LegalService">LegalService</option>
+            <option value="Dentist">Dentist</option>
+            <option value="Physician">Physician</option>
+            <option value="HomeAndConstructionBusiness">HomeAndConstructionBusiness</option>
+            <option value="AutoDealer">AutoDealer</option>
+            <option value="RealEstateAgent">RealEstateAgent</option>
+            <option value="FinancialService">FinancialService</option>
+            <option value="HairSalon">HairSalon</option>
+            <option value="DaySpa">DaySpa</option>
+            <option value="HealthClub">HealthClub</option>
+            <option value="Store">Store</option>
+            <option value="Service">Service (not location)</option>
+            <option value="Product">Product</option>
+            <option value="FAQPage">FAQPage</option>
+            <option value="BreadcrumbList">BreadcrumbList</option>
+            <option value="Article">Article</option>
+            <option value="HowTo">HowTo</option>
+            <option value="Event">Event</option>
+          </select></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>CSV Data</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Paste CSV (with header row)</label><textarea id="i-csv" placeholder="url,name,address,city,state,zip,phone..."></textarea><div class="hint">Click <strong>Load Template</strong> to see required columns for selected schema type.</div></div>
+          <button class="btn-sub" onclick="loadTemplate()">Load Template</button>
+          <button class="btn-sub" onclick="loadFromMultiLoc()">↻ From Multi-Location</button>
+          <input type="file" id="i-file" accept=".csv" style="display:none" onchange="loadCSVFile(event)">
+          <button class="btn-sub" onclick="document.getElementById('i-file').click()">Upload CSV file</button>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="generateAll()">Generate Schemas</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportAll()">Export ZIP</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="results" onclick="setTab('results')">Results</button>
+      <button class="tab" data-tab="template" onclick="setTab('template')">CSV Template</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Best Practices</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Generate JSON-LD for multiple pages/locations at once</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<div class="preview-modal" id="m-preview">
+  <div class="preview-card">
+    <div class="preview-hdr"><h3 id="pv-title">Schema Preview</h3><button class="x" onclick="document.getElementById('m-preview').classList.remove('show')">✕</button></div>
+    <div class="preview-body"><pre id="pv-content"></pre></div>
+    <div class="preview-foot"><button class="cb-btn" onclick="document.getElementById('m-preview').classList.remove('show')">Close</button><button class="cb-btn" onclick="copyPreview()">Copy JSON-LD</button><button class="cb-btn" style="background:var(--accent);color:#fff;border-color:var(--accent)" onclick="copyHtmlEmbed()">Copy with &lt;script&gt; tag</button></div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY='bsch_state_v1';
+const defaultState={type:'LocalBusiness', csv:'', results:[], view:'results'};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillInputs(){document.getElementById('i-type').value=state.type;document.getElementById('i-csv').value=state.csv||'';}
+function onTypeChange(){state.type=document.getElementById('i-type').value;saveState();}
+
+/* CSV parsing */
+function parseCSV(text){
+  const lines=text.split('\n').map(l=>l.replace(/\r$/,'')).filter(l=>l.trim());
+  if(!lines.length)return {headers:[], rows:[]};
+  const headers=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
+  const rows=lines.slice(1).map(line=>{
+    const vals=parseCSVLine(line);
+    const row={};headers.forEach((h,i)=>{row[h]=vals[i]?vals[i].trim():'';});return row;
+  });
+  return {headers, rows};
+}
+function parseCSVLine(line){
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===',' && !inQ){result.push(cur);cur='';}
+    else cur+=c;
+  }
+  result.push(cur);return result;
+}
+
+/* Templates per schema type */
+const TEMPLATES={
+  LocalBusiness:`url,name,address,city,state,zip,country,phone,description,url_logo,price_range,opens,closes,lat,lng
+https://yoursite.com/locations/denver,Acme Plumbing Denver,123 Main St,Denver,CO,80202,US,+13035551234,Trusted plumbing services in Denver since 1985,https://yoursite.com/logo.png,$$,08:00,18:00,39.7392,-104.9903`,
+  Restaurant:`url,name,address,city,state,zip,country,phone,cuisine,price_range,opens,closes,lat,lng,menu_url,accepts_reservations
+https://yoursite.com/locations/downtown,Mario's Pizza Downtown,500 Larimer St,Denver,CO,80202,US,+13035551001,Italian,$$,11:00,22:00,39.7491,-104.9991,/menu,true`,
+  MedicalOrganization:`url,name,address,city,state,zip,country,phone,specialty,opens,closes,lat,lng,accepts_insurance
+https://drsmith.com/locations/denver,Dr. Smith Family Practice,789 Health Way,Denver,CO,80203,US,+13035552000,Family Medicine,08:00,17:00,39.7392,-104.9803,true`,
+  Service:`url,service_name,description,price,provider_name,area_served,service_type
+https://yoursite.com/services/drain-cleaning,Drain Cleaning,Professional drain cleaning + camera inspection,189,Acme Plumbing,Denver Metro,Plumbing`,
+  Product:`url,name,description,sku,price,currency,brand,availability,rating,review_count,image_url
+https://yoursite.com/p/wrench-set,Pro Wrench Set,15-piece professional grade wrench set,WS-15,89.99,USD,ProTools,InStock,4.7,142,https://yoursite.com/wrench.jpg`,
+  FAQPage:`url,question_1,answer_1,question_2,answer_2,question_3,answer_3,question_4,answer_4,question_5,answer_5
+https://yoursite.com/services/plumbing,What hours are you open?,We're open 24/7 for emergencies,Do you offer free estimates?,Yes free estimates for all jobs,How quickly can you arrive?,Within 60 minutes for emergencies,Are you licensed?,Yes fully licensed and insured,Do you accept credit cards?,Yes all major cards`,
+  BreadcrumbList:`url,crumb_1_name,crumb_1_url,crumb_2_name,crumb_2_url,crumb_3_name,crumb_3_url,crumb_4_name,crumb_4_url
+https://yoursite.com/services/plumbing/drain,Home,https://yoursite.com,Services,https://yoursite.com/services,Plumbing,https://yoursite.com/services/plumbing,Drain Cleaning,https://yoursite.com/services/plumbing/drain`,
+  Article:`url,headline,description,author_name,date_published,date_modified,image_url,publisher_name,publisher_logo_url
+https://yoursite.com/blog/winter-pipe-tips,Top 5 Tips to Prevent Pipe Freezing,Essential winter maintenance tips for homeowners,John Smith,2026-01-15,2026-01-20,https://yoursite.com/winter-pipes.jpg,Acme Plumbing,https://yoursite.com/logo.png`,
+  HowTo:`url,name,description,total_time,step_1_name,step_1_text,step_2_name,step_2_text,step_3_name,step_3_text,step_4_name,step_4_text
+https://yoursite.com/how-to/fix-leaky-faucet,How to Fix a Leaky Faucet,DIY guide to repair a dripping faucet,PT15M,Turn off water,Locate shutoff valve under sink,Remove handle,Use screwdriver to remove faucet handle,Replace washer,Replace damaged rubber washer,Reassemble,Put handle back and test`,
+  Event:`url,name,description,start_date,end_date,location_name,location_address,location_city,location_state,price,currency,organizer_name
+https://yoursite.com/events/grand-opening,Grand Opening Celebration,Join us for our new location grand opening,2026-06-15T10:00,2026-06-15T18:00,Acme Plumbing Denver,123 Main St,Denver,CO,0,USD,Acme Plumbing`,
+};
+
+function loadTemplate(){
+  const tmpl=TEMPLATES[state.type] || TEMPLATES.LocalBusiness;
+  document.getElementById('i-csv').value=tmpl;
+  state.csv=tmpl;saveState();
+  toast('Template loaded','success');
+}
+
+function loadFromMultiLoc(){
+  try{const ml=JSON.parse(localStorage.getItem('ml_state_v1')||'null');
+    if(!ml?.locations?.length){toast('No multi-location data','err');return;}
+    const headers=['url','name','address','city','state','zip','country','phone'];
+    const rows=ml.locations.map(l=>[l.url||'',l.name||'',l.address||'',l.city||'',l.state||'',l.zip||'',l.country||'US',l.phone||'']);
+    const csv=headers.join(',')+'\n'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    document.getElementById('i-csv').value=csv;state.csv=csv;saveState();
+    toast(`Loaded ${rows.length} locations`,'success');
+  }catch(e){toast('Import failed','err');}
+}
+
+function loadCSVFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{document.getElementById('i-csv').value=ev.target.result;state.csv=ev.target.result;saveState();toast('CSV loaded','success');};
+  reader.readAsText(file);
+}
+
+/* SCHEMA BUILDERS */
+function buildSchema(type, row){
+  if(type==='LocalBusiness' || ['Restaurant','MedicalOrganization','LegalService','Dentist','Physician','HomeAndConstructionBusiness','AutoDealer','RealEstateAgent','FinancialService','HairSalon','DaySpa','HealthClub','Store'].includes(type)){
+    return buildLocalBusiness(type, row);
+  }
+  if(type==='Service') return buildService(row);
+  if(type==='Product') return buildProduct(row);
+  if(type==='FAQPage') return buildFAQ(row);
+  if(type==='BreadcrumbList') return buildBreadcrumb(row);
+  if(type==='Article') return buildArticle(row);
+  if(type==='HowTo') return buildHowTo(row);
+  if(type==='Event') return buildEvent(row);
+}
+
+function buildLocalBusiness(type, r){
+  if(!r.name) throw new Error('name required');
+  const s={'@context':'https://schema.org','@type':type, name:r.name};
+  if(r.url) s['@id']=r.url+'#org';
+  if(r.url) s.url=r.url;
+  if(r.description) s.description=r.description;
+  if(r.url_logo) s.logo=r.url_logo;
+  if(r.phone) s.telephone=r.phone;
+  if(r.price_range) s.priceRange=r.price_range;
+  if(r.address || r.city){
+    s.address={'@type':'PostalAddress', streetAddress:r.address, addressLocality:r.city, addressRegion:r.state, postalCode:r.zip, addressCountry:r.country||'US'};
+  }
+  if(r.lat && r.lng){
+    s.geo={'@type':'GeoCoordinates', latitude:parseFloat(r.lat), longitude:parseFloat(r.lng)};
+  }
+  if(r.opens && r.closes){
+    s.openingHoursSpecification=[{'@type':'OpeningHoursSpecification', dayOfWeek:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], opens:r.opens, closes:r.closes}];
+  }
+  if(r.cuisine) s.servesCuisine=r.cuisine;
+  if(r.menu_url) s.menu=r.menu_url;
+  if(r.accepts_reservations) s.acceptsReservations=r.accepts_reservations.toLowerCase()==='true';
+  if(r.specialty) s.medicalSpecialty=r.specialty;
+  return s;
+}
+
+function buildService(r){
+  if(!r.service_name)throw new Error('service_name required');
+  return {'@context':'https://schema.org','@type':'Service', name:r.service_name, description:r.description, areaServed:r.area_served, serviceType:r.service_type, provider:r.provider_name?{'@type':'LocalBusiness',name:r.provider_name}:undefined, offers:r.price?{'@type':'Offer',price:r.price,priceCurrency:'USD'}:undefined};
+}
+function buildProduct(r){
+  if(!r.name)throw new Error('name required');
+  const s={'@context':'https://schema.org','@type':'Product', name:r.name, description:r.description, sku:r.sku, image:r.image_url};
+  if(r.brand) s.brand={'@type':'Brand',name:r.brand};
+  if(r.price)s.offers={'@type':'Offer',price:r.price,priceCurrency:r.currency||'USD',availability:'https://schema.org/'+(r.availability||'InStock')};
+  if(r.rating && r.review_count) s.aggregateRating={'@type':'AggregateRating',ratingValue:r.rating,reviewCount:r.review_count};
+  return s;
+}
+function buildFAQ(r){
+  const faqs=[];
+  for(let i=1;i<=10;i++){
+    if(r['question_'+i] && r['answer_'+i]){
+      faqs.push({'@type':'Question', name:r['question_'+i], acceptedAnswer:{'@type':'Answer', text:r['answer_'+i]}});
+    }
+  }
+  if(!faqs.length)throw new Error('At least one question_1/answer_1 required');
+  return {'@context':'https://schema.org','@type':'FAQPage', mainEntity:faqs};
+}
+function buildBreadcrumb(r){
+  const crumbs=[];
+  for(let i=1;i<=10;i++){
+    if(r['crumb_'+i+'_name'] && r['crumb_'+i+'_url']){
+      crumbs.push({'@type':'ListItem', position:i, name:r['crumb_'+i+'_name'], item:r['crumb_'+i+'_url']});
+    }
+  }
+  if(!crumbs.length)throw new Error('At least one breadcrumb required');
+  return {'@context':'https://schema.org','@type':'BreadcrumbList', itemListElement:crumbs};
+}
+function buildArticle(r){
+  if(!r.headline)throw new Error('headline required');
+  return {'@context':'https://schema.org','@type':'Article', headline:r.headline, description:r.description, image:r.image_url?[r.image_url]:undefined, datePublished:r.date_published, dateModified:r.date_modified||r.date_published, author:r.author_name?{'@type':'Person',name:r.author_name}:undefined, publisher:r.publisher_name?{'@type':'Organization',name:r.publisher_name, logo:r.publisher_logo_url?{'@type':'ImageObject',url:r.publisher_logo_url}:undefined}:undefined};
+}
+function buildHowTo(r){
+  if(!r.name)throw new Error('name required');
+  const steps=[];
+  for(let i=1;i<=20;i++){
+    if(r['step_'+i+'_name'] && r['step_'+i+'_text']){
+      steps.push({'@type':'HowToStep', position:i, name:r['step_'+i+'_name'], text:r['step_'+i+'_text']});
+    }
+  }
+  return {'@context':'https://schema.org','@type':'HowTo', name:r.name, description:r.description, totalTime:r.total_time, step:steps};
+}
+function buildEvent(r){
+  if(!r.name||!r.start_date)throw new Error('name and start_date required');
+  return {'@context':'https://schema.org','@type':'Event', name:r.name, description:r.description, startDate:r.start_date, endDate:r.end_date, location:{'@type':'Place', name:r.location_name, address:{'@type':'PostalAddress', streetAddress:r.location_address, addressLocality:r.location_city, addressRegion:r.location_state}}, offers:r.price?{'@type':'Offer',price:r.price,priceCurrency:r.currency||'USD'}:undefined, organizer:r.organizer_name?{'@type':'Organization',name:r.organizer_name}:undefined};
+}
+
+/* Generate */
+function generateAll(){
+  state.csv=document.getElementById('i-csv').value;
+  saveState();
+  const parsed=parseCSV(state.csv);
+  if(!parsed.rows.length){toast('No rows to process','err');return;}
+  const results=parsed.rows.map((row,idx)=>{
+    try{
+      const schema=buildSchema(state.type, row);
+      // Clean: remove undefined values
+      const cleaned=JSON.parse(JSON.stringify(schema, (k,v)=>v===undefined||v===''?undefined:v));
+      return {idx, url:row.url||'(no url)', name:row.name||row.service_name||row.headline||row.url||'#'+(idx+1), schema:cleaned, ok:true};
+    }catch(e){
+      return {idx, url:row.url||'(no url)', name:'(error)', error:e.message, ok:false};
+    }
+  });
+  state.results=results;
+  saveState();render();
+  const ok=results.filter(r=>r.ok).length;
+  toast(`Generated ${ok}/${results.length} schemas`,'success');
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function render(){
+  document.getElementById('stat-rows').textContent=state.results.length;
+  document.getElementById('stat-gen').textContent=state.results.filter(r=>r.ok).length;
+  document.getElementById('stat-errs').textContent=state.results.filter(r=>!r.ok).length;
+  if(state.view==='results') return renderResults();
+  if(state.view==='template') return renderTemplate();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderResults(){
+  if(!state.results.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+      <div class="et">Bulk JSON-LD Generator</div>
+      <div class="ed">Paste a CSV with one row per page/location, choose a schema type, and bulk-generate properly-formed JSON-LD. Useful for multi-location businesses, programmatic SEO pages, FAQ pages at scale, or any time you need to inject schema on many URLs at once.</div>
+    </div>`;
+    return;
+  }
+  const ok=state.results.filter(r=>r.ok);
+  const errs=state.results.filter(r=>!r.ok);
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Total rows</div><div class="v">${state.results.length}</div><div class="s">processed</div></div>
+      <div class="kpi s"><div class="l">Generated</div><div class="v">${ok.length}</div><div class="s">valid JSON-LD</div></div>
+      <div class="kpi d"><div class="l">Errors</div><div class="v">${errs.length}</div><div class="s">missing data</div></div>
+      <div class="kpi"><div class="l">Schema type</div><div class="v" style="font-size:14px">${state.type}</div><div class="s">selected</div></div>
+    </div>
+    ${errs.length?`<div class="section"><div class="section-hdr"><h3>Errors</h3><span class="badge">${errs.length}</span></div><div>
+      ${errs.map(r=>`<div class="row-result err"><div class="num">${r.idx+1}</div><div class="info"><div class="url">${escapeHtml(r.url)}</div><div class="err-msg">${escapeHtml(r.error)}</div></div><div class="actions"></div></div>`).join('')}
+    </div></div>`:''}
+    <div class="section"><div class="section-hdr"><h3>Generated Schemas</h3><span class="badge">${ok.length}</span><button class="cb-btn" onclick="exportAll()">Export ZIP</button></div><div>
+      ${ok.map(r=>`<div class="row-result ok"><div class="num">${r.idx+1}</div><div class="info"><div class="url">${escapeHtml(r.name)}</div><div class="name">${escapeHtml(r.url)}</div></div><div class="actions"><button onclick="previewSchema(${r.idx})">Preview</button><button onclick="copySchema(${r.idx})">Copy</button></div></div>`).join('')}
+    </div></div>
+  `;
+}
+
+function previewSchema(idx){
+  const r=state.results.find(x=>x.idx===idx);if(!r)return;
+  document.getElementById('pv-title').textContent=r.name;
+  document.getElementById('pv-content').textContent=JSON.stringify(r.schema, null, 2);
+  document.getElementById('m-preview').classList.add('show');
+  window._previewIdx=idx;
+}
+function copyPreview(){const idx=window._previewIdx;const r=state.results.find(x=>x.idx===idx);if(!r)return;navigator.clipboard.writeText(JSON.stringify(r.schema,null,2));toast('JSON-LD copied','success');}
+function copyHtmlEmbed(){const idx=window._previewIdx;const r=state.results.find(x=>x.idx===idx);if(!r)return;const html=`<script type="application/ld+json">\n${JSON.stringify(r.schema,null,2)}\n<`+`/script>`;navigator.clipboard.writeText(html);toast('HTML embed copied','success');}
+function copySchema(idx){const r=state.results.find(x=>x.idx===idx);if(!r)return;navigator.clipboard.writeText(JSON.stringify(r.schema,null,2));toast('Copied','success');}
+
+function renderTemplate(){
+  const tmpl=TEMPLATES[state.type]||'';
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>CSV Template — ${state.type}</h3><button class="cb-btn" onclick="loadTemplate()">Load into Editor</button></div><div style="padding:14px"><pre style="background:var(--bg);padding:14px;border-radius:7px;font-family:var(--mono);font-size:11px;line-height:1.6;overflow-x:auto;border:1px solid var(--border)">${escapeHtml(tmpl)}</pre></div></div>
+  <div class="section"><div class="section-hdr"><h3>All Available Templates</h3></div><div style="padding:8px 14px">
+    ${Object.keys(TEMPLATES).map(t=>`<div onclick="state.type='${t}';saveState();fillInputs();renderTemplate();" style="padding:8px 11px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;border-bottom:1px solid var(--border)" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">${t}</div>`).join('')}
+  </div></div>`;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Bulk Schema Best Practices</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">When to Use Bulk Schema</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Multi-location businesses (one schema per location page)</li>
+      <li>Programmatic SEO pages (city × service combinations)</li>
+      <li>FAQ pages at scale (one per product/service)</li>
+      <li>Breadcrumb generation across an entire site</li>
+      <li>Article schema for blog content migrations</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">CSV Format Rules</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>First row = column headers (lowercase, underscore-separated)</li>
+      <li>Comma-separated, use double quotes for cells with commas</li>
+      <li>Required columns vary by schema type — use Load Template</li>
+      <li>Empty cells become null/undefined in schema (cleaned out)</li>
+      <li>Use the <code>url</code> column to identify which page each schema belongs to</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">How to Inject the JSON-LD</h4>
+    <p>For each generated schema, wrap in:</p>
+    <pre style="background:var(--bg);padding:12px;border-radius:7px;font-family:var(--mono);font-size:11px;margin-top:6px;overflow-x:auto">&lt;script type="application/ld+json"&gt;
+{...schema JSON...}
+&lt;/script&gt;</pre>
+    <p>Place in the <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> of the corresponding URL.</p>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Validation</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>After deploying, validate with <a href="https://search.google.com/test/rich-results" target="_blank" style="color:var(--accent)">Google Rich Results Test</a></li>
+      <li>Use the <a href="schema-auditor.html" style="color:var(--accent)">Schema Auditor</a> in this suite to validate live pages</li>
+      <li>Check Schema.org docs for required fields per type</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Common Pitfalls</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Don't duplicate schema (one LocalBusiness per location only)</li>
+      <li>Match schema data to visible page content (Google penalizes mismatches)</li>
+      <li>Don't use Article schema for product/service pages</li>
+      <li>FAQPage must have actual Q&A visible on the page</li>
+      <li>Use <code>@id</code> for entities to link them across pages</li>
+    </ul>
+  </div></div>`;
+}
+
+function exportAll(){
+  const ok=state.results.filter(r=>r.ok);
+  if(!ok.length){toast('Nothing to export','err');return;}
+  // Build a single .txt with separators for each URL's JSON-LD
+  let txt='';
+  ok.forEach(r=>{
+    txt+=`=== ${r.url} ===\n\n<script type="application/ld+json">\n${JSON.stringify(r.schema,null,2)}\n<`+`/script>\n\n\n`;
+  });
+  const blob=new Blob([txt],{type:'text/plain'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='bulk-schemas.txt';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);
+  toast('Exported','success');
+}
+
+function exportCSV(){
+  const rows=[['row','url','name','status','error','jsonld']];
+  state.results.forEach(r=>rows.push([r.idx+1, r.url, r.name||'', r.ok?'ok':'error', r.error||'', r.ok?JSON.stringify(r.schema):'']));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='bulk-schemas.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+
+/* Inherit */
+(function(){
+  if(!state.csv){
+    try{const ml=JSON.parse(localStorage.getItem('ml_state_v1')||'null');
+      if(ml?.locations?.length){
+        const headers=['url','name','address','city','state','zip','phone'];
+        const rows=ml.locations.map(l=>[l.url||'',l.name||'',l.address||'',l.city||'',l.state||'',l.zip||'',l.phone||'']);
+        state.csv=headers.join(',')+'\n'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      }
+    }catch(e){}
+  }
+})();
+
+fillInputs();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

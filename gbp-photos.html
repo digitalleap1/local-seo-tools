@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Photo Strategy - Plan, Track & Optimize Your GBP Photos</title>
+<meta name="description" content="Plan and track Google Business Profile photos by category (logo, cover, interior, exterior, team, products, at-work, food). AI vision photo grading for SEO quality. Upload schedule with weekly cadence. Coverage gap detection per category.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#4285f4; --accent-h:#1a73e8; --accent-soft:rgba(66,133,244,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#60a5fa; --accent-h:#93c5fd; --accent-soft:rgba(96,165,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--green);border:1px solid var(--green);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.score strong{color:var(--accent);font-size:14px}
+.hdr-stat.uploaded strong{color:var(--success)}
+.hdr-stat.gaps strong{color:var(--warn)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px;margin-bottom:14px}
+.cat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
+.cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent)}
+.cat-card.good{border-left:4px solid var(--success)}
+.cat-card.partial{border-left:4px solid var(--warn)}
+.cat-card.missing{border-left:4px solid var(--danger)}
+.cat-card .hdr{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.cat-card .icon{font-size:24px;flex-shrink:0}
+.cat-card .info{flex:1;min-width:0}
+.cat-card .name{font-size:13.5px;font-weight:800}
+.cat-card .target{font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-top:1px}
+.cat-card .count{font-size:24px;font-weight:900;font-family:var(--mono);line-height:1.05}
+.cat-card.good .count{color:var(--success)}
+.cat-card.partial .count{color:var(--warn)}
+.cat-card.missing .count{color:var(--danger)}
+.cat-card .progress{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:9px}
+.cat-card .progress .bar{height:100%;transition:width .3s}
+.cat-card.good .progress .bar{background:var(--success)}
+.cat-card.partial .progress .bar{background:var(--warn)}
+.cat-card.missing .progress .bar{background:var(--danger)}
+.cat-card .desc{font-size:11px;color:var(--text2);line-height:1.45;margin-top:9px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:14px}
+.photo-card{background:var(--bg);border:1px solid var(--border);border-radius:9px;overflow:hidden;cursor:pointer;transition:all .15s;display:flex;flex-direction:column}
+.photo-card:hover{border-color:var(--accent);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.photo-card .thumb{aspect-ratio:4/3;background:var(--bg3);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.photo-card .thumb img{width:100%;height:100%;object-fit:cover}
+.photo-card .thumb .noimg{font-size:36px;color:var(--text3)}
+.photo-card .thumb .score{position:absolute;top:6px;right:6px;padding:3px 7px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:800;border-radius:5px;font-family:var(--mono);backdrop-filter:blur(4px)}
+.photo-card .thumb .score.good{background:rgba(22,163,74,.85)}
+.photo-card .thumb .score.warn{background:rgba(245,158,11,.85)}
+.photo-card .thumb .score.bad{background:rgba(220,38,38,.85)}
+.photo-card .thumb .cat-badge{position:absolute;top:6px;left:6px;padding:3px 7px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;font-weight:800;border-radius:4px;font-family:var(--mono);text-transform:uppercase;backdrop-filter:blur(4px)}
+.photo-card .body{padding:9px 11px;font-size:11px;display:flex;flex-direction:column;gap:3px}
+.photo-card .body .ts{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.photo-card .body .lbl{font-weight:700;color:var(--text)}
+
+.add-photo-card{background:var(--bg);border:2px dashed var(--border);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;cursor:pointer;color:var(--text3);transition:all .15s;aspect-ratio:4/3}
+.add-photo-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.add-photo-card svg{width:28px;height:28px;margin-bottom:6px}
+.add-photo-card .pl{font-size:11px;font-weight:700}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:14px}
+.cal-cell{padding:8px 6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;text-align:center;font-size:10px;font-family:var(--mono)}
+.cal-cell .dow{font-weight:700;color:var(--text2);text-transform:uppercase;font-size:9px}
+.cal-cell .dn{font-weight:800;color:var(--text);margin-top:2px;font-size:11px}
+.cal-cell .cat-pill{font-size:8.5px;padding:2px 5px;background:var(--accent-soft);color:var(--accent);border-radius:3px;font-weight:700;margin-top:3px;display:inline-block}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000;padding:14px}
+.modal.show{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:520px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.modal-hdr h3{font-size:14px;font-weight:800;flex:1}
+.modal-hdr .x{padding:6px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;font-weight:700;cursor:pointer}
+.modal-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000}
+.busy.show{display:flex}
+.busy .card{background:var(--bg2);padding:24px 30px;border-radius:14px;border:1px solid var(--border);text-align:center;max-width:340px}
+.busy .sp{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg3);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+    <div><div class="logo-name">GBP<span>Photos</span></div></div>
+    <span class="logo-tag">STRATEGY</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat score">Coverage: <strong id="stat-coverage">0%</strong></div>
+  <div class="hdr-stat uploaded">Photos: <strong id="stat-photos">0</strong></div>
+  <div class="hdr-stat gaps">Gaps: <strong id="stat-gaps">8</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="geotag-pro.html" class="hdr-link" style="border-color:rgba(22,163,74,.4);color:var(--success)">GeoTag</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Setup</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name</label><input id="i-biz" oninput="saveBiz()"></div>
+          <div class="f"><label>Business type</label><select id="i-type" onchange="saveBiz()">
+            <option value="storefront">Storefront (in-person)</option>
+            <option value="restaurant">Restaurant / cafe / bar</option>
+            <option value="service">Service area business</option>
+            <option value="hybrid">Hybrid (both)</option>
+            <option value="medical">Medical / professional</option>
+            <option value="retail">Retail / e-commerce</option>
+          </select></div>
+          <div class="f"><label>City</label><input id="i-city" oninput="saveBiz()"></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ From Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Vision Grader</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Provider</label><select id="prov-sel" onchange="onProvChange()">
+            <option value="gemini">Gemini Vision (free)</option>
+            <option value="openai">OpenAI Vision</option>
+            <option value="claude">Claude Vision</option>
+          </select></div>
+          <div class="f"><label>API key</label><input id="i-key" placeholder="paste" oninput="saveKey()"></div>
+          <div class="f hint">When you add photo URLs, AI grades them on GBP suitability: composition, lighting, clarity, subject relevance, and policy compliance.</div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="openAddPhoto()">+ Add Photo</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportPlan()">Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="library" onclick="setTab('library')">Photo Library</button>
+      <button class="tab" data-tab="schedule" onclick="setTab('schedule')">Upload Schedule</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Best Practices</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Plan and track photos for your GBP listing</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+<div class="busy" id="busy"><div class="card"><div class="sp"></div><h3 id="busy-title">Working…</h3><p id="busy-msg" style="font-size:11.5px;color:var(--text2);font-family:var(--mono)">…</p></div></div>
+
+<!-- Add photo modal -->
+<div class="modal" id="m-photo">
+  <div class="modal-card">
+    <div class="modal-hdr"><h3 id="pm-title">Add Photo</h3><button class="x" onclick="document.getElementById('m-photo').classList.remove('show')">✕</button></div>
+    <div class="modal-body">
+      <div class="f"><label>Photo URL (or paste data URI)</label><input id="ph-url" placeholder="https://yoursite.com/photo.jpg"></div>
+      <div id="ph-preview" style="text-align:center"></div>
+      <div class="f"><label>Category *</label><select id="ph-cat"></select></div>
+      <div class="f"><label>Label / description</label><input id="ph-label" placeholder="Front of store with signage"></div>
+      <div class="f"><label>Upload date</label><input type="date" id="ph-date"></div>
+      <div class="f"><label>Notes</label><textarea id="ph-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="cb-btn" onclick="gradePhoto()">✨ AI Grade</button>
+      <button class="cb-btn" id="ph-del" onclick="deletePhoto()" style="display:none;color:var(--danger)">Delete</button>
+      <button class="cb-btn" onclick="document.getElementById('m-photo').classList.remove('show')">Cancel</button>
+      <button class="cb-btn" style="background:var(--accent);color:#fff;border-color:var(--accent)" onclick="savePhoto()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY='gbpp_state_v1';
+
+const CATEGORIES=[
+  {id:'logo',     name:'Logo',           icon:'🏷', target:1, desc:'Square format, transparent or matching brand color', priority:'critical'},
+  {id:'cover',    name:'Cover Photo',    icon:'🖼', target:1, desc:'16:9 ratio, ~2120×1192px, brand identity', priority:'critical'},
+  {id:'exterior', name:'Exterior',       icon:'🏢', target:5, desc:'Storefront, signage, parking — recognizable from street', priority:'high'},
+  {id:'interior', name:'Interior',       icon:'🪟', target:7, desc:'Inside views — atmosphere, layout, ambiance', priority:'high'},
+  {id:'product',  name:'Products',       icon:'📦', target:10, desc:'Items you sell, food dishes, work samples', priority:'high'},
+  {id:'service',  name:'At Work',        icon:'🔧', target:5, desc:'You/team performing the service', priority:'medium'},
+  {id:'team',     name:'Team',           icon:'👥', target:4, desc:'Staff portraits, group shots, faces of the business', priority:'medium'},
+  {id:'food',     name:'Food / Menu',    icon:'🍽', target:8, desc:'Restaurants only — signature dishes, menu items', priority:'high'},
+  {id:'common',   name:'Common Areas',   icon:'🛋', target:3, desc:'Lobby, waiting room, restrooms (key spaces)', priority:'low'},
+  {id:'video',    name:'Videos',         icon:'🎥', target:1, desc:'30-second clip showing the business', priority:'low'},
+];
+
+const SCHEDULE_TEMPLATE = {
+  // 4-week rolling plan
+  '0-mon': 'exterior',
+  '0-wed': 'interior',
+  '0-fri': 'product',
+  '1-mon': 'service',
+  '1-wed': 'team',
+  '1-fri': 'product',
+  '2-mon': 'interior',
+  '2-wed': 'common',
+  '2-fri': 'product',
+  '3-mon': 'exterior',
+  '3-wed': 'service',
+  '3-fri': 'product',
+};
+
+const defaultState={
+  biz:{name:'',type:'storefront',city:''},
+  photos:[], // {id, url, category, label, date, notes, score?, aiNotes?}
+  provider:'gemini',apiKeys:{gemini:'',openai:'',claude:''},
+  view:'overview',editingId:null
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function setBusy(s,t,m){const b=document.getElementById('busy');if(t)document.getElementById('busy-title').textContent=t;if(m)document.getElementById('busy-msg').textContent=m;b.classList.toggle('show',s);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillBiz(){
+  document.getElementById('i-biz').value=state.biz.name||'';
+  document.getElementById('i-type').value=state.biz.type||'storefront';
+  document.getElementById('i-city').value=state.biz.city||'';
+  document.getElementById('prov-sel').value=state.provider;
+  document.getElementById('i-key').value=state.apiKeys[state.provider]||'';
+}
+function saveBiz(){state.biz.name=document.getElementById('i-biz').value;state.biz.type=document.getElementById('i-type').value;state.biz.city=document.getElementById('i-city').value;saveState();render();}
+function onProvChange(){state.provider=document.getElementById('prov-sel').value;document.getElementById('i-key').value=state.apiKeys[state.provider]||'';saveState();}
+function saveKey(){state.apiKeys[state.provider]=document.getElementById('i-key').value.trim();saveState();}
+function syncFromCitation(){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.biz.name=b.name||state.biz.name;state.biz.city=b.city||state.biz.city;saveState();fillBiz();toast('Synced','success');}else toast('No business','err');}catch(e){toast('Failed','err');}}
+
+function getCategoriesForType(){
+  // Adjust targets based on business type
+  const cats=clone(CATEGORIES);
+  if(state.biz.type==='restaurant'){cats.find(c=>c.id==='food').target=12;cats.find(c=>c.id==='product').target=5;cats.find(c=>c.id==='service').target=2;}
+  else if(state.biz.type==='service'){cats.find(c=>c.id==='interior').target=2;cats.find(c=>c.id==='exterior').target=3;cats.find(c=>c.id==='service').target=10;cats.find(c=>c.id==='product').target=4;cats.find(c=>c.id==='food').target=0;}
+  else if(state.biz.type==='medical'){cats.find(c=>c.id==='product').target=2;cats.find(c=>c.id==='team').target=6;cats.find(c=>c.id==='common').target=5;cats.find(c=>c.id==='food').target=0;}
+  else if(state.biz.type==='retail'){cats.find(c=>c.id==='product').target=15;cats.find(c=>c.id==='food').target=0;}
+  else { cats.find(c=>c.id==='food').target=0; }
+  return cats.filter(c=>c.target>0);
+}
+
+function categoryStats(){
+  const cats=getCategoriesForType();
+  return cats.map(c=>{
+    const photos=state.photos.filter(p=>p.category===c.id);
+    const pct=Math.min(100, Math.round(photos.length/c.target*100));
+    const status=pct>=100?'good':pct>=50?'partial':'missing';
+    return {...c, count:photos.length, pct, status};
+  });
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function render(){
+  const cats=categoryStats();
+  const total=state.photos.length;
+  const goodCats=cats.filter(c=>c.status==='good').length;
+  const missingCats=cats.filter(c=>c.status==='missing').length;
+  const coverage=cats.length?Math.round(goodCats/cats.length*100):0;
+  document.getElementById('stat-coverage').textContent=coverage+'%';
+  document.getElementById('stat-photos').textContent=total;
+  document.getElementById('stat-gaps').textContent=missingCats;
+  if(state.view==='overview') return renderOverview(cats);
+  if(state.view==='library') return renderLibrary();
+  if(state.view==='schedule') return renderSchedule();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(cats){
+  const total=state.photos.length;
+  const goodCats=cats.filter(c=>c.status==='good').length;
+  const partial=cats.filter(c=>c.status==='partial').length;
+  const missing=cats.filter(c=>c.status==='missing').length;
+  // GBP minimum recommendation: 10+ photos
+  const meetsMin=total>=10;
+  // AI-graded average
+  const graded=state.photos.filter(p=>p.score);
+  const avgGrade=graded.length?Math.round(graded.reduce((s,p)=>s+p.score,0)/graded.length):0;
+
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi ${meetsMin?'s':'d'}"><div class="l">Total photos</div><div class="v">${total}</div><div class="s">${meetsMin?'meets 10+ min':`need ${10-total} more`}</div></div>
+      <div class="kpi s"><div class="l">Complete categories</div><div class="v">${goodCats}</div><div class="s">of ${cats.length}</div></div>
+      <div class="kpi w"><div class="l">Partial categories</div><div class="v">${partial}</div><div class="s">need more</div></div>
+      <div class="kpi d"><div class="l">Missing categories</div><div class="v">${missing}</div><div class="s">critical gaps</div></div>
+      ${graded.length?`<div class="kpi"><div class="l">AI avg grade</div><div class="v">${avgGrade}/100</div><div class="s">${graded.length}/${total} graded</div></div>`:''}
+    </div>
+    <div class="cat-grid">
+      ${cats.map(c=>`<div class="cat-card ${c.status}" onclick="filterByCat('${c.id}')">
+        <div class="hdr"><div class="icon">${c.icon}</div><div class="info"><div class="name">${escapeHtml(c.name)}</div><div class="target">${c.count}/${c.target} target · ${c.priority}</div></div><div class="count">${c.count}</div></div>
+        <div class="progress"><div class="bar" style="width:${c.pct}%"></div></div>
+        <div class="desc">${escapeHtml(c.desc)}</div>
+      </div>`).join('')}
+    </div>
+  `;
+}
+
+function filterByCat(cat){state.libraryFilter=cat;setTab('library');}
+
+function renderLibrary(){
+  const cats=getCategoriesForType();
+  const photos=state.libraryFilter?state.photos.filter(p=>p.category===state.libraryFilter):state.photos;
+  document.getElementById('cbody').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="font-size:13px;font-weight:700">Photo Library</div>
+      <select onchange="state.libraryFilter=this.value;render();" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:11.5px;color:var(--text);font-family:var(--mono)">
+        <option value="">All categories</option>
+        ${cats.map(c=>`<option value="${c.id}" ${state.libraryFilter===c.id?'selected':''}>${escapeHtml(c.icon+' '+c.name)} (${state.photos.filter(p=>p.category===c.id).length})</option>`).join('')}
+      </select>
+      <div style="font-family:var(--mono);font-size:11.5px;color:var(--text3);margin-left:auto">${photos.length} photos</div>
+    </div>
+    <div class="section"><div class="photo-grid">
+      ${photos.length?photos.map(p=>{
+        const cat=cats.find(c=>c.id===p.category)||{name:p.category,icon:'•'};
+        const cls=p.score?(p.score>=70?'good':p.score>=50?'warn':'bad'):'';
+        return `<div class="photo-card" onclick="openEditPhoto('${p.id}')">
+          <div class="thumb">${p.url?`<img src="${escapeAttr(p.url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''}
+            <div class="noimg" style="${p.url?'display:none':''}">${cat.icon}</div>
+            <div class="cat-badge">${escapeHtml(cat.icon+' '+cat.name)}</div>
+            ${p.score?`<div class="score ${cls}">${p.score}</div>`:''}
+          </div>
+          <div class="body"><div class="lbl">${escapeHtml(p.label||'(no label)')}</div><div class="ts">${escapeHtml(p.date||'')}</div></div>
+        </div>`;
+      }).join(''):''}
+      <div class="add-photo-card" onclick="openAddPhoto('${state.libraryFilter||''}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><div class="pl">Add Photo</div></div>
+    </div></div>
+  `;
+}
+
+function renderSchedule(){
+  const today=new Date('2026-05-29');
+  const todayDow=today.getDay();
+  const weeks=[];
+  // Build 4 weeks ahead
+  for(let w=0;w<4;w++){
+    const week=[];
+    for(let d=0;d<7;d++){
+      const day=new Date(today.getTime()+((w*7)+(d-todayDow))*86400000);
+      const dow=day.getDay();
+      // Mon=1, Wed=3, Fri=5
+      const dowKey=dow===1?'mon':dow===3?'wed':dow===5?'fri':null;
+      const sched=dowKey?SCHEDULE_TEMPLATE[`${w}-${dowKey}`]:null;
+      week.push({date:day, dow, sched});
+    }
+    weeks.push(week);
+  }
+  const dowNames=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>4-Week Upload Schedule</h3><span class="badge">Mon/Wed/Fri cadence</span></div><div style="padding:14px">
+      ${weeks.map((week,wi)=>`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:800;color:var(--text2);font-family:var(--mono);text-transform:uppercase;margin-bottom:6px">Week ${wi+1}</div>
+      <div class="cal-grid" style="padding:0">
+        ${week.map(d=>{const cat=d.sched?getCategoriesForType().find(c=>c.id===d.sched):null;return `<div class="cal-cell"><div class="dow">${dowNames[d.dow]}</div><div class="dn">${d.date.getDate()}</div>${cat?`<div class="cat-pill">${cat.icon}</div>`:''}</div>`;}).join('')}
+      </div></div>`).join('')}
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Why Mon/Wed/Fri?</h3></div><div style="padding:14px;font-size:12.5px;color:var(--text2);line-height:1.6">Posting 3× per week signals to Google that your business is active, which improves "freshness" signals. Avoid daily posting (looks spammy) and weekly posting (too sparse). Mon/Wed/Fri also avoids weekend dead zones when fewer customers search.</div></div>
+  `;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>GBP Photo Strategy Playbook</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Why photos matter</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Listings with 100+ photos get <strong>520% more calls</strong> and <strong>2,717% more direction requests</strong> than those with the default</li>
+      <li>Photos drive 35% higher CTR from the local pack</li>
+      <li>Geotagged photos (with EXIF) reinforce your location's authority signals</li>
+      <li>AI Overviews and Google Lens use your photos to identify your business</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">GBP Photo Specs</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Format:</strong> JPG or PNG</li>
+      <li><strong>Size:</strong> 10 KB to 5 MB</li>
+      <li><strong>Resolution:</strong> Minimum 250×250px, recommended 720×720px+</li>
+      <li><strong>Cover photo:</strong> 16:9 ratio, ~2120×1192px ideal</li>
+      <li><strong>Logo:</strong> Square, 250×250px to 5500×5500px</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Photo categories Google distinguishes</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Logo</strong> — uploaded by owner, appears in knowledge panel</li>
+      <li><strong>Cover</strong> — top of profile, primary visual identity</li>
+      <li><strong>Exterior</strong> — outside of building, signage</li>
+      <li><strong>Interior</strong> — inside the location, ambiance</li>
+      <li><strong>Product</strong> — items, dishes, work output</li>
+      <li><strong>At work</strong> — team performing service (powerful for SAB)</li>
+      <li><strong>Team</strong> — people who work there</li>
+      <li><strong>Food + drink</strong> — restaurants only</li>
+      <li><strong>Common areas</strong> — restrooms, lobbies (hospitality/medical)</li>
+      <li><strong>Videos</strong> — short clips (30s ideal)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">What NOT to upload</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Stock photos (Google detects and demotes)</li>
+      <li>Watermarked images or logos in watermarks</li>
+      <li>Photos with phone numbers or URLs embedded</li>
+      <li>Excessive filters or HDR (looks unnatural)</li>
+      <li>Customer/staff photos without explicit consent</li>
+      <li>Screenshots, memes, illustrations posing as real photos</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Upload cadence</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Initial setup:</strong> 25-40 photos across all categories within first week</li>
+      <li><strong>Ongoing:</strong> 3-5 new photos per week (use the Schedule tab)</li>
+      <li><strong>Refresh:</strong> Update cover photo every 6 months</li>
+      <li><strong>Seasonal:</strong> Add seasonal-appropriate photos (holiday decor, summer setups, etc.)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Geotag for max impact</h4>
+    <p>Use the <a href="geotag-pro.html" style="color:var(--accent)">GeoTag Studio</a> tool to add EXIF GPS coordinates matching your business address before uploading. Google reads these and reinforces your location signal.</p>
+  </div></div>`;
+}
+
+/* ---------- ADD/EDIT PHOTO ---------- */
+function openAddPhoto(presetCat){
+  state.editingId=null;
+  document.getElementById('pm-title').textContent='Add Photo';
+  const cats=getCategoriesForType();
+  document.getElementById('ph-cat').innerHTML=cats.map(c=>`<option value="${c.id}">${escapeHtml(c.icon+' '+c.name)}</option>`).join('');
+  if(presetCat) document.getElementById('ph-cat').value=presetCat;
+  document.getElementById('ph-url').value='';
+  document.getElementById('ph-label').value='';
+  document.getElementById('ph-date').value='2026-05-29';
+  document.getElementById('ph-notes').value='';
+  document.getElementById('ph-preview').innerHTML='';
+  document.getElementById('ph-del').style.display='none';
+  document.getElementById('m-photo').classList.add('show');
+  document.getElementById('ph-url').oninput=()=>{const u=document.getElementById('ph-url').value.trim();document.getElementById('ph-preview').innerHTML=u?`<img src="${escapeAttr(u)}" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'">`:'';};
+}
+function openEditPhoto(id){
+  state.editingId=id;
+  const p=state.photos.find(x=>x.id===id);if(!p)return;
+  document.getElementById('pm-title').textContent='Edit Photo';
+  const cats=getCategoriesForType();
+  document.getElementById('ph-cat').innerHTML=cats.map(c=>`<option value="${c.id}">${escapeHtml(c.icon+' '+c.name)}</option>`).join('');
+  document.getElementById('ph-cat').value=p.category;
+  document.getElementById('ph-url').value=p.url||'';
+  document.getElementById('ph-label').value=p.label||'';
+  document.getElementById('ph-date').value=p.date||'2026-05-29';
+  document.getElementById('ph-notes').value=p.notes||'';
+  document.getElementById('ph-preview').innerHTML=p.url?`<img src="${escapeAttr(p.url)}" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--border)">`:'';
+  document.getElementById('ph-del').style.display='block';
+  document.getElementById('m-photo').classList.add('show');
+}
+function savePhoto(){
+  let p;
+  if(state.editingId){p=state.photos.find(x=>x.id===state.editingId);}
+  else{p={id:'ph_'+Math.random().toString(36).slice(2,9)};state.photos.push(p);}
+  p.url=document.getElementById('ph-url').value.trim();
+  p.category=document.getElementById('ph-cat').value;
+  p.label=document.getElementById('ph-label').value.trim();
+  p.date=document.getElementById('ph-date').value;
+  p.notes=document.getElementById('ph-notes').value;
+  saveState();document.getElementById('m-photo').classList.remove('show');render();toast('Saved','success');
+}
+function deletePhoto(){if(!state.editingId||!confirm('Delete photo?'))return;state.photos=state.photos.filter(p=>p.id!==state.editingId);state.editingId=null;saveState();document.getElementById('m-photo').classList.remove('show');render();toast('Deleted','success');}
+
+/* AI VISION GRADING */
+async function gradePhoto(){
+  const url=document.getElementById('ph-url').value.trim();
+  if(!url){toast('Photo URL required first','err');return;}
+  const cat=document.getElementById('ph-cat').value;
+  const key=state.apiKeys[state.provider];
+  if(!key){toast('Add an AI key in the left panel','err');return;}
+  const catDef=CATEGORIES.find(c=>c.id===cat);
+  setBusy(true,'AI grading photo…',state.provider);
+  // Fetch as base64
+  const PROXIES=[u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,u=>`https://corsproxy.io/?${encodeURIComponent(u)}`];
+  let base64='',mime='image/jpeg';
+  for(const px of PROXIES){
+    try{const r=await fetch(px(url));if(r.ok){const blob=await r.blob();mime=blob.type||mime;base64=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result.split(',')[1]);fr.onerror=rej;fr.readAsDataURL(blob);});break;}}catch(e){}
+  }
+  if(!base64){setBusy(false);toast('Could not load image','err');return;}
+  const prompt=`Grade this photo for use on a Google Business Profile listing. Category: "${catDef.name}" (${catDef.desc}).
+
+Score 0-100 based on:
+- Composition (rule of thirds, framing, focal point)
+- Lighting (natural, bright, even)
+- Clarity (sharp focus, no blur, high resolution)
+- Subject relevance (matches the "${catDef.name}" category)
+- GBP policy compliance (no watermarks, phone numbers, text overlays, stock-looking)
+- Authenticity (real photo, not edited/heavily filtered)
+
+Return ONLY JSON: {"score": 0-100, "notes": "2-3 sentence assessment with specific improvements"}`;
+  try{
+    let text='';
+    if(state.provider==='gemini'){const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],generationConfig:{temperature:0.3,maxOutputTokens:200}})});if(!r.ok)throw new Error('Gemini '+r.status);const j=await r.json();text=j.candidates?.[0]?.content?.parts?.[0]?.text||'';}
+    else if(state.provider==='openai'){const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:`data:${mime};base64,${base64}`}}]}],max_tokens:200})});if(!r.ok)throw new Error('OpenAI '+r.status);const j=await r.json();text=j.choices?.[0]?.message?.content||'';}
+    else if(state.provider==='claude'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mime,data:base64}},{type:'text',text:prompt}]}]})});if(!r.ok)throw new Error('Claude '+r.status);const j=await r.json();text=j.content?.[0]?.text||'';}
+    const m=text.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('No JSON');
+    const result=JSON.parse(m[0]);
+    let p;
+    if(state.editingId){p=state.photos.find(x=>x.id===state.editingId);}
+    else{
+      // Create new and re-open to keep modal in sync
+      p={id:'ph_'+Math.random().toString(36).slice(2,9), url, category:cat, label:document.getElementById('ph-label').value, date:document.getElementById('ph-date').value, notes:document.getElementById('ph-notes').value};
+      state.photos.push(p);state.editingId=p.id;
+      document.getElementById('ph-del').style.display='block';
+    }
+    p.score=result.score;p.aiNotes=result.notes;
+    saveState();
+    setBusy(false);
+    toast(`Graded ${result.score}/100`,'success');
+    // Show AI notes in modal notes field
+    if(!p.notes||p.notes===document.getElementById('ph-notes').value)document.getElementById('ph-notes').value=(p.notes||'')+(p.notes?'\n\n':'')+`AI: ${result.notes}`;
+  }catch(e){setBusy(false);toast('AI failed: '+e.message,'err');}
+}
+
+function exportCSV(){
+  const rows=[['category','label','url','date','score','notes']];
+  state.photos.forEach(p=>rows.push([p.category, p.label||'', p.url||'', p.date||'', p.score||'', (p.notes||'').replace(/\r?\n/g,' ')]));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='gbp-photos.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function exportPlan(){
+  const cats=categoryStats();
+  const total=state.photos.length;
+  const css=`*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:920px;margin:0 auto;background:#fff;border-radius:14px;padding:36px}h1{font-size:24px;font-weight:800;border-bottom:3px solid #4285f4;padding-bottom:12px}h2{font-size:17px;font-weight:700;margin:22px 0 10px;color:#4285f4}.cat{padding:11px 14px;background:#f3f6fb;border-radius:8px;margin-bottom:6px;display:grid;grid-template-columns:32px 1fr auto auto;gap:11px;align-items:center}.cat.good{border-left:4px solid #16a34a}.cat.partial{border-left:4px solid #f59e0b}.cat.missing{border-left:4px solid #dc2626}.cn{font-weight:800;font-size:14px}.cd{font-size:11.5px;color:#5b6b88}.ct{font-family:monospace;font-weight:800;font-size:14px}`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>GBP Photo Plan</title><style>${css}</style></head><body><div class="wrap">
+<h1>GBP Photo Strategy Plan</h1>
+<p style="color:#5b6b88">${escapeHtml(state.biz.name||'Your business')} · Type: ${escapeHtml(state.biz.type)} · ${total} photos</p>
+<h2>Category Coverage</h2>
+${cats.map(c=>`<div class="cat ${c.status}"><div style="font-size:22px">${c.icon}</div><div><div class="cn">${escapeHtml(c.name)}</div><div class="cd">${escapeHtml(c.desc)}</div></div><div class="ct">${c.count}/${c.target}</div><div style="font-size:10px;font-weight:800;color:${c.status==='good'?'#16a34a':c.status==='partial'?'#f59e0b':'#dc2626'}">${c.status.toUpperCase()}</div></div>`).join('')}
+<h2>Next Upload Priorities</h2>
+<ol style="padding-left:22px;font-size:13px;color:#5b6b88">${cats.filter(c=>c.status!=='good').sort((a,b)=>(a.priority==='critical'?0:a.priority==='high'?1:2)-(b.priority==='critical'?0:b.priority==='high'?1:2)).map(c=>`<li><strong>${escapeHtml(c.name)}</strong> — need ${c.target-c.count} more (${c.priority} priority)</li>`).join('')}</ol>
+<div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by GBP Photo Strategy</div>
+</div></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='gbp-photo-plan.html';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Plan exported','success');
+}
+
+/* Inherit */
+(function(){
+  if(!state.biz.name){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.biz.name=b.name||'';state.biz.city=b.city||'';saveState();}}catch(e){}}
+  ['ai_state_v1','geo_state_v1','iseo_state_v1'].forEach(k=>{try{const o=JSON.parse(localStorage.getItem(k)||'null');if(o?.apiKeys)Object.entries(o.apiKeys).forEach(([id,v])=>{if(v&&!state.apiKeys[id])state.apiKeys[id]=v;});}catch(e){}});
+})();
+
+fillBiz();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Post Scheduler - AI-Generated Google Business Profile Posts with Calendar</title>
+<meta name="description" content="Bulk generate Google Business Profile posts (Updates, Offers, Events) tuned to your brand voice. Visual calendar, ICS export, copy-paste ready output. AI-powered (5 providers) with offline template fallback. 100% client-side, integrates with Citation Finder and GBP Audit.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#d97706; --accent-h:#b45309; --accent-soft:rgba(217,119,6,.08);
+  --teal:#0d9488;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#f59e0b; --accent-h:#fbbf24; --accent-soft:rgba(245,158,11,.14);
+  --teal:#14b8a6;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(217,119,6,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--purple);border:1px solid var(--purple);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.posts strong{color:var(--accent)}
+.hdr-stat.sched strong{color:var(--blue)}
+.hdr-stat.draft strong{color:var(--text3)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT */
+#left{width:300px;min-width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:12px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;color:var(--text);flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{font-family:var(--font);min-height:48px;resize:vertical;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.tpills{display:flex;flex-wrap:wrap;gap:4px}
+.tpill{padding:5px 10px;border-radius:5px;font-size:10.5px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.tpill:hover{border-color:var(--accent);color:var(--accent)}
+.tpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.pp-row{display:flex;flex-wrap:wrap;gap:4px}
+.pp{padding:5px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.pp:hover{border-color:var(--accent);color:var(--accent)}
+.pp.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pp .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 4px;border-radius:3px;margin-left:4px}
+.pp:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px}
+.tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-btn svg{width:13px;height:13px}
+
+#cbody{flex:1;overflow-y:auto;background:var(--bg);padding:14px}
+
+/* CALENDAR */
+.cal-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cal-hdr h2{font-size:18px;font-weight:800;flex:1}
+.cal-nav{display:flex;gap:5px}
+.cal-nav button{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-weight:700}
+.cal-nav button:hover{border-color:var(--accent);color:var(--accent)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.cal-dh{background:var(--bg3);padding:7px;text-align:center;font-size:10.5px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.cal-cell{background:var(--bg2);min-height:110px;padding:6px;cursor:pointer;transition:background .12s;position:relative;display:flex;flex-direction:column;gap:3px}
+.cal-cell:hover{background:var(--bg3)}
+.cal-cell.other{opacity:.4}
+.cal-cell.today{background:rgba(217,119,6,.05)}
+.cal-cell.today .cd{color:var(--accent)}
+.cal-cell.weekend .cd{color:var(--text3)}
+.cal-cell .cd{font-size:11.5px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.cal-pp{font-size:10px;padding:3px 5px;border-radius:3px;background:var(--bg3);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;font-weight:600;line-height:1.3;border-left:3px solid var(--text3)}
+.cal-pp:hover{background:var(--accent-soft);color:var(--accent)}
+.cal-pp.t-update{border-left-color:var(--blue)}
+.cal-pp.t-offer{border-left-color:var(--success)}
+.cal-pp.t-event{border-left-color:var(--purple)}
+.cal-pp.t-news{border-left-color:var(--amber)}
+.cal-pp.draft{opacity:.55;font-style:italic}
+.cal-pp .icon{font-size:10px;margin-right:2px}
+
+/* LIST VIEW */
+.post-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.post-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--text3)}
+.post-card.t-update::before{background:var(--blue)}
+.post-card.t-offer::before{background:var(--success)}
+.post-card.t-event::before{background:var(--purple)}
+.post-card.t-news::before{background:var(--amber)}
+.post-card .pc-hdr{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.post-card .pc-type{display:flex;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono);font-weight:700;padding:3px 9px;border-radius:5px;background:var(--bg3);text-transform:uppercase;letter-spacing:.4px;color:var(--text)}
+.post-card .pc-date{font-size:11px;font-family:var(--mono);color:var(--text2)}
+.post-card .pc-status{margin-left:auto;font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase}
+.post-card .pc-status.draft{background:var(--bg3);color:var(--text3)}
+.post-card .pc-status.scheduled{background:rgba(37,99,235,.13);color:var(--blue)}
+.post-card .pc-status.posted{background:rgba(22,163,74,.13);color:var(--success)}
+.post-card .pc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.post-card .pc-body{font-size:12.5px;color:var(--text);line-height:1.6;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:8px;border:1px solid var(--border);font-family:var(--font)}
+.post-card .pc-meta{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+.post-card .pc-meta strong{color:var(--text2)}
+.post-card .pc-actions{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.post-card .pc-actions button, .post-card .pc-actions a{padding:6px 11px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:4px;text-decoration:none;transition:all .15s}
+.post-card .pc-actions button:hover, .post-card .pc-actions a:hover{border-color:var(--accent);color:var(--accent)}
+.post-card .pc-actions svg{width:11px;height:11px}
+.post-card .pc-actions .copy{margin-left:auto;background:var(--accent);border-color:var(--accent);color:#fff}
+.post-card .pc-actions .copy:hover{background:var(--accent-h);color:#fff}
+
+/* EDIT MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:640px;width:100%;max-height:90vh;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.modal-hdr h2{font-size:14px;font-weight:700;flex:1}
+.modal-hdr .close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);display:flex;align-items:center;justify-content:center}
+.modal-hdr .close:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.modal-body{padding:18px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.modal-foot button{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--bg);color:var(--text)}
+.modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:600}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text)}
+.field textarea{font-family:var(--font);line-height:1.5;min-height:120px;resize:vertical}
+.field .hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.field .hint a{color:var(--accent)}
+.field .char-count{font-size:10px;color:var(--text3);font-family:var(--mono);text-align:right;margin-top:2px}
+.field .char-count.warn{color:var(--amber)}
+.field .char-count.over{color:var(--danger);font-weight:700}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:560px}
+
+.progress-line{height:3px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));width:0;transition:width .3s}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:300px}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div><div class="logo-name">Post<span>Scheduler</span></div></div>
+    <span class="logo-tag">GBP</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat posts"><strong id="stat-posts">0</strong> posts</div>
+  <div class="hdr-stat sched"><strong id="stat-sched">0</strong> scheduled</div>
+  <div class="hdr-stat draft"><strong id="stat-draft">0</strong> drafts</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="gbp-audit.html" class="hdr-link" title="GBP Audit" style="border-color:rgba(217,119,6,.4);color:var(--accent)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    GBP Audit
+  </a>
+  <a href="review-reply.html" class="hdr-link" title="Review Reply Generator" style="border-color:rgba(219,39,119,.4);color:var(--pink)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    Reply
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Assistant" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Brand & Generator</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Brand Voice</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business Name</label><input id="b-name" placeholder="Acme Plumbing" oninput="saveBrand()"></div>
+          <div class="f"><label>Industry</label><select id="b-industry" onchange="saveBrand()">
+            <option value="">— Generic —</option>
+            <option value="plumber">Plumber</option><option value="electrician">Electrician</option>
+            <option value="restaurant">Restaurant</option><option value="dentist">Dentist</option>
+            <option value="lawyer">Lawyer</option><option value="realtor">Realtor</option>
+            <option value="salon">Salon</option><option value="gym">Gym</option>
+            <option value="auto">Auto repair</option><option value="medical">Medical</option>
+            <option value="contractor">Contractor</option><option value="retail">Retail</option>
+          </select></div>
+          <div class="f"><label>City</label><input id="b-city" placeholder="Boston" oninput="saveBrand()"></div>
+          <div class="f"><label>Top services / products</label><textarea id="b-services" placeholder="drain cleaning, water heater install, emergency response" oninput="saveBrand()"></textarea></div>
+          <div class="row2">
+            <div class="f"><label>Tone</label><select id="b-tone" onchange="saveBrand()">
+              <option value="warm">Warm</option>
+              <option value="professional" selected>Professional</option>
+              <option value="friendly">Friendly</option>
+              <option value="urgent">Urgent</option>
+              <option value="playful">Playful</option>
+            </select></div>
+            <div class="f"><label>CTA preference</label><select id="b-cta" onchange="saveBrand()">
+              <option value="call">Call us</option>
+              <option value="book">Book online</option>
+              <option value="order">Order now</option>
+              <option value="signup">Sign up</option>
+              <option value="learn">Learn more</option>
+              <option value="visit">Visit us</option>
+            </select></div>
+          </div>
+          <div class="f"><label>Booking / contact URL</label><input id="b-url" placeholder="https://acmeplumbing.com/book" oninput="saveBrand()"></div>
+          <div class="f"><label>Phone</label><input id="b-phone" placeholder="+1 555 123 4567" oninput="saveBrand()"></div>
+          <button class="btn-sub" onclick="syncFromCitations()">↻ Sync from Citation Finder</button>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Generation Plan</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Post types</label>
+            <div class="tpills" id="type-pills">
+              <button class="tpill active" data-t="update">Update</button>
+              <button class="tpill active" data-t="offer">Offer</button>
+              <button class="tpill" data-t="event">Event</button>
+              <button class="tpill" data-t="news">News / Tip</button>
+            </div>
+          </div>
+          <div class="f"><label>Cadence</label><select id="g-cadence">
+            <option value="weekly">Weekly (4 posts/mo)</option>
+            <option value="twice" selected>2× per week (8 posts/mo)</option>
+            <option value="thrice">3× per week (12 posts/mo)</option>
+            <option value="daily">Daily (30 posts/mo)</option>
+          </select></div>
+          <div class="row2">
+            <div class="f"><label>Start date</label><input type="date" id="g-start"></div>
+            <div class="f"><label># weeks</label><input type="number" id="g-weeks" value="4" min="1" max="26"></div>
+          </div>
+          <div class="f"><label>Preferred days</label>
+            <div style="display:flex;gap:3px;flex-wrap:wrap" id="day-pills">
+              <button class="tpill active" data-d="1">Mon</button>
+              <button class="tpill" data-d="2">Tue</button>
+              <button class="tpill active" data-d="3">Wed</button>
+              <button class="tpill" data-d="4">Thu</button>
+              <button class="tpill active" data-d="5">Fri</button>
+              <button class="tpill" data-d="6">Sat</button>
+              <button class="tpill" data-d="0">Sun</button>
+            </div>
+          </div>
+          <div class="f"><label>Time of day</label><input type="time" id="g-time" value="09:00"></div>
+        </div>
+      </div>
+
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Provider</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="ai-pills"></div>
+          <div id="ai-cfg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="left-footer">
+      <button class="btn-go" onclick="generateBatch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Generate Posts
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="openEdit()">+ Single</button>
+        <button class="btn-sub" onclick="exportICS()">📅 ICS</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="cal" onclick="setTab('cal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendar
+      </button>
+      <button class="tab" data-tab="list" onclick="setTab('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        List <span class="count" id="ct-list">0</span>
+      </button>
+      <button class="tab" data-tab="library" onclick="setTab('library')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Templates
+      </button>
+      <div class="cb-sp"></div>
+      <button class="cb-btn primary" onclick="openEdit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Post
+      </button>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready — fill brand voice and click Generate</span>
+  </div>
+  <div class="ft-item">
+    <span>AI: <strong id="ft-ai-n">offline templates</strong></span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <div class="modal-hdr"><h2 id="em-title">New Post</h2><button class="close" onclick="closeEdit()">&times;</button></div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field">
+          <label>Type</label>
+          <select id="e-type" onchange="updateEditTitle()">
+            <option value="update">Update — general news</option>
+            <option value="offer">Offer — discount/promotion</option>
+            <option value="event">Event — date-specific</option>
+            <option value="news">News / Tip — educational</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label><select id="e-status">
+          <option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="posted">Posted</option>
+        </select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Scheduled Date</label><input type="date" id="e-date"></div>
+        <div class="field"><label>Time</label><input type="time" id="e-time"></div>
+      </div>
+      <div class="field"><label>Title / hook (max 60 chars for visibility)</label><input id="e-title" placeholder="Free water heater inspection this week" oninput="updateChars('e-title-c','e-title',60)"><div class="char-count" id="e-title-c">0/60</div></div>
+      <div class="field"><label>Body (Google allows up to 1500 chars — keep first 100 strong)</label><textarea id="e-body" oninput="updateChars('e-body-c','e-body',1500)"></textarea><div class="char-count" id="e-body-c">0/1500</div></div>
+      <div id="offer-fields" style="display:none">
+        <div class="row2">
+          <div class="field"><label>Offer code</label><input id="e-code" placeholder="SAVE20"></div>
+          <div class="field"><label>Coupon URL (optional)</label><input id="e-coupon"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Offer start</label><input type="date" id="e-offer-start"></div>
+          <div class="field"><label>Offer end</label><input type="date" id="e-offer-end"></div>
+        </div>
+        <div class="field"><label>Terms (optional)</label><input id="e-terms" placeholder="New customers only. Valid for service calls $200+."></div>
+      </div>
+      <div id="event-fields" style="display:none">
+        <div class="row2">
+          <div class="field"><label>Event start (date & time)</label><input type="datetime-local" id="e-event-start"></div>
+          <div class="field"><label>Event end</label><input type="datetime-local" id="e-event-end"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Call to Action</label>
+        <select id="e-cta">
+          <option value="">— No CTA —</option>
+          <option value="call">📞 Call</option>
+          <option value="book">📅 Book Online</option>
+          <option value="order">🛒 Order Online</option>
+          <option value="signup">✍ Sign Up</option>
+          <option value="learn">📖 Learn More</option>
+          <option value="visit">🚗 Get Directions</option>
+        </select>
+      </div>
+      <div class="field"><label>CTA URL</label><input id="e-cta-url" placeholder="https://acmeplumbing.com/book"></div>
+      <div class="field"><label>Image URL (optional, 720×720+ recommended)</label><input id="e-image" placeholder="https://..."></div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="aiRegenerate()" style="color:var(--accent);border-color:var(--accent)">↻ AI Rewrite</button>
+      <button onclick="closeEdit()">Cancel</button>
+      <button class="primary" onclick="savePost()">Save Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+ * GBP POST SCHEDULER & AI GENERATOR
+ * Visual calendar, AI-generated posts, ICS export, bulk generation
+ * ========================================================================== */
+
+/* ---------- POST TEMPLATES (OFFLINE FALLBACK) ---------- */
+const TEMPLATE_HOOKS = {
+  update: ['Quick update from our team', 'New this week', 'A note from {biz}', 'Did you know?', 'Behind the scenes', 'Project spotlight', 'Customer story'],
+  offer:  ['Limited-time offer', 'This week only', 'Save on {service}', 'Welcome offer for new customers', 'Refer a friend & save', 'End of season special'],
+  event:  ['You\'re invited', 'Join us on {date}', 'Free workshop coming up', 'Open house at our shop', 'Community day at {biz}'],
+  news:   ['Pro tip from {biz}', 'How to {topic}', 'Common mistake to avoid', '5 questions to ask before hiring a {industry}', 'Maintenance checklist for this season'],
+};
+
+const TIPS_BY_INDUSTRY = {
+  plumber: ['check for slow drains before they turn into clogs', 'inspect your water heater for sediment buildup yearly', 'know where your main shutoff valve is in case of emergency', 'flush water heaters annually for longer life', 'never put coffee grounds down the disposal'],
+  electrician: ['never overload an outlet with too many extension cords', 'replace flickering light fixtures before they fail', 'install AFCI breakers in bedrooms for fire safety', 'test GFCI outlets monthly with the test button'],
+  restaurant: ['seasonal menu items change every Tuesday', 'reservations book up two weeks in advance for weekends', 'private events welcome — ask about our chef\'s table'],
+  dentist: ['floss before brushing for better plaque removal', 'replace your toothbrush every 3 months', 'don\'t skip your 6-month cleaning', 'use a soft-bristled brush — medium and hard cause recession'],
+  lawyer: ['document everything in writing — texts count', 'know your statute of limitations', 'never sign anything you don\'t understand'],
+  realtor: ['get pre-approved before house hunting', 'spring listings sell 9% faster than fall', 'curb appeal returns 7× its cost'],
+  salon: ['conditioner first, then shampoo — try it on color-treated hair', 'silk pillowcases prevent breakage', 'book your next appointment before you leave'],
+  gym: ['progressive overload beats workout variety', 'sleep is the most underrated recovery tool', 'compound lifts give the best bang for your time'],
+  auto: ['check your tire pressure monthly', 'change oil every 5,000 miles for synthetic', 'rotate tires every 6,000 miles', 'cabin air filters affect HVAC efficiency'],
+  contractor: ['always pull a permit for structural work', 'get three quotes before signing', 'check licensing and insurance before hiring'],
+};
+
+function offlineGenerate(type, brand, opts){
+  const pick = arr=>arr[Math.floor(Math.random()*arr.length)];
+  const sub = s => String(s||'').replace('{biz}', brand.name||'us').replace('{industry}', brand.industry||'pro').replace('{service}', pick((brand.services||'').split(',').map(s=>s.trim()).filter(Boolean))||'our service').replace('{topic}', opts?.topic||'fix a common problem').replace('{date}', opts?.date?new Date(opts.date).toLocaleDateString():'');
+  const hook = sub(pick(TEMPLATE_HOOKS[type]||TEMPLATE_HOOKS.update));
+  const services = (brand.services||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const city = brand.city || 'your area';
+  let body = '';
+  if(type==='update'){
+    body = `${hook}.\n\nThe ${brand.name||'team'} ${city?`in ${city}`:''} has been hard at work helping ${city||'customers'} with ${services.slice(0,3).join(', ')||'their needs'}. ${brand.tone==='warm'?'We genuinely love what we do, and we\'re grateful for every customer that walks through the door.':brand.tone==='urgent'?'We respond fast — emergencies don\'t wait.':'Quality, transparency, and trust drive everything we do.'}\n\nWant to learn more or get started? Get in touch.`;
+  } else if(type==='offer'){
+    const offers = ['$50 off your first service', '15% off this week', 'Free inspection with any service over $200', 'Refer a friend — both save $25', 'Welcome offer: complimentary consultation'];
+    body = `${pick(offers)} — ${hook.toLowerCase()}.\n\nFor a limited time, ${brand.name||'we'} ${city?`in ${city}`:''} is offering this special on ${services[0]||'our most-requested service'}. ${opts?.terms?`Terms: ${opts.terms}.`:''}\n\nCall or book online to claim. Offer ends ${opts?.endDate?new Date(opts.endDate).toLocaleDateString():'this Sunday'}.`;
+  } else if(type==='event'){
+    body = `${hook}!\n\n${brand.name||'We'} ${city?`in ${city}`:''} is hosting ${opts?.eventName||'an open house'}${opts?.eventStart?` on ${new Date(opts.eventStart).toLocaleDateString()} at ${new Date(opts.eventStart).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:''}. Come meet the team, see what we do, and ${brand.tone==='playful'?'enjoy some refreshments on us':'ask anything you\'ve been wondering about'}.\n\n${opts?.eventEnd?`We\'ll wrap up by ${new Date(opts.eventEnd).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'Stop by anytime'}. RSVP not required, but appreciated.`;
+  } else if(type==='news'){
+    const tip = (TIPS_BY_INDUSTRY[brand.industry||'']||['most issues can be prevented with regular maintenance'])[Math.floor(Math.random()*1000)%((TIPS_BY_INDUSTRY[brand.industry||'']||['x']).length||1)];
+    body = `${hook}: ${tip}.\n\nMany ${city||''} customers ask us about this. The reality? Small habits make a big difference — and most problems are far cheaper to prevent than fix.\n\nQuestions? We're happy to walk you through it. No pressure, just honest advice.`;
+  }
+  return {title: hook, body: body.trim()};
+}
+
+/* ---------- AI PROVIDERS ---------- */
+const AI_PROVIDERS = {
+  gemini: {label:'Gemini', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    note:'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+    async ask(prompt, keys){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.85}})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const j = await res.json(); return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  },
+  openai: {label:'OpenAI', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.85})});
+      if(!res.ok) throw new Error('OpenAI '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  claude: {label:'Claude', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:600, messages:[{role:'user',content:prompt}]})});
+      if(!res.ok) throw new Error('Claude '+res.status);
+      const j = await res.json(); return j.content?.[0]?.text || '';
+    }
+  },
+  groq: {label:'Groq', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.85})});
+      if(!res.ok) throw new Error('Groq '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  openrouter: {label:'OpenRouter', free:'free', fields:[{key:'key',label:'API Key',type:'password'},{key:'model',label:'Model',type:'text',placeholder:'meta-llama/llama-3.3-70b-instruct:free'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`,'HTTP-Referer':'https://post-scheduler.local','X-Title':'PostScheduler'}, body:JSON.stringify({model:keys.model||'meta-llama/llama-3.3-70b-instruct:free', messages:[{role:'user',content:prompt}], temperature:0.85})});
+      if(!res.ok) throw new Error('OpenRouter '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+};
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'ps_state_v1';
+const defaultState = {
+  brand: {name:'', industry:'', city:'', services:'', tone:'professional', cta:'call', url:'', phone:''},
+  ai: {provider:'gemini', keys:{}},
+  gen: {types:['update','offer'], cadence:'twice', start:'', weeks:4, days:[1,3,5], time:'09:00'},
+  posts: [],   // [{id, type, title, body, status, date, time, cta, ctaUrl, image, code, terms, eventStart, eventEnd, offerStart, offerEnd, createdAt}]
+  view: {month: null, tab:'cal'},
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+// Auto-inherit AI keys + brand from other tools
+(function inherit(){
+  try {
+    // Brand from review-reply
+    if(!state.brand.name){
+      const rr = JSON.parse(localStorage.getItem('rr_state_v1')||'null');
+      if(rr?.brand){
+        state.brand.name = rr.brand.name||state.brand.name;
+        state.brand.industry = rr.brand.industry||state.brand.industry;
+        state.brand.tone = rr.brand.tone||state.brand.tone;
+        state.brand.phone = rr.brand.phone||state.brand.phone;
+      }
+    }
+    // Brand from citation finder
+    if(!state.brand.name){
+      const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+      const b = cf?.businesses?.[0];
+      if(b){ state.brand.name = b.name; state.brand.city = b.city; state.brand.url = b.website; state.brand.phone = b.phone; }
+    }
+    // AI keys
+    if(!Object.keys(state.ai.keys).length){
+      ['gbp_state_v1','rr_state_v1','ai_state_v1','kw_state_v1'].forEach(k=>{
+        const o = JSON.parse(localStorage.getItem(k)||'null');
+        if(o?.ai?.keys){ Object.entries(o.ai.keys).forEach(([id, keys])=>{if(keys.key && !state.ai.keys[id]?.key) state.ai.keys[id] = clone(keys);}); }
+      });
+    }
+  } catch(e){}
+  if(!state.view.month){ state.view.month = new Date().toISOString().slice(0,7); }
+  if(!state.gen.start){ state.gen.start = new Date().toISOString().slice(0,10); }
+  saveState();
+})();
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function pad(n){return String(n).padStart(2,'0');}
+
+/* ---------- INIT ---------- */
+function initUI(){
+  // Brand
+  ['name','industry','city','services','tone','cta','url','phone'].forEach(k=>{
+    const el = document.getElementById('b-'+k); if(el) el.value = state.brand[k]||'';
+  });
+  // Generation plan
+  document.getElementById('g-cadence').value = state.gen.cadence;
+  document.getElementById('g-start').value = state.gen.start;
+  document.getElementById('g-weeks').value = state.gen.weeks;
+  document.getElementById('g-time').value = state.gen.time;
+  document.querySelectorAll('#type-pills .tpill').forEach(b=>{
+    b.classList.toggle('active', state.gen.types.includes(b.dataset.t));
+    b.onclick = ()=>{ const t = b.dataset.t; if(state.gen.types.includes(t)) state.gen.types = state.gen.types.filter(x=>x!==t); else state.gen.types.push(t); b.classList.toggle('active'); saveState(); };
+  });
+  document.querySelectorAll('#day-pills .tpill').forEach(b=>{
+    const d = parseInt(b.dataset.d);
+    b.classList.toggle('active', state.gen.days.includes(d));
+    b.onclick = ()=>{ if(state.gen.days.includes(d)) state.gen.days = state.gen.days.filter(x=>x!==d); else state.gen.days.push(d); b.classList.toggle('active'); saveState(); };
+  });
+  document.getElementById('g-cadence').onchange = ()=>{state.gen.cadence = document.getElementById('g-cadence').value; saveState();};
+  document.getElementById('g-start').onchange = ()=>{state.gen.start = document.getElementById('g-start').value; saveState();};
+  document.getElementById('g-weeks').onchange = ()=>{state.gen.weeks = parseInt(document.getElementById('g-weeks').value)||4; saveState();};
+  document.getElementById('g-time').onchange = ()=>{state.gen.time = document.getElementById('g-time').value; saveState();};
+  // AI provider
+  document.getElementById('ai-pills').innerHTML = Object.entries(AI_PROVIDERS).map(([id,p])=>`<button class="pp ${state.ai.provider===id?'active':''}" onclick="selAi('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderAiCfg();
+}
+
+function saveBrand(){
+  ['name','industry','city','services','tone','cta','url','phone'].forEach(k=>state.brand[k] = document.getElementById('b-'+k).value);
+  saveState();
+}
+
+function syncFromCitations(){
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.find(x=>x.id===cf.activeBizId) || cf?.businesses?.[0];
+    if(!b){ toast('No biz in Citation Finder','err'); return; }
+    state.brand.name = b.name||state.brand.name;
+    state.brand.city = b.city||state.brand.city;
+    state.brand.url = b.website||state.brand.url;
+    state.brand.phone = b.phone||state.brand.phone;
+    state.brand.industry = b.category||state.brand.industry;
+    initUI(); saveState();
+    toast(`Loaded "${b.name}" from Citations`,'success');
+  } catch(e){ toast('Sync failed: '+e.message,'err'); }
+}
+
+function selAi(id){
+  state.ai.provider = id; saveState();
+  document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active', b.textContent.includes(AI_PROVIDERS[id].label)));
+  renderAiCfg();
+}
+function renderAiCfg(){
+  const p = AI_PROVIDERS[state.ai.provider]; const k = state.ai.keys[state.ai.provider]||{};
+  document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('') + (p.note?`<div class="hint">${p.note}</div>`:'');
+  document.getElementById('ft-ai-n').textContent = state.ai.keys[state.ai.provider]?.key ? p.label : 'offline templates';
+}
+function saveAiKey(){
+  const p = AI_PROVIDERS[state.ai.provider];
+  const keys = state.ai.keys[state.ai.provider]||{};
+  p.fields.forEach(f=>{keys[f.key] = document.getElementById('ai-'+f.key).value.trim();});
+  state.ai.keys[state.ai.provider] = keys; saveState();
+  document.getElementById('ft-ai-n').textContent = keys.key ? AI_PROVIDERS[state.ai.provider].label : 'offline templates';
+}
+
+/* ---------- BATCH GENERATION ---------- */
+async function generateBatch(){
+  if(!state.brand.name){ toast('Set business name first','err'); return; }
+  if(!state.gen.types.length){ toast('Select at least one post type','err'); return; }
+  if(!state.gen.days.length){ toast('Select at least one day','err'); return; }
+  saveBrand();
+  // Compute schedule dates
+  const startDate = new Date(state.gen.start);
+  const endDate = new Date(startDate); endDate.setDate(endDate.getDate() + state.gen.weeks*7);
+  const cadence = ({weekly:1, twice:2, thrice:3, daily:7})[state.gen.cadence] || 2;
+  const dates = [];
+  const cur = new Date(startDate);
+  while(cur < endDate){
+    if(state.gen.days.includes(cur.getDay())){
+      dates.push(new Date(cur));
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  // Limit to cadence per week
+  const perWeek = cadence;
+  const filtered = [];
+  let lastWeek = -1, weekCount = 0;
+  dates.forEach(d=>{
+    const week = Math.floor((d - startDate)/(7*24*3600*1000));
+    if(week!==lastWeek){ weekCount=0; lastWeek=week; }
+    if(weekCount<perWeek){ filtered.push(d); weekCount++; }
+  });
+  if(!filtered.length){ toast('No valid dates — check days/start/weeks','err'); return; }
+
+  document.getElementById('prog-fill').style.width = '5%';
+  document.getElementById('ft-status').textContent = `Generating ${filtered.length} posts...`;
+  const aiReady = state.ai.keys[state.ai.provider]?.key;
+
+  let i = 0;
+  for(const date of filtered){
+    const type = state.gen.types[i % state.gen.types.length];
+    let post;
+    if(aiReady){
+      try { post = await aiGenerate(type, state.brand, {date: date.toISOString()}); }
+      catch(e){ post = offlineGenerate(type, state.brand, {date: date.toISOString()}); }
+    } else {
+      post = offlineGenerate(type, state.brand, {date: date.toISOString()});
+    }
+    state.posts.push({
+      id: uid(), type, title: post.title, body: post.body, status:'draft',
+      date: date.toISOString().slice(0,10), time: state.gen.time,
+      cta: state.brand.cta, ctaUrl: state.brand.url, image:'',
+      createdAt: Date.now(),
+    });
+    i++;
+    document.getElementById('prog-fill').style.width = (i/filtered.length*100)+'%';
+    document.getElementById('ft-status').textContent = `Generated ${i}/${filtered.length}`;
+    renderAll();
+    if(aiReady) await sleep(500);
+  }
+  document.getElementById('prog-fill').style.width = '0';
+  saveState();
+  toast(`Generated ${filtered.length} posts (${aiReady?'AI':'offline'})`, 'success');
+}
+
+async function aiGenerate(type, brand, opts){
+  const p = AI_PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider];
+  const typeLabel = ({update:'Update post (general business news, no offer)', offer:'Offer post (specific time-limited discount or promotion)', event:'Event post (specific date + time for an in-person event)', news:'News/Tip post (educational, helpful tip for customers)'})[type];
+  const prompt = `Generate ONE Google Business Profile post for ${brand.name||'a local business'} (${brand.industry||'general'}${brand.city?', '+brand.city:''}).
+
+POST TYPE: ${typeLabel}
+TONE: ${brand.tone}
+BRAND SERVICES: ${brand.services||'(unspecified)'}
+TARGET DATE: ${opts?.date?new Date(opts.date).toLocaleDateString():'this week'}
+
+Requirements:
+- Title: max 60 characters, captures attention without being clickbaity
+- Body: 150-400 characters, conversational, ends with a soft CTA
+- ${type==='offer'?'Mention a SPECIFIC, plausible discount or promo — not vague.':type==='event'?'Treat as a real event with a date and venue.':type==='news'?'Give a specific actionable tip — never generic platitudes.':'Sound like a real human posting, not corporate marketing.'}
+- Use ${brand.city?`"${brand.city}"`:'the city'} naturally if relevant.
+- No emojis.
+- No hashtags.
+- No "we are excited to announce" or other corporate clichés.
+
+Output as plain text in this EXACT format:
+TITLE: [title here]
+BODY:
+[body here, multiple lines OK]
+
+Nothing else.`;
+  const ans = await p.ask(prompt, keys);
+  const titleM = ans.match(/TITLE:\s*(.+?)\n/i);
+  const bodyM = ans.match(/BODY:\s*([\s\S]+)/i);
+  return {
+    title: titleM ? titleM[1].trim() : (ans.split('\n')[0]||'').slice(0,60),
+    body: bodyM ? bodyM[1].trim() : ans.trim(),
+  };
+}
+
+/* ---------- POST EDIT ---------- */
+let editingId = null;
+function openEdit(id){
+  editingId = id || null;
+  const p = id ? state.posts.find(x=>x.id===id) : {type:'update', status:'draft', date:new Date().toISOString().slice(0,10), time:state.gen.time, cta:state.brand.cta, ctaUrl:state.brand.url};
+  document.getElementById('em-title').textContent = id?'Edit Post':'New Post';
+  document.getElementById('e-type').value = p.type||'update';
+  document.getElementById('e-status').value = p.status||'draft';
+  document.getElementById('e-date').value = p.date||new Date().toISOString().slice(0,10);
+  document.getElementById('e-time').value = p.time||'09:00';
+  document.getElementById('e-title').value = p.title||'';
+  document.getElementById('e-body').value = p.body||'';
+  document.getElementById('e-code').value = p.code||'';
+  document.getElementById('e-coupon').value = p.coupon||'';
+  document.getElementById('e-offer-start').value = p.offerStart||'';
+  document.getElementById('e-offer-end').value = p.offerEnd||'';
+  document.getElementById('e-terms').value = p.terms||'';
+  document.getElementById('e-event-start').value = p.eventStart||'';
+  document.getElementById('e-event-end').value = p.eventEnd||'';
+  document.getElementById('e-cta').value = p.cta||'';
+  document.getElementById('e-cta-url').value = p.ctaUrl||'';
+  document.getElementById('e-image').value = p.image||'';
+  updateEditTitle();
+  updateChars('e-title-c','e-title',60);
+  updateChars('e-body-c','e-body',1500);
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeEdit(){document.getElementById('edit-modal').classList.remove('show');}
+function updateEditTitle(){
+  const t = document.getElementById('e-type').value;
+  document.getElementById('offer-fields').style.display = t==='offer'?'':'none';
+  document.getElementById('event-fields').style.display = t==='event'?'':'none';
+}
+function updateChars(cId, iId, max){
+  const v = document.getElementById(iId).value;
+  const el = document.getElementById(cId);
+  el.textContent = `${v.length}/${max}`;
+  el.classList.toggle('warn', v.length > max*0.85 && v.length<=max);
+  el.classList.toggle('over', v.length>max);
+}
+function savePost(){
+  const post = {
+    id: editingId || uid(),
+    type: document.getElementById('e-type').value,
+    status: document.getElementById('e-status').value,
+    date: document.getElementById('e-date').value,
+    time: document.getElementById('e-time').value,
+    title: document.getElementById('e-title').value.trim(),
+    body: document.getElementById('e-body').value.trim(),
+    code: document.getElementById('e-code').value.trim(),
+    coupon: document.getElementById('e-coupon').value.trim(),
+    offerStart: document.getElementById('e-offer-start').value,
+    offerEnd: document.getElementById('e-offer-end').value,
+    terms: document.getElementById('e-terms').value.trim(),
+    eventStart: document.getElementById('e-event-start').value,
+    eventEnd: document.getElementById('e-event-end').value,
+    cta: document.getElementById('e-cta').value,
+    ctaUrl: document.getElementById('e-cta-url').value.trim(),
+    image: document.getElementById('e-image').value.trim(),
+    createdAt: editingId ? state.posts.find(x=>x.id===editingId)?.createdAt : Date.now(),
+  };
+  if(!post.body){ toast('Body is required','err'); return; }
+  if(editingId){
+    const idx = state.posts.findIndex(x=>x.id===editingId);
+    if(idx>=0) state.posts[idx] = post;
+  } else {
+    state.posts.push(post);
+  }
+  saveState(); closeEdit(); renderAll();
+  toast('Saved','success');
+}
+
+async function aiRegenerate(){
+  if(!state.ai.keys[state.ai.provider]?.key){ toast('Configure AI provider first','err'); return; }
+  const type = document.getElementById('e-type').value;
+  toast('Regenerating...','info');
+  try {
+    const p = await aiGenerate(type, state.brand, {date: document.getElementById('e-date').value});
+    document.getElementById('e-title').value = p.title;
+    document.getElementById('e-body').value = p.body;
+    updateChars('e-title-c','e-title',60); updateChars('e-body-c','e-body',1500);
+    toast('Regenerated','success');
+  } catch(e){ toast('AI failed: '+e.message,'err'); }
+}
+
+function delPost(id){ if(!confirm('Delete post?')) return; state.posts = state.posts.filter(p=>p.id!==id); saveState(); renderAll(); }
+function dupePost(id){ const p = state.posts.find(x=>x.id===id); if(!p) return; state.posts.push({...p, id:uid(), status:'draft', date:new Date().toISOString().slice(0,10)}); saveState(); renderAll(); toast('Duplicated','success'); }
+function copyPost(id){
+  const p = state.posts.find(x=>x.id===id); if(!p) return;
+  const text = (p.title?p.title+'\n\n':'')+p.body + (p.code?`\n\nUse code: ${p.code}`:'')+(p.terms?`\n\n${p.terms}`:'')+(p.ctaUrl?`\n\n${p.ctaUrl}`:'');
+  navigator.clipboard.writeText(text).then(()=>toast('Copied — paste into GBP dashboard','success'));
+}
+
+function clearAll(){
+  if(!confirm('Clear ALL posts?')) return;
+  state.posts = []; saveState(); renderAll(); toast('Cleared','success');
+}
+
+/* ---------- TABS ---------- */
+function setTab(t){ state.view.tab=t; saveState(); document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); renderCenter(); }
+
+/* ---------- RENDER ---------- */
+function renderAll(){
+  document.getElementById('stat-posts').textContent = state.posts.length;
+  document.getElementById('stat-sched').textContent = state.posts.filter(p=>p.status==='scheduled').length;
+  document.getElementById('stat-draft').textContent = state.posts.filter(p=>p.status==='draft').length;
+  document.getElementById('ct-list').textContent = state.posts.length;
+  renderCenter();
+}
+
+function renderCenter(){
+  if(state.view.tab==='cal') return renderCalendar();
+  if(state.view.tab==='list') return renderList();
+  if(state.view.tab==='library') return renderLibrary();
+}
+
+function renderCalendar(){
+  const [yr, mo] = (state.view.month||new Date().toISOString().slice(0,7)).split('-').map(Number);
+  const first = new Date(yr, mo-1, 1);
+  const last = new Date(yr, mo, 0);
+  const monthName = first.toLocaleString('en', {month:'long', year:'numeric'});
+  const startDay = first.getDay();
+  const days = last.getDate();
+  const cells = [];
+  // Prev month tail
+  const prevDays = new Date(yr, mo-1, 0).getDate();
+  for(let i=startDay-1;i>=0;i--) cells.push({d:prevDays-i, other:true, dateStr:`${yr}-${pad(mo-1||12)}-${pad(prevDays-i)}`});
+  // This month
+  for(let d=1;d<=days;d++) cells.push({d, dateStr:`${yr}-${pad(mo)}-${pad(d)}`});
+  // Next month head
+  while(cells.length%7) cells.push({d:cells.length-startDay-days+1, other:true, dateStr:''});
+
+  const today = new Date().toISOString().slice(0,10);
+  const dayHdrs = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('cbody').innerHTML = `
+    <div class="cal-hdr">
+      <h2>${monthName}</h2>
+      <div class="cal-nav">
+        <button onclick="prevMonth()">‹</button>
+        <button onclick="thisMonth()">Today</button>
+        <button onclick="nextMonth()">›</button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      ${dayHdrs.map(d=>`<div class="cal-dh">${d}</div>`).join('')}
+      ${cells.map(c=>{
+        const isToday = c.dateStr===today;
+        const isWeekend = c.dateStr && [0,6].includes(new Date(c.dateStr).getDay());
+        const posts = state.posts.filter(p=>p.date===c.dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+        return `<div class="cal-cell ${c.other?'other':''} ${isToday?'today':''} ${isWeekend?'weekend':''}" onclick="openDayPosts('${c.dateStr}')">
+          <div class="cd">${c.d}</div>
+          ${posts.slice(0,3).map(p=>`<div class="cal-pp t-${p.type} ${p.status==='draft'?'draft':''}" onclick="event.stopPropagation();openEdit('${p.id}')"><span class="icon">${({update:'📢',offer:'🎟',event:'🗓',news:'💡'})[p.type]||'•'}</span>${escapeHtml((p.title||p.body).slice(0,28))}</div>`).join('')}
+          ${posts.length>3?`<div style="font-size:9.5px;color:var(--text3);font-family:var(--mono);text-align:center">+${posts.length-3} more</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:14px;font-size:11px;color:var(--text2);display:flex;gap:14px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--blue);border-radius:2px;margin-right:5px"></span>Update</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--success);border-radius:2px;margin-right:5px"></span>Offer</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--purple);border-radius:2px;margin-right:5px"></span>Event</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--amber);border-radius:2px;margin-right:5px"></span>News/Tip</span>
+      <span style="margin-left:auto;color:var(--text3)">Click a post to edit, click a day to add</span>
+    </div>
+  `;
+}
+function prevMonth(){ const [y,m] = state.view.month.split('-').map(Number); const d = new Date(y, m-2, 1); state.view.month = d.toISOString().slice(0,7); saveState(); renderCalendar(); }
+function nextMonth(){ const [y,m] = state.view.month.split('-').map(Number); const d = new Date(y, m, 1); state.view.month = d.toISOString().slice(0,7); saveState(); renderCalendar(); }
+function thisMonth(){ state.view.month = new Date().toISOString().slice(0,7); saveState(); renderCalendar(); }
+function openDayPosts(date){ if(!date) return; const post = state.posts.find(p=>p.date===date); if(post) openEdit(post.id); else { openEdit(); document.getElementById('e-date').value = date; } }
+
+function renderList(){
+  if(!state.posts.length){
+    document.getElementById('cbody').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><div><div class="et">No posts yet</div><div class="ed">Click <strong>Generate Posts</strong> for a bulk batch, or <strong>+ New Post</strong> for a single. Posts are copy-paste ready for the Google Business Profile dashboard.</div></div></div>`;
+    return;
+  }
+  const sorted = state.posts.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  document.getElementById('cbody').innerHTML = sorted.map(p=>{
+    const charCount = (p.title||'').length + (p.body||'').length;
+    const overBody = (p.body||'').length>1500;
+    return `<div class="post-card t-${p.type}">
+      <div class="pc-hdr">
+        <span class="pc-type"><span style="font-size:13px">${({update:'📢',offer:'🎟',event:'🗓',news:'💡'})[p.type]}</span> ${p.type}</span>
+        <span class="pc-date">${p.date?new Date(p.date+'T'+p.time).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):''}</span>
+        <span class="pc-status ${p.status}">${p.status}</span>
+      </div>
+      ${p.title?`<div class="pc-title">${escapeHtml(p.title)}</div>`:''}
+      <div class="pc-body">${escapeHtml(p.body)}${p.code?`\n\nUse code: ${p.code}`:''}${p.terms?`\n\n${p.terms}`:''}</div>
+      <div class="pc-meta">
+        <span><strong>${(p.body||'').length}</strong> chars${overBody?' <span style="color:var(--danger)">⚠ over 1500</span>':''}</span>
+        ${p.cta?`<span>CTA: <strong>${p.cta}</strong></span>`:''}
+        ${p.ctaUrl?`<span>→ ${escapeHtml(p.ctaUrl.slice(0,40))}</span>`:''}
+      </div>
+      <div class="pc-actions">
+        <button onclick="openEdit('${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</button>
+        <button onclick="dupePost('${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicate</button>
+        <button onclick="delPost('${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Delete</button>
+        <a href="https://business.google.com/posts" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open GBP</a>
+        <button class="copy" onclick="copyPost('${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy Post</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderLibrary(){
+  // Pre-built post templates by type/industry/use case
+  const lib = [
+    {type:'update', icon:'📢', title:'New service launch', body:`Big news from ${state.brand.name||'our team'} — we just rolled out [new service]. It's something customers have been asking about for a while, and we're excited to finally offer it.\n\nLearn more on our site or just give us a call.`},
+    {type:'update', icon:'📢', title:'Team behind the work', body:`Behind every job is a team that cares. Our ${state.brand.industry||'staff'} brings [X years] of experience and the kind of attention to detail that turns one-time customers into repeat ones.\n\nMeet the team next time you're in.`},
+    {type:'offer',  icon:'🎟', title:'New customer discount', body:`Welcome to ${state.brand.city||'our area'}? Get $XX off your first ${(state.brand.services||'').split(',')[0]||'service'} with ${state.brand.name||'us'}.\n\nMention this post when you call. Valid through [date].`},
+    {type:'offer',  icon:'🎟', title:'Seasonal special', body:`Spring tune-up special: $XX off any ${(state.brand.services||'').split(',')[0]||'service'} through [date].\n\nLimited slots — book now to lock in your time.`},
+    {type:'event',  icon:'🗓', title:'Open house', body:`Stop by our ${state.brand.city||''} location on [date] from [time] for an open house. Meet the team, tour the shop, and ${state.brand.industry==='restaurant'?'try some samples':'see how we work'}.\n\nNo RSVP needed — just come.`},
+    {type:'news',   icon:'💡', title:'Common mistake to avoid', body:`Pro tip from ${state.brand.name||'us'}: [specific tip]. We see this all the time, and the fix is usually simple if you catch it early.\n\nQuestions? Happy to walk you through it.`},
+    {type:'news',   icon:'💡', title:'Seasonal checklist', body:`Heading into ${['spring','summer','fall','winter'][Math.floor((new Date().getMonth())/3)]}? Here's a quick checklist for ${state.brand.industry||'your home'}:\n\n• [item 1]\n• [item 2]\n• [item 3]\n\nCall if you need help on any of these.`},
+  ];
+  document.getElementById('cbody').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">${lib.map(t=>`<div class="post-card t-${t.type}"><div class="pc-hdr"><span class="pc-type">${t.icon} ${t.type}</span><span style="margin-left:auto"><button class="cb-btn" onclick="useTemplate(${JSON.stringify(t).replace(/"/g,'&quot;')})">Use →</button></span></div><div class="pc-title">${escapeHtml(t.title)}</div><div class="pc-body">${escapeHtml(t.body)}</div></div>`).join('')}</div>`;
+}
+function useTemplate(t){
+  openEdit();
+  document.getElementById('e-type').value = t.type;
+  document.getElementById('e-title').value = t.title;
+  document.getElementById('e-body').value = t.body;
+  updateEditTitle(); updateChars('e-title-c','e-title',60); updateChars('e-body-c','e-body',1500);
+}
+
+/* ---------- EXPORTS ---------- */
+function exportCSV(){
+  if(!state.posts.length){ toast('No posts','err'); return; }
+  const rows = [['date','time','type','status','title','body','cta','cta_url','code','offer_start','offer_end','event_start','event_end','image']];
+  state.posts.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).forEach(p=>{
+    rows.push([p.date,p.time,p.type,p.status,p.title||'',p.body||'',p.cta||'',p.ctaUrl||'',p.code||'',p.offerStart||'',p.offerEnd||'',p.eventStart||'',p.eventEnd||'',p.image||'']);
+  });
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`gbp-posts-${(state.brand.name||'biz').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('CSV exported','success');
+}
+
+function exportICS(){
+  if(!state.posts.length){ toast('No posts','err'); return; }
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Post Scheduler//Local SEO//EN','CALSCALE:GREGORIAN'];
+  state.posts.forEach(p=>{
+    const dt = new Date(p.date+'T'+(p.time||'09:00'));
+    const dtEnd = new Date(dt.getTime()+30*60*1000);
+    const fmt = d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:'+p.id+'@gbp-scheduler');
+    lines.push('DTSTAMP:'+fmt(new Date(p.createdAt||Date.now())));
+    lines.push('DTSTART:'+fmt(dt));
+    lines.push('DTEND:'+fmt(dtEnd));
+    lines.push('SUMMARY:GBP '+p.type.toUpperCase()+': '+(p.title||p.body.slice(0,40)).replace(/[\r\n]+/g,' '));
+    lines.push('DESCRIPTION:'+(p.body||'').replace(/[\r\n]+/g,'\\n')+(p.ctaUrl?'\\n\\nCTA: '+p.ctaUrl:''));
+    lines.push('CATEGORIES:'+p.type);
+    if(p.ctaUrl) lines.push('URL:'+p.ctaUrl);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n')], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`gbp-posts-${(state.brand.name||'biz').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.ics`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('ICS exported — import to Google/Outlook calendar','success');
+}
+
+/* ---------- BOOT ---------- */
+initUI();
+setTab(state.view?.tab||'cal');
+renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

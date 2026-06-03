@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SERP Ranker - Accurate Keyword Rank Tracker (Any Location, Any Engine)</title>
+<meta name="description" content="Check accurate Google / Bing / Yahoo / DuckDuckGo keyword rankings from any city or country. Multi-provider (Serper, SerpAPI, ValueSERP, DataForSEO). 100% client-side. Bulk keywords + CSV export.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#059669; --accent-h:#047857; --accent-soft:rgba(5,150,105,.08);
+  --teal:#0d9488; --teal-h:#0f766e;
+  --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --map-filter:none;
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#10b981; --accent-h:#34d399; --accent-soft:rgba(16,185,129,.14);
+  --teal:#14b8a6; --teal-h:#2dd4bf;
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+  --map-filter:brightness(.82) saturate(.9);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* HEADER */
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--amber));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(5,150,105,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.kw strong{color:var(--accent)}
+.hdr-stat.rk strong{color:var(--amber)}
+.hdr-stat.av strong{color:var(--blue)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+/* APP */
+#app{flex:1;display:flex;overflow:hidden;height:calc(100vh - 56px - 32px)}
+
+/* LEFT QUEUE */
+#queue-panel{width:280px;min-width:250px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.qp-header{padding:11px 12px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.qp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);flex:1;font-family:var(--mono)}
+.btn-add{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;border:none;transition:all .15s}
+.btn-add:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+
+.kw-paste{margin:9px;padding:9px;border:2px dashed var(--border2);border-radius:10px;background:var(--bg3);transition:all .2s}
+.kw-paste:focus-within{border-color:var(--accent);background:var(--accent-soft)}
+.kw-paste textarea{width:100%;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:11px;color:var(--text);resize:vertical;min-height:54px;line-height:1.5}
+.kw-paste textarea::placeholder{color:var(--text3)}
+.kw-paste-row{display:flex;gap:5px;margin-top:7px}
+.kw-paste-row button{flex:1}
+
+#kw-list{flex:1;overflow-y:auto;padding:5px}
+.kwl-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:8px;padding:20px}
+.kwl-empty svg{width:38px;height:38px;opacity:.3}
+.kwl-empty .et{font-size:12.5px;color:var(--text2);font-weight:500}
+.kwl-empty .es{font-size:10.5px}
+
+.kw-item{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .12s;position:relative}
+.kw-item:hover{background:var(--bg3)}
+.kw-item.active{background:var(--accent-soft);border-color:rgba(5,150,105,.28)}
+.ki-badge{width:32px;height:32px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text2);font-family:var(--mono);line-height:1}
+.ki-badge.ranked-1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff;border-color:#f59e0b}
+.ki-badge.ranked-top3{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-color:#059669}
+.ki-badge.ranked-top10{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:#2563eb}
+.ki-badge.ranked-top30{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border-color:#7c3aed}
+.ki-badge.ranked-top100{background:linear-gradient(135deg,#f87171,#dc2626);color:#fff;border-color:#dc2626}
+.ki-badge.not-ranked{background:var(--bg3);color:var(--text3)}
+.ki-info{flex:1;min-width:0}
+.ki-kw{font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ki-meta{font-size:9.5px;color:var(--text2);font-family:var(--mono);margin-top:2px;display:flex;gap:6px;align-items:center}
+.ki-status{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;box-shadow:0 0 0 2px var(--bg2)}
+.ki-status.idle{background:var(--border2)}
+.ki-status.queued{background:var(--text3)}
+.ki-status.running{background:var(--amber);animation:pulse 1s infinite;box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(217,119,6,.6)}
+.ki-status.done{background:var(--success);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(22,163,74,.4)}
+.ki-status.err{background:var(--danger);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(220,38,38,.4)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ki-del{width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:opacity .15s;line-height:1}
+.kw-item:hover .ki-del{opacity:1}
+.ki-del:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.ki-diff{font-size:9.5px;font-family:var(--mono);font-weight:700}
+.ki-diff.up{color:var(--success)}
+.ki-diff.down{color:var(--danger)}
+.ki-diff.same{color:var(--text3)}
+
+#queue-footer{border-top:1px solid var(--border);padding:9px;display:flex;gap:5px;flex-direction:column;background:var(--bg)}
+.qf-row{display:flex;gap:5px}
+
+/* MAP CENTER */
+#map-area{flex:1;display:flex;flex-direction:column;position:relative;min-width:0}
+#map-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+#search-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:7px 12px 7px 32px;font-size:12.5px;color:var(--text);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a9ab5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>");background-repeat:no-repeat;background-position:10px center;transition:border-color .15s,box-shadow .15s}
+#search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#search-input::placeholder{color:var(--text3)}
+.layer-pills{display:flex;gap:3px;margin-left:2px}
+.lpill{padding:5px 9px;border-radius:5px;font-size:9.5px;font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:.6px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.lpill:hover{border-color:var(--accent);color:var(--accent)}
+.lpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#map-split{flex:1;display:flex;flex-direction:column;min-height:0}
+#map{height:52%;min-height:240px;z-index:1;background:var(--bg3)}
+#map .leaflet-tile-pane{filter:var(--map-filter);transition:filter .4s}
+
+#results-pane{flex:1;background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.rp-bar{height:34px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;font-size:11px;color:var(--text2);font-family:var(--mono)}
+.rp-bar .rp-kw{color:var(--accent);font-weight:700;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-bar .rp-meta{color:var(--text3)}
+.rp-bar .rp-spacer{flex:1}
+.rp-bar select{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10.5px;color:var(--text);font-family:var(--mono)}
+.rp-bar button{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:10.5px;color:var(--text);font-weight:600}
+.rp-bar button:hover{border-color:var(--accent);color:var(--accent)}
+
+#rp-list{flex:1;overflow-y:auto;padding:8px 10px}
+.rp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:10px;padding:30px}
+.rp-empty svg{width:48px;height:48px;opacity:.25}
+.rp-empty .re-t{font-size:13.5px;font-weight:600;color:var(--text);opacity:.6}
+.rp-empty .re-s{font-size:11.5px;line-height:1.5;max-width:440px}
+
+.rp-summary{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px;margin-bottom:10px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-sm)}
+.rp-rank-box{width:64px;height:64px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-family:var(--mono);font-weight:800;background:linear-gradient(135deg,#9ca3af,#6b7280)}
+.rp-rank-box.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+.rp-rank-box.r3{background:linear-gradient(135deg,#10b981,#059669)}
+.rp-rank-box.r10{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+.rp-rank-box.r30{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
+.rp-rank-box.r100{background:linear-gradient(135deg,#f87171,#dc2626)}
+.rp-rank-box .rb-num{font-size:22px;line-height:1}
+.rp-rank-box .rb-sub{font-size:8.5px;margin-top:3px;letter-spacing:.5px;opacity:.95}
+.rp-summary-info{flex:1;min-width:0}
+.rp-summary-kw{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-summary-url{font-size:11px;color:var(--accent);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-summary-url a{color:inherit;text-decoration:none}
+.rp-summary-url a:hover{text-decoration:underline}
+.rp-summary-snip{font-size:11.5px;color:var(--text2);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rp-summary-meta{display:flex;gap:10px;font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:6px;flex-wrap:wrap}
+.rp-summary-meta strong{color:var(--text2)}
+
+.serp-row{display:flex;gap:11px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);margin-bottom:6px;transition:all .12s}
+.serp-row:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.serp-row.match{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent)}
+.serp-pos{width:28px;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--text2);text-align:center;line-height:1;padding-top:4px;flex-shrink:0}
+.serp-row.match .serp-pos{color:var(--accent)}
+.serp-body{flex:1;min-width:0}
+.serp-title{font-size:13px;color:var(--blue);font-weight:600;line-height:1.35;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.serp-title a{color:inherit;text-decoration:none}
+.serp-title a:hover{text-decoration:underline}
+.serp-url{font-size:10.5px;color:var(--text3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.serp-snip{font-size:11px;color:var(--text2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.serp-domain{display:inline-block;font-size:10px;font-family:var(--mono);color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 6px;margin-left:5px}
+.serp-row.match .serp-domain{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+#map-status{height:28px;background:var(--bg2);border-top:1px solid var(--border);padding:0 12px;display:flex;align-items:center;gap:12px;font-size:10.5px;font-family:var(--mono);color:var(--text2);flex-shrink:0}
+.ms-coords{color:var(--accent);font-weight:700;white-space:nowrap}
+.ms-addr{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-zoom{color:var(--text3)}
+
+/* RIGHT EDITOR */
+#edit-panel{width:380px;min-width:340px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.ep-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;scrollbar-width:none}
+.ep-tabs::-webkit-scrollbar{display:none}
+.eptab{flex:1;min-width:0;padding:10px 4px;font-size:10px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.7px;background:none;border:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.eptab:hover{color:var(--text);background:var(--bg2)}
+.eptab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--bg2)}
+.ep-panel{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.ep-panel.active{display:flex}
+.ep-inner{padding:13px}
+
+/* SECTION HEADER */
+.sec-h{font-size:9.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--text2);font-weight:700;padding:11px 0 7px;border-bottom:1px solid var(--border);margin-bottom:9px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.sec-h::after{content:'';width:8px;height:8px;border-right:1.5px solid var(--text3);border-bottom:1.5px solid var(--text3);transform:rotate(45deg);margin-left:auto;transition:transform .2s}
+.sec-h.closed::after{transform:rotate(-45deg)}
+.sec-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.sec-dot.g{background:var(--teal)}
+.sec-dot.a{background:var(--amber)}
+.sec-dot.p{background:var(--purple)}
+.sec-dot.b{background:var(--blue)}
+.sec-body.closed{display:none}
+
+/* FIELDS */
+.frow{display:grid;grid-template-columns:108px 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.flbl{font-size:10.5px;color:var(--text2);font-family:var(--mono);line-height:1.3}
+.finp{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:6px 9px;font-size:11px;font-family:var(--mono);color:var(--text);width:100%;transition:all .15s}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.finp:disabled{opacity:.5;cursor:not-allowed}
+select.finp{cursor:pointer}
+textarea.finp{font-family:var(--font);font-size:11.5px;line-height:1.5;resize:vertical;min-height:60px}
+.frow-full{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.frow-full .flbl{font-size:10px}
+.frow-help{font-size:9.5px;color:var(--text3);margin-top:3px;font-family:var(--font);line-height:1.4}
+.frow-help a{color:var(--accent);text-decoration:none}
+.frow-help a:hover{text-decoration:underline}
+
+/* PROVIDER CARD */
+.prov-card{background:linear-gradient(135deg,rgba(5,150,105,.06),rgba(217,119,6,.05));border:1px solid rgba(5,150,105,.22);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
+[data-theme="dark"] .prov-card{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(245,158,11,.06));border-color:rgba(16,185,129,.22)}
+.prov-head{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.prov-title{font-size:12.5px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:6px}
+.prov-title svg{width:15px;height:15px}
+.prov-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);margin-left:auto}
+.prov-tag.ready{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.3);color:var(--success)}
+.prov-tag.miss{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.3);color:var(--danger)}
+.prov-body{padding:0 12px 12px}
+.prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;background:var(--bg3);padding:3px;border-radius:7px;border:1px solid var(--border)}
+.prov-grid-label{font-size:8.5px;font-family:var(--mono);font-weight:700;letter-spacing:.7px;color:var(--text3);text-transform:uppercase;padding:1px 4px 3px;display:flex;align-items:center;gap:5px}
+.prov-grid-label .pgl-dot{width:5px;height:5px;border-radius:50%}
+.prov-grid-label .pgl-dot.free{background:var(--success)}
+.prov-grid-label .pgl-dot.paid{background:var(--amber)}
+.prov-btn{padding:6px 4px;border-radius:5px;background:transparent;border:none;color:var(--text2);font-size:10px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;line-height:1.25;position:relative}
+.prov-btn:hover{color:var(--text);background:var(--bg2)}
+.prov-btn.active{background:var(--accent);color:#fff;box-shadow:var(--shadow-sm)}
+.prov-btn.free-tag::after{content:'F';position:absolute;top:2px;right:3px;font-size:7px;background:var(--success);color:#fff;border-radius:3px;padding:0px 3px;font-weight:800;letter-spacing:.3px}
+.prov-btn.active.free-tag::after{background:#fff;color:var(--accent)}
+.prov-btn.nokey::after{content:'★';position:absolute;top:1px;right:3px;font-size:9px;color:var(--amber)}
+.prov-btn.active.nokey::after{color:#fff}
+.key-wrap{position:relative;margin-bottom:6px}
+.key-wrap .finp{padding-right:54px;font-size:10.5px}
+.key-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-size:9px;padding:2px 7px;font-family:var(--mono);font-weight:700;color:var(--text2);cursor:pointer}
+.key-toggle:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.key-help{font-size:9.5px;color:var(--text3);margin-bottom:6px;line-height:1.4}
+.key-help a{color:var(--accent);text-decoration:none}
+.key-help a:hover{text-decoration:underline}
+
+/* TARGET DOMAIN CARD */
+.target-card{background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(13,148,136,.06));border:1px solid rgba(37,99,235,.22);border-radius:var(--radius-lg);padding:11px 13px;margin-bottom:11px}
+[data-theme="dark"] .target-card{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(20,184,166,.08));border-color:rgba(59,130,246,.22)}
+.target-label{font-size:9.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--text2);font-weight:700;margin-bottom:5px}
+.target-input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:13px;font-family:var(--mono);color:var(--text);width:100%;font-weight:700}
+.target-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.15);outline:none}
+.target-opts{display:flex;gap:12px;margin-top:7px;font-size:10.5px;color:var(--text2)}
+.target-opts label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.target-opts input{accent-color:var(--accent)}
+
+/* LOCATION CARD */
+.loc-card{background:linear-gradient(135deg,rgba(217,119,6,.07),rgba(124,58,237,.05));border:1px solid rgba(217,119,6,.22);border-radius:var(--radius-lg);padding:11px 13px;margin-bottom:11px}
+[data-theme="dark"] .loc-card{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(167,139,250,.06));border-color:rgba(245,158,11,.22)}
+.loc-place{font-size:12.5px;font-weight:700;color:var(--amber);margin-bottom:3px;line-height:1.3;word-break:break-word}
+.loc-coords{font-family:var(--mono);font-size:10.5px;color:var(--text2);margin-bottom:7px}
+.loc-pills{display:flex;gap:4px;flex-wrap:wrap}
+.loc-pill{font-size:9.5px;font-family:var(--mono);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text2);font-weight:600}
+.loc-pill strong{color:var(--text)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 14px;border-radius:var(--radius);font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--bg4);border-color:var(--text2);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-h);border-color:var(--accent-h)}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+.btn.amber:hover{filter:brightness(1.08)}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.blue:hover{filter:brightness(1.08)}
+.btn.purple{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn.purple:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.danger:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 10px;font-size:11px}
+.btn.xs{padding:3px 8px;font-size:10px}
+.btn.full{width:100%}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.4px;background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.badge.g{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.3);color:#4ade80}
+.badge.a{background:rgba(217,119,6,.15);border-color:rgba(217,119,6,.3);color:#fbbf24}
+.badge.r{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.3);color:#f87171}
+.badge.b{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.3);color:#60a5fa}
+
+/* HISTORY */
+.hist-item{padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;margin-bottom:6px;font-size:11px}
+.hist-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.hist-kw{font-weight:700;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-pos{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--accent)}
+.hist-pos.np{color:var(--text3)}
+.hist-meta{font-size:9.5px;color:var(--text3);font-family:var(--mono);display:flex;gap:8px;flex-wrap:wrap}
+.hist-empty{padding:30px;text-align:center;color:var(--text3);font-size:11px}
+
+/* PLACEHOLDER */
+.no-data-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text2);gap:10px;padding:30px}
+.no-data-ph svg{width:42px;height:42px;opacity:.25}
+.no-data-ph .nf-t{font-size:13.5px;font-weight:600;color:var(--text);opacity:.6}
+.no-data-ph .nf-s{font-size:11.5px;line-height:1.5}
+
+/* FOOTER */
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 16px;font-size:11px;color:var(--text2);flex-shrink:0}
+#footer .dev-tag{display:flex;align-items:center;gap:5px;font-weight:600;color:var(--text)}
+#footer .dev-tag svg{width:12px;height:12px;color:var(--accent)}
+#footer .dev-by{color:var(--text2);font-weight:500}
+#footer a{color:var(--text2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s}
+#footer a:hover{color:var(--accent)}
+#footer a svg{width:12px;height:12px}
+#footer .ft-spacer{flex:1}
+#footer .ft-stat{font-family:var(--mono);font-size:10px;color:var(--text3)}
+kbd{background:var(--bg3);border:1px solid var(--border);border-bottom-width:2px;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:9.5px;color:var(--text2);font-weight:600}
+
+/* TOAST */
+#toast{position:fixed;bottom:50px;right:18px;padding:10px 18px;border-radius:8px;background:var(--success);color:#fff;font-size:12.5px;font-weight:600;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:9999;box-shadow:var(--shadow-lg);max-width:340px;display:flex;align-items:center;gap:8px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{background:var(--danger)}
+#toast.info{background:var(--accent)}
+#toast.warn{background:var(--amber)}
+
+/* PROGRESS */
+#progress-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:8888}
+#progress-overlay.visible{display:flex}
+.prog-box{background:var(--bg2);border-radius:14px;padding:32px 40px;text-align:center;min-width:300px;max-width:420px;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
+.prog-title{font-size:14.5px;font-weight:700;margin-bottom:10px;color:var(--text)}
+.prog-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:9px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--amber));border-radius:3px;transition:width .25s}
+.prog-sub{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.prog-cancel{margin-top:12px;font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;text-decoration:underline}
+
+/* RESPONSIVE */
+@media (max-width:1100px){
+  #queue-panel{width:240px}
+  #edit-panel{width:340px}
+}
+@media (max-width:880px){
+  #queue-panel{width:210px;min-width:210px}
+  #edit-panel{width:310px;min-width:310px}
+}
+@media (max-width:700px){
+  #app{flex-direction:column;overflow:auto;height:auto}
+  #queue-panel{width:100%;height:220px;border-right:none;border-bottom:1px solid var(--border)}
+  #map-area{height:540px}
+  #edit-panel{width:100%;flex:none}
+  #footer{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/><path d="M14 8h7v7"/></svg>
+    </div>
+    <span class="logo-name">SERP<span>Ranker</span></span>
+    <span class="logo-tag">RANKING &middot; KEYWORDS &middot; LOCATION</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat kw">Keywords <strong id="h-kw">0</strong></div>
+  <div class="hdr-stat rk">Ranked <strong id="h-rk">0</strong></div>
+  <div class="hdr-stat av">Avg Pos <strong id="h-av">-</strong></div>
+  <div class="hdr-spacer"></div>
+  <a href="ai-seo-scanner.html" class="hdr-link" title="AI-powered bulk SEO scanner" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+    AI SEO Scanner
+  </a>
+  <a href="geotag-pro.html" class="hdr-link" title="Bulk geotagger" style="border-color:rgba(13,148,136,.4);color:var(--teal)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    GeoTag Pro
+  </a>
+  <a href="tools.html" class="hdr-link" title="Convert / Compress / Resize / Crop / Optimize" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    Image Tools
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="AI Content & Blog Writer (AEO/GEO/SXO/EEAT)" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    Content Writer
+  </a>
+  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Citations
+  </a>
+  <a href="gbp-audit.html" class="hdr-link" title="GBP Local Audit" style="border-color:rgba(217,119,6,.4);color:#d97706">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    GBP Audit
+  </a>
+  <a href="nap-checker.html" class="hdr-link" title="NAP Consistency Checker" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+    NAP
+  </a>
+  <a href="geo-grid-tracker.html" class="hdr-link" title="Geo-Grid Rank Tracker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Geo Grid
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <button class="btn sm" onclick="clearAllKeywords()" title="Clear all keywords">Clear All</button>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+    <svg id="t-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <span id="t-label">Dark</span>
+  </button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- LEFT QUEUE -->
+  <div id="queue-panel">
+    <div class="qp-header">
+      <span class="qp-title">Keyword Queue</span>
+      <button class="btn-add" onclick="document.getElementById('paste-area').focus()">+ Add</button>
+    </div>
+
+    <div class="kw-paste">
+      <textarea id="paste-area" placeholder="Paste keywords here&#10;one per line&#10;e.g. best running shoes&#10;     buy iphone 15 india&#10;     italian restaurant near me"></textarea>
+      <div class="kw-paste-row">
+        <button class="btn primary sm" onclick="addPastedKeywords()">Add Keywords</button>
+        <button class="btn sm" onclick="loadSampleKeywords()" title="Load sample keywords">Sample</button>
+      </div>
+    </div>
+
+    <div id="kw-list">
+      <div class="kwl-empty" id="kwl-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div class="et">No keywords yet</div>
+        <div class="es">Paste keywords above to start</div>
+      </div>
+    </div>
+
+    <div id="queue-footer">
+      <div class="qf-row">
+        <button class="btn primary full sm" onclick="runAll()" id="btn-run-all">▶ Check All Rankings · No Key</button>
+      </div>
+      <div class="qf-row">
+        <button class="btn sm full" onclick="runSelected()">Check Selected</button>
+      </div>
+      <div class="qf-row">
+        <button class="btn amber sm full" onclick="exportCSV()">Export CSV</button>
+        <button class="btn blue sm full" onclick="exportJSON()">Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER MAP + RESULTS -->
+  <div id="map-area">
+    <div id="map-bar">
+      <input type="text" id="search-input" placeholder="Search place, city, country, ZIP, or coords (lat,lng)..." onkeypress="if(event.key==='Enter') doSearch()">
+      <div class="layer-pills">
+        <button class="lpill active" data-layer="osm" onclick="setLayer('osm')">OSM</button>
+        <button class="lpill" data-layer="esri" onclick="setLayer('esri')">SAT</button>
+        <button class="lpill" data-layer="dark" onclick="setLayer('dark')">DARK</button>
+      </div>
+    </div>
+
+    <div id="map-split">
+      <div id="map"></div>
+
+      <div id="results-pane">
+        <div class="rp-bar">
+          <span class="rp-meta">SERP results for</span>
+          <span class="rp-kw" id="rp-kw-label">— select a keyword —</span>
+          <span class="rp-spacer"></span>
+          <span class="rp-meta" id="rp-engine-label"></span>
+          <button onclick="exportSingleKeyword()" id="rp-export-btn" disabled>Export</button>
+        </div>
+        <div id="rp-list">
+          <div class="rp-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/><path d="M14 8h7v7"/></svg>
+            <div class="re-t">Ready to track rankings</div>
+            <div class="re-s"><strong>FULLY FREE · NO API KEY needed:</strong><br>
+              &nbsp;⚡ <strong>Auto Mode</strong> (default) — auto-cascades Google → Bing → SearXNG → DDG → Jina<br>
+              &nbsp;★ <strong>Google Direct</strong> — scrapes real Google via public CORS proxies, location-aware<br>
+              &nbsp;★ <strong>Bing Direct</strong> — most reliable no-key option, rarely blocks<br>
+              &nbsp;★ <strong>SearXNG / DuckDuckGo / Jina</strong> — backup meta-search<br><br>
+              <strong>How to use:</strong><br>
+              1. Click your target city on the map → location auto-fills<br>
+              2. Enter your domain in the right panel<br>
+              3. Paste keywords on the left → hit <strong>▶ Check All Rankings</strong><br>
+              All runs in the background. No signup. No key.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-status">
+      <span class="ms-coords" id="ms-coords">--.------, ---.------</span>
+      <span class="ms-addr" id="ms-addr">Click the map or search a place to set a target location</span>
+      <span class="ms-zoom" id="ms-zoom">z--</span>
+    </div>
+  </div>
+
+  <!-- RIGHT EDITOR -->
+  <div id="edit-panel">
+    <div class="ep-tabs">
+      <button class="eptab active" data-tab="config" onclick="setTab('config')">Config</button>
+      <button class="eptab" data-tab="run" onclick="setTab('run')">Run</button>
+      <button class="eptab" data-tab="history" onclick="setTab('history')">History</button>
+    </div>
+
+    <!-- CONFIG TAB -->
+    <div class="ep-panel active" data-panel="config">
+      <div class="ep-inner">
+
+        <!-- TARGET DOMAIN -->
+        <div class="target-card">
+          <div class="target-label"><span class="sec-dot b"></span> Target Domain to Track</div>
+          <input type="text" class="target-input" id="target-domain" placeholder="example.com" oninput="saveSettings();renderHeaderStats()">
+          <div class="target-opts">
+            <label><input type="checkbox" id="opt-subdomains" checked onchange="saveSettings()"> Include subdomains</label>
+            <label><input type="checkbox" id="opt-anywhere" onchange="saveSettings()"> Match anywhere in URL</label>
+          </div>
+        </div>
+
+        <!-- PROVIDER -->
+        <div class="prov-card">
+          <div class="prov-head">
+            <div class="prov-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><path d="M3 12h18"/><path d="M12 3a14.5 14.5 0 0 1 0 18"/><path d="M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+              SERP Provider
+            </div>
+            <span class="prov-tag" id="prov-tag">no key</span>
+          </div>
+          <div class="prov-body">
+            <div class="prov-grid-label"><span class="pgl-dot free"></span> NO KEY · NO SIGNUP · 100% FREE</div>
+            <div class="prov-grid">
+              <button class="prov-btn nokey active" data-prov="auto" onclick="setProvider('auto')" title="Auto Mode — cascades through all no-key providers until one works">⚡Auto<br>cascade</button>
+              <button class="prov-btn nokey" data-prov="direct_google" onclick="setProvider('direct_google')" title="Direct Google scrape via public CORS proxies — most accurate no-key">Google<br>direct</button>
+              <button class="prov-btn nokey" data-prov="direct_bing" onclick="setProvider('direct_bing')" title="Direct Bing scrape via CORS proxies — most reliable no-key">Bing<br>direct</button>
+              <button class="prov-btn nokey" data-prov="searxng" onclick="setProvider('searxng')" title="Public SearXNG instances — meta-search of Google+Bing">SearXNG<br>meta</button>
+              <button class="prov-btn nokey" data-prov="ddg" onclick="setProvider('ddg')" title="DuckDuckGo HTML scrape via CORS proxies">DuckDuckGo</button>
+              <button class="prov-btn nokey" data-prov="jina" onclick="setProvider('jina')" title="Jina Search · no key needed">Jina</button>
+            </div>
+            <div class="prov-grid-label" style="margin-top:5px"><span class="pgl-dot paid"></span> FREE TIER · API KEY REQUIRED</div>
+            <div class="prov-grid">
+              <button class="prov-btn free-tag" data-prov="google_cs" onclick="setProvider('google_cs')" title="Google Custom Search JSON API · 100/day FREE · real Google results">Google CSE</button>
+              <button class="prov-btn free-tag" data-prov="gemini_ai" onclick="setProvider('gemini_ai')" title="Gemini AI with Google Search grounding · FREE tier · AI automation">Gemini AI</button>
+              <button class="prov-btn free-tag" data-prov="brave" onclick="setProvider('brave')" title="Brave Search API · 2,000/mo FREE">Brave</button>
+              <button class="prov-btn free-tag" data-prov="serper" onclick="setProvider('serper')" title="Serper.dev · 2,500 FREE">Serper</button>
+              <button class="prov-btn free-tag" data-prov="serpapi" onclick="setProvider('serpapi')" title="SerpAPI · 100/mo FREE">SerpAPI</button>
+              <button class="prov-btn free-tag" data-prov="valueserp" onclick="setProvider('valueserp')" title="ValueSERP · 100/mo FREE">ValueSERP</button>
+              <button class="prov-btn" data-prov="dataforseo" onclick="setProvider('dataforseo')" title="DataForSEO · most accurate · paid">DataForSEO</button>
+            </div>
+            <div class="key-wrap">
+              <input type="password" class="finp" id="api-key" placeholder="paste API key" oninput="saveSettings();updateProviderTag()">
+              <button class="key-toggle" onclick="toggleKeyVis()" id="key-toggle">show</button>
+            </div>
+            <div class="key-wrap" id="key2-wrap" style="display:none;margin-top:5px">
+              <input type="text" class="finp" id="api-key2" placeholder="Custom Search Engine ID (cx)" oninput="saveSettings();updateProviderTag()">
+            </div>
+            <div class="key-help" id="key-help"></div>
+            <div style="display:flex;gap:5px;margin-top:8px">
+              <button class="btn xs full" onclick="testProvider()">⚡ Test Connection</button>
+              <button class="btn xs full" onclick="openProviderSignup()">Get Key →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH SETTINGS -->
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot a"></span> Search Settings</div>
+        <div class="sec-body">
+          <div class="frow">
+            <span class="flbl">Engine</span>
+            <select class="finp" id="opt-engine" onchange="saveSettings();updateRpLabel()">
+              <option value="google">Google</option>
+              <option value="bing">Bing</option>
+              <option value="yahoo">Yahoo</option>
+              <option value="duckduckgo">DuckDuckGo</option>
+              <option value="baidu">Baidu</option>
+              <option value="yandex">Yandex</option>
+            </select>
+          </div>
+          <div class="frow">
+            <span class="flbl">Device</span>
+            <select class="finp" id="opt-device" onchange="saveSettings();updateRpLabel()">
+              <option value="desktop">Desktop</option>
+              <option value="mobile">Mobile</option>
+              <option value="tablet">Tablet</option>
+            </select>
+          </div>
+          <div class="frow">
+            <span class="flbl">Language (hl)</span>
+            <select class="finp" id="opt-lang" onchange="saveSettings()">
+              <option value="en">English (en)</option>
+              <option value="es">Spanish (es)</option>
+              <option value="fr">French (fr)</option>
+              <option value="de">German (de)</option>
+              <option value="it">Italian (it)</option>
+              <option value="pt">Portuguese (pt)</option>
+              <option value="hi">Hindi (hi)</option>
+              <option value="ja">Japanese (ja)</option>
+              <option value="zh-cn">Chinese (zh-cn)</option>
+              <option value="ar">Arabic (ar)</option>
+              <option value="ru">Russian (ru)</option>
+              <option value="nl">Dutch (nl)</option>
+              <option value="ko">Korean (ko)</option>
+              <option value="tr">Turkish (tr)</option>
+            </select>
+          </div>
+          <div class="frow">
+            <span class="flbl">Country (gl)</span>
+            <select class="finp" id="opt-country" onchange="saveSettings()">
+              <option value="us">United States (us)</option>
+              <option value="in">India (in)</option>
+              <option value="gb">United Kingdom (gb)</option>
+              <option value="ca">Canada (ca)</option>
+              <option value="au">Australia (au)</option>
+              <option value="de">Germany (de)</option>
+              <option value="fr">France (fr)</option>
+              <option value="es">Spain (es)</option>
+              <option value="it">Italy (it)</option>
+              <option value="br">Brazil (br)</option>
+              <option value="mx">Mexico (mx)</option>
+              <option value="jp">Japan (jp)</option>
+              <option value="cn">China (cn)</option>
+              <option value="ru">Russia (ru)</option>
+              <option value="ae">UAE (ae)</option>
+              <option value="sg">Singapore (sg)</option>
+              <option value="nl">Netherlands (nl)</option>
+              <option value="tr">Turkey (tr)</option>
+              <option value="kr">South Korea (kr)</option>
+              <option value="za">South Africa (za)</option>
+            </select>
+          </div>
+          <div class="frow">
+            <span class="flbl">Depth (top N)</span>
+            <select class="finp" id="opt-depth" onchange="saveSettings()">
+              <option value="10">Top 10</option>
+              <option value="20">Top 20</option>
+              <option value="50">Top 50</option>
+              <option value="100" selected>Top 100</option>
+            </select>
+          </div>
+          <div class="frow-help">Location is taken from the map (more accurate than country code). Click the map or use search.</div>
+        </div>
+
+        <!-- LOCATION -->
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot"></span> Target Location</div>
+        <div class="sec-body">
+          <div class="loc-card" id="loc-card">
+            <div class="loc-place" id="loc-place">No location selected</div>
+            <div class="loc-coords" id="loc-coords">— click map or search above —</div>
+            <div class="loc-pills" id="loc-pills"></div>
+          </div>
+          <div class="frow">
+            <span class="flbl">Manual location</span>
+            <input type="text" class="finp" id="opt-location" placeholder="City, State, Country" oninput="saveSettings()">
+          </div>
+          <div class="frow-help">Overrides map. Empty = use map. For DataForSEO use exact location name (e.g. "London,England,United Kingdom").</div>
+        </div>
+
+        <!-- ADVANCED -->
+        <div class="sec-h closed" onclick="toggleSec(this)"><span class="sec-dot p"></span> Advanced</div>
+        <div class="sec-body closed">
+          <div class="frow">
+            <span class="flbl">Concurrency</span>
+            <select class="finp" id="opt-concurrency" onchange="saveSettings()">
+              <option value="1">1 (safest)</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div class="frow">
+            <span class="flbl">Delay (ms)</span>
+            <input type="number" class="finp" id="opt-delay" value="250" min="0" step="100" oninput="saveSettings()">
+          </div>
+          <div class="frow">
+            <span class="flbl">Auto-save</span>
+            <select class="finp" id="opt-autosave" onchange="saveSettings()">
+              <option value="1" selected>Save to history (on)</option>
+              <option value="0">Off</option>
+            </select>
+          </div>
+          <div class="frow-help">All keys & settings stored in your browser localStorage only. Nothing is sent to any server other than the provider API you chose.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RUN TAB -->
+    <div class="ep-panel" data-panel="run">
+      <div class="ep-inner" id="run-panel-inner">
+        <div class="no-data-ph" id="run-no-sel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div class="nf-t">Select a keyword</div>
+          <div class="nf-s">Pick a keyword from the left to see its full SERP results, or hit <strong>Check All</strong> below.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="ep-panel" data-panel="history">
+      <div class="ep-inner">
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          <button class="btn xs full" onclick="exportHistory()">Export History CSV</button>
+          <button class="btn xs danger" onclick="clearHistory()">Clear</button>
+        </div>
+        <div id="hist-list">
+          <div class="hist-empty">No history yet. Run some checks first.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <span class="dev-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Developed by <strong style="color:var(--accent);margin-left:3px">Mukesh Kr</strong>
+  </span>
+  <span class="dev-by">|</span>
+  <a href="tel:+919797366099" title="Call">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +91 97973 66099
+  </a>
+  <a href="mailto:itsmukeshweb@gmail.com" title="Email">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    itsmukeshweb@gmail.com
+  </a>
+  <span class="ft-spacer"></span>
+  <span class="ft-stat">100% client-side &middot; Keys stay in your browser &middot; Privacy first</span>
+  <span class="ft-stat" style="color:var(--text2)">Shortcuts: <kbd>Enter</kbd> run all <kbd>&larr;&rarr;</kbd> nav <kbd>Del</kbd> remove</span>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-overlay">
+  <div class="prog-box">
+    <div class="prog-title" id="prog-title">Checking rankings...</div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-sub" id="prog-sub">Please wait</div>
+    <button class="prog-cancel" onclick="cancelRun()">Cancel</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// =========================================================
+//  STATE
+// =========================================================
+const KW = []; // {id, keyword, status, position, url, title, snippet, organic[], engine, location, ts, prev}
+let SEL = -1;
+let MAP = null;
+let MARKER = null;
+let TILES = {};
+let CURRENT_LAYER = 'osm';
+let GEOCODE_TIMER = null;
+let LOC = { lat: null, lng: null, place: '', country: '', city: '', state: '' };
+let PROVIDER = 'serper';
+let CANCEL_RUN = false;
+let RUNNING = false;
+
+const LS_KEYS = 'srp_apikeys_v1';
+const LS_SET  = 'srp_settings_v1';
+const LS_HIST = 'srp_history_v1';
+const LS_LOC  = 'srp_loc_v1';
+const LS_KW   = 'srp_keywords_v1';
+
+// =========================================================
+//  THEME
+// =========================================================
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('t-label').textContent = next === 'dark' ? 'Light' : 'Dark';
+  if (MAP) { /* tiles auto-restyle via CSS filter */ }
+}
+document.getElementById('t-label').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark';
+
+// =========================================================
+//  TOAST
+// =========================================================
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function toast(msg, type='info', ms=3000){
+  toastEl.className = '';
+  toastEl.classList.add('show', type);
+  toastEl.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ toastEl.classList.remove('show'); }, ms);
+}
+
+// =========================================================
+//  PROGRESS
+// =========================================================
+function progShow(title='Working...'){
+  document.getElementById('progress-overlay').classList.add('visible');
+  document.getElementById('prog-title').textContent = title;
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('prog-sub').textContent = '';
+}
+function progSet(pct, sub){
+  document.getElementById('prog-fill').style.width = pct + '%';
+  if (sub !== undefined) document.getElementById('prog-sub').textContent = sub;
+}
+function progHide(){
+  document.getElementById('progress-overlay').classList.remove('visible');
+}
+
+// =========================================================
+//  TABS / SECTIONS
+// =========================================================
+function setTab(t){
+  document.querySelectorAll('.eptab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+  document.querySelectorAll('.ep-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === t));
+  if (t === 'history') renderHistory();
+  if (t === 'run') renderRunPanel();
+}
+function toggleSec(el){
+  el.classList.toggle('closed');
+  const body = el.nextElementSibling;
+  if (body && body.classList.contains('sec-body')) body.classList.toggle('closed');
+}
+
+// =========================================================
+//  SETTINGS LOAD / SAVE
+// =========================================================
+function loadSettings(){
+  // settings
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem(LS_SET) || '{}'); } catch {}
+  document.getElementById('target-domain').value = s.targetDomain || '';
+  document.getElementById('opt-subdomains').checked = s.subdomains !== false;
+  document.getElementById('opt-anywhere').checked = !!s.anywhere;
+  document.getElementById('opt-engine').value = s.engine || 'google';
+  document.getElementById('opt-device').value = s.device || 'desktop';
+  document.getElementById('opt-lang').value = s.lang || 'en';
+  document.getElementById('opt-country').value = s.country || 'us';
+  document.getElementById('opt-depth').value = s.depth || '100';
+  document.getElementById('opt-location').value = s.locationOverride || '';
+  document.getElementById('opt-concurrency').value = s.concurrency || '2';
+  document.getElementById('opt-delay').value = s.delay != null ? s.delay : 250;
+  document.getElementById('opt-autosave').value = s.autosave != null ? s.autosave : '1';
+  PROVIDER = s.provider || 'auto';
+  setProviderUI(PROVIDER);
+
+  // api keys
+  let keys = {};
+  try { keys = JSON.parse(localStorage.getItem(LS_KEYS) || '{}'); } catch {}
+  loadProviderKeys(keys, PROVIDER);
+  updateProviderTag();
+  renderKeyHelp();
+
+  // location
+  try {
+    const l = JSON.parse(localStorage.getItem(LS_LOC) || '{}');
+    if (l && l.lat != null && l.lng != null) {
+      LOC = l;
+      renderLocCard();
+    }
+  } catch {}
+
+  // keywords
+  try {
+    const kws = JSON.parse(localStorage.getItem(LS_KW) || '[]');
+    if (Array.isArray(kws)) {
+      kws.forEach(k => KW.push(k));
+      renderKwList();
+    }
+  } catch {}
+
+  renderHeaderStats();
+  updateRpLabel();
+}
+
+function saveSettings(){
+  const s = {
+    targetDomain: document.getElementById('target-domain').value.trim(),
+    subdomains: document.getElementById('opt-subdomains').checked,
+    anywhere: document.getElementById('opt-anywhere').checked,
+    engine: document.getElementById('opt-engine').value,
+    device: document.getElementById('opt-device').value,
+    lang: document.getElementById('opt-lang').value,
+    country: document.getElementById('opt-country').value,
+    depth: document.getElementById('opt-depth').value,
+    locationOverride: document.getElementById('opt-location').value.trim(),
+    concurrency: document.getElementById('opt-concurrency').value,
+    delay: parseInt(document.getElementById('opt-delay').value, 10) || 0,
+    autosave: document.getElementById('opt-autosave').value,
+    provider: PROVIDER
+  };
+  localStorage.setItem(LS_SET, JSON.stringify(s));
+
+  // save key for current provider
+  let keys = {};
+  try { keys = JSON.parse(localStorage.getItem(LS_KEYS) || '{}'); } catch {}
+  const info = PROVIDERS[PROVIDER];
+  const k1 = document.getElementById('api-key').value.trim();
+  if (info && info.needsKey2) {
+    const k2 = document.getElementById('api-key2').value.trim();
+    keys[PROVIDER] = { key: k1, key2: k2 };
+  } else {
+    keys[PROVIDER] = k1;
+  }
+  localStorage.setItem(LS_KEYS, JSON.stringify(keys));
+  // Mirror the Jina key to a shared slot used by all Jina-backed no-key providers
+  const jinaBacked = (PROVIDER === 'auto' || PROVIDER === 'direct_google' || PROVIDER === 'direct_bing' || PROVIDER === 'ddg' || PROVIDER === 'jina');
+  if (jinaBacked && info && info.noKey) {
+    if (k1) localStorage.setItem('srp_jina_key', k1);
+  }
+}
+
+function loadProviderKeys(keys, p){
+  const stored = keys[p];
+  if (stored && typeof stored === 'object') {
+    document.getElementById('api-key').value = stored.key || '';
+    document.getElementById('api-key2').value = stored.key2 || '';
+  } else {
+    document.getElementById('api-key').value = stored || '';
+    document.getElementById('api-key2').value = '';
+  }
+}
+
+function saveKeywords(){
+  try {
+    localStorage.setItem(LS_KW, JSON.stringify(KW.map(k => ({...k, organic: undefined}))));
+  } catch {}
+}
+
+// =========================================================
+//  PROVIDER UI
+// =========================================================
+function setProvider(p){
+  PROVIDER = p;
+  setProviderUI(p);
+  let keys = {};
+  try { keys = JSON.parse(localStorage.getItem(LS_KEYS) || '{}'); } catch {}
+  loadProviderKeys(keys, p);
+  saveSettings();
+  updateProviderTag();
+  renderKeyHelp();
+}
+function setProviderUI(p){
+  document.querySelectorAll('.prov-btn').forEach(b => b.classList.toggle('active', b.dataset.prov === p));
+  const info = PROVIDERS[p] || {};
+  const keyInp = document.getElementById('api-key');
+  keyInp.placeholder = info.placeholder || '';
+  // No-key providers using Jina Reader: let the user optionally paste a free Jina key for higher rate limit
+  const jinaBacked = (p === 'auto' || p === 'direct_google' || p === 'direct_bing' || p === 'ddg' || p === 'jina');
+  if (info.noKey && jinaBacked) {
+    keyInp.disabled = false;
+    keyInp.style.opacity = '1';
+    keyInp.placeholder = '(optional) Jina API key — for 200 RPM instead of free 20 RPM';
+    keyInp.value = (localStorage.getItem('srp_jina_key') || '');
+  } else if (info.noKey) {
+    keyInp.disabled = true;
+    keyInp.value = '';
+    keyInp.style.opacity = '.5';
+  } else {
+    keyInp.disabled = false;
+    keyInp.style.opacity = '1';
+  }
+  document.getElementById('key2-wrap').style.display = info.needsKey2 ? '' : 'none';
+}
+function updateProviderTag(){
+  const tag = document.getElementById('prov-tag');
+  const info = PROVIDERS[PROVIDER] || {};
+  const k = document.getElementById('api-key').value.trim();
+  const k2 = document.getElementById('api-key2').value.trim();
+  const jinaBacked = (PROVIDER === 'auto' || PROVIDER === 'direct_google' || PROVIDER === 'direct_bing' || PROVIDER === 'ddg' || PROVIDER === 'jina');
+  if (info.noKey && jinaBacked) {
+    tag.className = 'prov-tag ready';
+    tag.textContent = k ? 'ready · jina key' : 'ready · 20 RPM free';
+  } else if (info.noKey) {
+    tag.className = 'prov-tag ready';
+    tag.textContent = 'ready · no key';
+  } else if (PROVIDER === 'jina') {
+    tag.className = 'prov-tag ready';
+    tag.textContent = k ? 'key + free' : 'no key needed';
+  } else if (info.needsKey2) {
+    if (k && k2) { tag.className = 'prov-tag ready'; tag.textContent = 'key + cx ready'; }
+    else if (k) { tag.className = 'prov-tag miss'; tag.textContent = 'cx missing'; }
+    else { tag.className = 'prov-tag miss'; tag.textContent = 'no key'; }
+  } else {
+    if (k) { tag.className = 'prov-tag ready'; tag.textContent = 'key ready'; }
+    else { tag.className = 'prov-tag miss'; tag.textContent = 'no key'; }
+  }
+}
+function openProviderSignup(){
+  const info = PROVIDERS[PROVIDER];
+  if (info && info.helpUrl) window.open(info.helpUrl, '_blank', 'noopener');
+}
+async function testProvider(){
+  const info = PROVIDERS[PROVIDER];
+  const k = document.getElementById('api-key').value.trim();
+  const k2 = document.getElementById('api-key2').value.trim();
+  if (!info.noKey && PROVIDER !== 'jina' && !k) { toast('Add API key first', 'err'); return; }
+  if (info.needsKey2 && !k2) { toast('Add CSE ID (cx) in the second field', 'err'); return; }
+  progShow(`Testing ${info.label}...`);
+  progSet(20, 'Sending test query: "openai"');
+  window.__SRP_PROGRESS_HOOK = (msg) => progSet(50, msg);
+  try {
+    const results = await info.search({
+      q: 'openai',
+      engine: 'google',
+      device: 'desktop',
+      lang: document.getElementById('opt-lang').value || 'en',
+      country: document.getElementById('opt-country').value || 'us',
+      num: 10,
+      location: document.getElementById('opt-location').value.trim() || LOC.place || '',
+      locationCoord: null,
+      key: k, key2: k2
+    });
+    progHide();
+    window.__SRP_PROGRESS_HOOK = null;
+    if (results && results.length) {
+      const src = results.__source ? ` (via ${results.__source})` : '';
+      toast(`✓ ${info.label} works${src} — ${results.length} results`, 'info', 4000);
+    } else {
+      toast(`${info.label} returned 0 results — check your config`, 'warn', 4000);
+    }
+  } catch (e) {
+    progHide();
+    window.__SRP_PROGRESS_HOOK = null;
+    toast('✗ ' + (e.message || String(e)), 'err', 9000);
+    console.error('Test failed:', e);
+  }
+}
+function renderKeyHelp(){
+  const info = PROVIDERS[PROVIDER];
+  document.getElementById('key-help').innerHTML =
+    `<strong style="color:var(--text2)">${info.label}</strong> &middot; ${info.free} &middot; <a href="${info.helpUrl}" target="_blank" rel="noopener">Get API key &rarr;</a><br>${info.note || ''}`;
+}
+function toggleKeyVis(){
+  const f = document.getElementById('api-key');
+  const btn = document.getElementById('key-toggle');
+  if (f.type === 'password') { f.type = 'text'; btn.textContent = 'hide'; }
+  else { f.type = 'password'; btn.textContent = 'show'; }
+}
+
+// =========================================================
+//  KEYWORD QUEUE
+// =========================================================
+function nextKwId(){ return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function addKeyword(text){
+  text = text.trim();
+  if (!text) return null;
+  // dedupe (case-insensitive)
+  if (KW.some(k => k.keyword.toLowerCase() === text.toLowerCase())) return null;
+  const item = {
+    id: nextKwId(),
+    keyword: text,
+    status: 'idle',
+    position: null,
+    url: null,
+    title: null,
+    snippet: null,
+    organic: [],
+    engine: null,
+    location: null,
+    ts: null,
+    prev: null
+  };
+  KW.push(item);
+  return item;
+}
+
+function addPastedKeywords(){
+  const ta = document.getElementById('paste-area');
+  const lines = ta.value.split(/[\r\n]+/).map(l => l.replace(/^[-*•\d.\s)]*/, '').trim()).filter(Boolean);
+  let added = 0, dup = 0;
+  lines.forEach(l => {
+    if (addKeyword(l)) added++;
+    else dup++;
+  });
+  if (added) {
+    ta.value = '';
+    saveKeywords();
+    renderKwList();
+    renderHeaderStats();
+    toast(`Added ${added} keyword${added===1?'':'s'}${dup?` (${dup} duplicates skipped)`:''}`, 'info');
+  } else if (dup) {
+    toast(`All ${dup} keyword(s) already in queue`, 'warn');
+  } else {
+    toast('Enter keywords first', 'warn');
+  }
+}
+
+function loadSampleKeywords(){
+  const samples = [
+    'best running shoes',
+    'pizza near me',
+    'how to learn javascript',
+    'iphone 15 pro max price',
+    'seo tools 2026',
+    'best ai chatbot',
+    'digital marketing agency mumbai'
+  ];
+  let added = 0;
+  samples.forEach(s => { if (addKeyword(s)) added++; });
+  if (added) {
+    saveKeywords();
+    renderKwList();
+    renderHeaderStats();
+    toast(`Loaded ${added} sample keywords`, 'info');
+  } else {
+    toast('Samples already in queue', 'warn');
+  }
+}
+
+function removeKeyword(id, ev){
+  if (ev) ev.stopPropagation();
+  const i = KW.findIndex(k => k.id === id);
+  if (i < 0) return;
+  KW.splice(i, 1);
+  if (SEL >= KW.length) SEL = KW.length - 1;
+  saveKeywords();
+  renderKwList();
+  renderHeaderStats();
+  renderResultsPane();
+  renderRunPanel();
+}
+
+function clearAllKeywords(){
+  if (!KW.length) { toast('Queue is already empty', 'warn'); return; }
+  if (!confirm(`Clear all ${KW.length} keyword(s)?`)) return;
+  KW.length = 0;
+  SEL = -1;
+  saveKeywords();
+  renderKwList();
+  renderHeaderStats();
+  renderResultsPane();
+  renderRunPanel();
+}
+
+function selectKeyword(i){
+  SEL = i;
+  renderKwList();
+  renderResultsPane();
+  renderRunPanel();
+  setTab('run');
+}
+
+function renderKwList(){
+  const root = document.getElementById('kw-list');
+  if (!KW.length) {
+    root.innerHTML = '';
+    const e = document.createElement('div');
+    e.className = 'kwl-empty';
+    e.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><div class="et">No keywords yet</div><div class="es">Paste keywords above to start</div>`;
+    root.appendChild(e);
+    return;
+  }
+  root.innerHTML = '';
+  KW.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.className = 'kw-item' + (i === SEL ? ' active' : '');
+    row.onclick = () => selectKeyword(i);
+
+    let badgeClass = 'not-ranked';
+    let badgeTxt = '–';
+    if (k.position != null) {
+      badgeTxt = String(k.position);
+      if (k.position === 1) badgeClass = 'ranked-1';
+      else if (k.position <= 3) badgeClass = 'ranked-top3';
+      else if (k.position <= 10) badgeClass = 'ranked-top10';
+      else if (k.position <= 30) badgeClass = 'ranked-top30';
+      else badgeClass = 'ranked-top100';
+    }
+
+    let diffHtml = '';
+    if (k.prev != null && k.position != null) {
+      const d = k.prev - k.position; // positive = improved (lower pos number is better)
+      if (d > 0) diffHtml = `<span class="ki-diff up">▲${d}</span>`;
+      else if (d < 0) diffHtml = `<span class="ki-diff down">▼${-d}</span>`;
+      else diffHtml = `<span class="ki-diff same">=</span>`;
+    } else if (k.prev != null && k.position == null) {
+      diffHtml = `<span class="ki-diff down">▼lost</span>`;
+    }
+
+    const metaPieces = [];
+    if (k.ts) metaPieces.push(fmtTime(k.ts));
+    if (k.engine) metaPieces.push(k.engine);
+
+    row.innerHTML = `
+      <div class="ki-badge ${badgeClass}">${badgeTxt}</div>
+      <div class="ki-info">
+        <div class="ki-kw">${escapeHtml(k.keyword)}</div>
+        <div class="ki-meta">
+          <span class="ki-status ${k.status}"></span>
+          ${metaPieces.length ? metaPieces.map(p=>`<span>${escapeHtml(p)}</span>`).join(' · ') : '<span>not checked</span>'}
+          ${diffHtml}
+        </div>
+      </div>
+      <button class="ki-del" onclick="removeKeyword('${k.id}', event)" title="Remove">×</button>
+    `;
+    root.appendChild(row);
+  });
+}
+
+function renderHeaderStats(){
+  document.getElementById('h-kw').textContent = KW.length;
+  const ranked = KW.filter(k => k.position != null);
+  document.getElementById('h-rk').textContent = ranked.length;
+  if (ranked.length) {
+    const avg = ranked.reduce((a, k) => a + k.position, 0) / ranked.length;
+    document.getElementById('h-av').textContent = avg.toFixed(1);
+  } else {
+    document.getElementById('h-av').textContent = '-';
+  }
+}
+
+// =========================================================
+//  PROVIDERS
+// =========================================================
+// =========================================================
+//  NO-KEY FETCHER · Jina Reader primary + CORS-proxy fallback
+// =========================================================
+// Jina Reader (r.jina.ai) runs server-side headless browsers and is purpose-built
+// for fetching pages that block direct scraping. Free, CORS-friendly, no key required.
+const CORS_PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://corsproxy.org/?url=${encodeURIComponent(u)}`
+];
+let LAST_PROXY_IDX = 0;
+
+function withTimeout(ms){
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) return AbortSignal.timeout(ms);
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
+// Primary fetcher: Jina Reader (r.jina.ai) — works without API key, designed for this
+async function fetchViaJinaReader(targetUrl, opts){
+  opts = opts || {};
+  const headers = {
+    'Accept': opts.mode === 'html' ? 'text/html, text/plain, */*' : 'text/plain, */*',
+    'X-Return-Format': opts.mode === 'html' ? 'html' : 'markdown',
+    'X-No-Cache': 'true'
+  };
+  // Optional Jina API key boosts rate limit (200 RPM vs 20 RPM)
+  const jinaKey = (localStorage.getItem('srp_jina_key') || '').trim();
+  if (jinaKey) headers['Authorization'] = 'Bearer ' + jinaKey;
+  if (opts.locale) headers['X-Locale'] = opts.locale;
+
+  const url = 'https://r.jina.ai/' + targetUrl;
+  if (window.__SRP_PROGRESS_HOOK) window.__SRP_PROGRESS_HOOK('Jina Reader');
+  const r = await fetch(url, { headers, signal: withTimeout(opts.timeoutMs || 25000) });
+  if (!r.ok) throw new Error('Jina Reader ' + r.status);
+  const txt = await r.text();
+  if (!txt || txt.length < 200) throw new Error('Jina Reader empty');
+  return txt;
+}
+
+// Fallback fetcher: public CORS proxies cascade (less reliable for Google)
+async function fetchViaPublicProxy(targetUrl, opts){
+  opts = opts || {};
+  const order = CORS_PROXIES.map((p, i) => ({ p, i }))
+    .sort((a, b) => ((a.i - LAST_PROXY_IDX + CORS_PROXIES.length) % CORS_PROXIES.length)
+                  - ((b.i - LAST_PROXY_IDX + CORS_PROXIES.length) % CORS_PROXIES.length));
+  let lastErr = '';
+  for (const item of order) {
+    const proxyUrl = item.p(targetUrl);
+    if (window.__SRP_PROGRESS_HOOK) window.__SRP_PROGRESS_HOOK(`backup proxy #${item.i + 1}/${CORS_PROXIES.length}`);
+    try {
+      const r = await fetch(proxyUrl, {
+        headers: { 'Accept': 'text/html,application/xhtml+xml,*/*' },
+        signal: withTimeout(opts.timeoutMs || 12000)
+      });
+      if (!r.ok) { lastErr = `${item.i + 1}:${r.status}`; continue; }
+      const txt = await r.text();
+      if (!txt || txt.length < 500) { lastErr = `${item.i + 1}:empty`; continue; }
+      if (opts.detectCaptcha && /sorry\/index|unusual traffic|recaptcha|are you a robot/i.test(txt) && txt.length < 30000) {
+        lastErr = `${item.i + 1}:captcha`; continue;
+      }
+      LAST_PROXY_IDX = (item.i + 1) % CORS_PROXIES.length;
+      return txt;
+    } catch (e) {
+      lastErr = `${item.i + 1}:${e.name === 'AbortError' ? 'timeout' : (e.message || 'fetch failed')}`;
+    }
+  }
+  throw new Error('public proxies failed (' + lastErr + ')');
+}
+
+// Unified fetcher used by direct_google / direct_bing / ddg: Jina first, public proxy backup
+async function fetchPage(targetUrl, opts){
+  opts = opts || {};
+  let jinaErr = '';
+  // Try Jina Reader in HTML mode
+  try {
+    const html = await fetchViaJinaReader(targetUrl, { mode: 'html', timeoutMs: opts.timeoutMs, locale: opts.locale });
+    if (html && html.length > 500) return { content: html, format: 'html', source: 'jina-reader' };
+  } catch (e) { jinaErr = e.message || String(e); }
+  // Try Jina Reader in markdown mode
+  try {
+    const md = await fetchViaJinaReader(targetUrl, { mode: 'markdown', timeoutMs: opts.timeoutMs, locale: opts.locale });
+    if (md && md.length > 200) return { content: md, format: 'markdown', source: 'jina-reader-md' };
+  } catch (e) { jinaErr = (jinaErr ? jinaErr + ' | md: ' : 'md: ') + (e.message || e); }
+  // Fallback: public CORS proxies
+  try {
+    const html = await fetchViaPublicProxy(targetUrl, opts);
+    return { content: html, format: 'html', source: 'public-proxy' };
+  } catch (e) {
+    throw new Error('Jina Reader failed (' + jinaErr + ') + ' + (e.message || e));
+  }
+}
+
+// Markdown parser for r.jina.ai responses
+function parseJinaMarkdown(md, opts){
+  opts = opts || {};
+  const out = [];
+  const seen = new Set();
+  const skipHost = /(^|\.)(google\.[^/]+|bing\.com|duckduckgo\.com|gstatic\.com|googleusercontent\.com|googleadservices\.com|googlesyndication\.com|youtube\.com\/redirect|w3\.org|microsoft\.com\/en-us\/legal)$/i;
+  const lines = md.split('\n');
+  const linkRe = /\[([^\]]{2,200})\]\((https?:\/\/[^\s)]+)\)/g;
+  for (let i = 0; i < lines.length; i++) {
+    let m;
+    linkRe.lastIndex = 0;
+    while ((m = linkRe.exec(lines[i])) !== null) {
+      let title = m[1].trim();
+      let url = m[2].trim().replace(/[).,;]+$/, '');
+      // Decode Google redirect URLs
+      url = decodeGoogleHref(url);
+      if (!/^https?:\/\//i.test(url)) continue;
+      let host = '';
+      try { host = new URL(url).hostname; } catch { continue; }
+      if (skipHost.test(host)) continue;
+      if (/[?&](sca_esv|ved|sa=X)/.test(url)) continue;
+      if (title.length < 3 || /^[#\d.\-\s]+$/.test(title)) continue;
+      if (seen.has(url)) continue;
+      seen.add(url);
+      // Find snippet in following non-empty lines (skip other links)
+      let snippet = '';
+      for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+        const t = lines[j].trim();
+        if (!t) continue;
+        if (t.startsWith('[') || t.startsWith('#') || t.startsWith('http')) continue;
+        if (t.length > 30) { snippet = t.slice(0, 320); break; }
+      }
+      out.push({ position: out.length + 1, link: url, title, snippet });
+    }
+  }
+  return out;
+}
+
+
+// Google UULE = base64-encoded canonical location name, used to override location
+function buildUule(location){
+  if (!location) return '';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  const idxCh = chars[location.length % 64];
+  const b64 = btoa(unescape(encodeURIComponent(location))).replace(/=+$/, '');
+  return 'w+CAIQICI' + idxCh + b64;
+}
+
+function googleDomainFor(country){
+  const m = { us:'com', in:'co.in', gb:'co.uk', uk:'co.uk', ca:'ca', au:'com.au', de:'de', fr:'fr', es:'es', it:'it', br:'com.br', mx:'com.mx', jp:'co.jp', cn:'com.hk', ru:'ru', ae:'ae', sg:'com.sg', nl:'nl', tr:'com.tr', kr:'co.kr', za:'co.za' };
+  return m[(country || 'us').toLowerCase()] || 'com';
+}
+
+function decodeGoogleHref(href){
+  if (!href) return '';
+  if (href.startsWith('/url?') || href.startsWith('https://www.google.com/url?')) {
+    try {
+      const u = new URL(href, 'https://www.google.com/');
+      const real = u.searchParams.get('q') || u.searchParams.get('url');
+      if (real) return real;
+    } catch {}
+  }
+  return href;
+}
+
+function parseGoogleHTML(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = [];
+  const seen = new Set();
+  const skipHost = /(^|\.)(google\.[^/]+|gstatic\.com|googleusercontent\.com|googleadservices\.com|googlesyndication\.com|webcache\.googleusercontent\.com)$/i;
+
+  doc.querySelectorAll('h3').forEach(h3 => {
+    let a = h3.parentElement;
+    while (a && a.tagName !== 'A') a = a.parentElement;
+    if (!a) return;
+    let href = decodeGoogleHref(a.getAttribute('href') || '');
+    if (!/^https?:\/\//i.test(href)) return;
+    let host = '';
+    try { host = new URL(href).hostname; } catch { return; }
+    if (skipHost.test(host)) return;
+    if (seen.has(href)) return;
+    seen.add(href);
+    const title = h3.textContent.trim();
+    let snippet = '';
+    const wrapper = a.closest('div.g, div[data-hveid], div.MjjYud, div.tF2Cxc') || a.parentElement?.parentElement?.parentElement;
+    if (wrapper) {
+      const sels = ['div[data-sncf]', '.VwiC3b', '.s3v9rd', '.lEBKkf', '.IsZvec', '.r025kc', '.lyLwlc', '.aCOpRe'];
+      for (const cls of sels) {
+        const el = wrapper.querySelector(cls);
+        if (el) { snippet = el.textContent.trim().slice(0, 320); break; }
+      }
+      if (!snippet) {
+        const spans = wrapper.querySelectorAll('span, div');
+        for (const s of spans) {
+          const t = s.textContent.trim();
+          if (t.length > 60 && t.length < 400 && t !== title) { snippet = t; break; }
+        }
+      }
+    }
+    out.push({ position: out.length + 1, link: href, title, snippet });
+  });
+  return out;
+}
+
+function parseBingHTML(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = [];
+  doc.querySelectorAll('#b_results > li.b_algo').forEach((li) => {
+    const a = li.querySelector('h2 > a') || li.querySelector('h2 a');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (!/^https?:\/\//.test(href)) return;
+    const title = a.textContent.trim();
+    const snipEl = li.querySelector('.b_caption p, .b_lineclamp2, .b_paractl, .b_dList');
+    const snippet = snipEl ? snipEl.textContent.trim().slice(0, 320) : '';
+    out.push({ position: out.length + 1, link: href, title, snippet });
+  });
+  return out;
+}
+
+function parseDDGHTML(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = [];
+  doc.querySelectorAll('.result, .web-result').forEach(li => {
+    const a = li.querySelector('a.result__a, h2 a, .result__title a');
+    if (!a) return;
+    let href = a.getAttribute('href') || '';
+    if (href.startsWith('//')) href = 'https:' + href;
+    if (href.includes('/l/?')) {
+      try { const u = new URL(href, 'https://duckduckgo.com'); const uddg = u.searchParams.get('uddg'); if (uddg) href = decodeURIComponent(uddg); } catch {}
+    }
+    if (!/^https?:\/\//.test(href)) return;
+    const title = a.textContent.trim();
+    const snipEl = li.querySelector('.result__snippet, .result-snippet, .snippet');
+    const snippet = snipEl ? snipEl.textContent.trim().slice(0, 320) : '';
+    out.push({ position: out.length + 1, link: href, title, snippet });
+  });
+  return out;
+}
+
+const SEARXNG_INSTANCES = [
+  'https://searx.be',
+  'https://search.brave4u.com',
+  'https://searx.tiekoetter.com',
+  'https://baresearch.org',
+  'https://priv.au',
+  'https://search.inetol.net'
+];
+
+const PROVIDERS = {
+  auto: {
+    label: 'Auto Mode (cascade)',
+    placeholder: '',
+    helpUrl: 'https://github.com/',
+    free: 'Cascades: Google Direct → Bing Direct → SearXNG → DuckDuckGo → Jina. First one that works wins.',
+    note: 'Fully automated — no key, no signup. Best when you just want results. For higher reliability, get a free <strong>Google CSE</strong> key.',
+    needsKey2: false,
+    noKey: true,
+    async search(opts){
+      // Order: cheapest → richest. Jina Search is fastest (single JSON call), then Reader-based Google/Bing.
+      const order = ['jina', 'direct_google', 'direct_bing', 'ddg', 'searxng'];
+      const errors = [];
+      for (const p of order) {
+        try {
+          if (window.__SRP_PROGRESS_HOOK) window.__SRP_PROGRESS_HOOK(`trying ${p}`);
+          const res = await PROVIDERS[p].search({ ...opts, key: '', key2: '' });
+          if (res && res.length >= 3) {
+            res.__source = p;
+            return res;
+          }
+          errors.push(`${p}: only ${res ? res.length : 0} results`);
+        } catch (e) {
+          errors.push(`${p}: ${(e.message || String(e)).slice(0, 100)}`);
+        }
+      }
+      throw new Error('Auto cascade — all failed:\n' + errors.join('\n'));
+    },
+    supportedEngines: ['google']
+  },
+  direct_google: {
+    label: 'Google Direct (Jina Reader)',
+    placeholder: '',
+    helpUrl: 'https://jina.ai/reader',
+    free: '100% FREE · NO KEY · uses Jina Reader to bypass Google blocks',
+    note: '<strong>Most accurate no-key option.</strong> Jina Reader (r.jina.ai) fetches Google search via its server-side browser — bypasses CORS and CAPTCHA blocks that hit direct scraping. Uses your location (UULE), language, country, and TLD settings. If Jina rate-limits, falls back to public CORS proxies + Jina Search.',
+    needsKey2: false,
+    noKey: true,
+    async search(opts){
+      const num = Math.min(opts.num, 100);
+      const params = new URLSearchParams({
+        q: opts.q,
+        num: String(num),
+        hl: opts.lang || 'en',
+        gl: (opts.country || 'us').toLowerCase(),
+        pws: '0',
+        gbv: '1'
+      });
+      const uule = buildUule(opts.location || '');
+      if (uule) params.set('uule', uule);
+      const tld = googleDomainFor(opts.country);
+      const targetUrl = `https://www.google.${tld}/search?` + params.toString();
+      const locale = `${opts.lang || 'en'}-${(opts.country || 'us').toUpperCase()}`;
+      let fetchErr = '';
+      try {
+        const res = await fetchPage(targetUrl, { detectCaptcha: true, timeoutMs: 25000, locale });
+        const items = res.format === 'html' ? parseGoogleHTML(res.content) : parseJinaMarkdown(res.content);
+        if (items.length >= 3) return items.slice(0, num);
+        fetchErr = `parser returned ${items.length} results (format=${res.format}, via=${res.source})`;
+      } catch (e) { fetchErr = e.message || String(e); }
+      // Last-resort fallback: Jina Search API (s.jina.ai) — different index but no CORS issues
+      if (window.__SRP_PROGRESS_HOOK) window.__SRP_PROGRESS_HOOK('fallback: Jina Search API');
+      try {
+        const sUrl = `https://s.jina.ai/?q=${encodeURIComponent(opts.q)}`;
+        const sHeaders = { 'Accept': 'application/json', 'X-Locale': locale };
+        const jinaKey = (localStorage.getItem('srp_jina_key') || '').trim();
+        if (jinaKey) sHeaders['Authorization'] = 'Bearer ' + jinaKey;
+        const sr = await fetch(sUrl, { headers: sHeaders, signal: withTimeout(20000) });
+        if (!sr.ok) throw new Error('Jina Search ' + sr.status);
+        const sj = await sr.json();
+        const items = (sj.data || []).slice(0, num).map((x, i) => ({
+          position: i + 1,
+          link: x.url || x.link || '',
+          title: x.title || '',
+          snippet: x.description || (x.content ? String(x.content).slice(0, 240) : '')
+        })).filter(x => x.link);
+        if (items.length) return items;
+        throw new Error('Jina Search returned 0');
+      } catch (e) {
+        throw new Error('All Google fetchers failed. Reader: ' + fetchErr + ' | Search: ' + (e.message || e));
+      }
+    },
+    supportedEngines: ['google']
+  },
+  direct_bing: {
+    label: 'Bing Direct (Jina Reader)',
+    placeholder: '',
+    helpUrl: 'https://jina.ai/reader',
+    free: '100% FREE · NO KEY · most reliable no-key option',
+    note: 'Fetches Bing search via Jina Reader. Bing rarely blocks scrapers, so this combo is the most consistent. Uses your country + language settings.',
+    needsKey2: false,
+    noKey: true,
+    async search(opts){
+      const num = Math.min(opts.num, 50);
+      const params = new URLSearchParams({
+        q: opts.q,
+        count: String(num),
+        setLang: opts.lang || 'en',
+        cc: (opts.country || 'us').toUpperCase()
+      });
+      if (opts.location) params.set('location', opts.location);
+      const targetUrl = 'https://www.bing.com/search?' + params.toString();
+      const locale = `${opts.lang || 'en'}-${(opts.country || 'us').toUpperCase()}`;
+      const res = await fetchPage(targetUrl, { timeoutMs: 20000, locale });
+      let items;
+      if (res.format === 'html') {
+        items = parseBingHTML(res.content);
+        if (items.length < 3) items = parseJinaMarkdown(res.content);
+      } else {
+        items = parseJinaMarkdown(res.content);
+      }
+      if (!items.length) throw new Error('Bing parser returned 0 results — try Auto Mode');
+      return items.slice(0, num);
+    },
+    supportedEngines: ['google', 'bing']
+  },
+  ddg: {
+    label: 'DuckDuckGo (Jina Reader)',
+    placeholder: '',
+    helpUrl: 'https://jina.ai/reader',
+    free: '100% FREE · NO KEY · privacy-friendly',
+    note: 'Fetches DuckDuckGo HTML via Jina Reader. Anonymous, no tracking. Region from country setting.',
+    needsKey2: false,
+    noKey: true,
+    async search(opts){
+      const regionMap = { us:'us-en', in:'in-en', gb:'uk-en', ca:'ca-en', au:'au-en', de:'de-de', fr:'fr-fr', es:'es-es', it:'it-it', br:'br-pt', mx:'mx-es', jp:'jp-jp', ru:'ru-ru', nl:'nl-nl', tr:'tr-tr', kr:'kr-kr', za:'za-en', sg:'sg-en', ae:'xa-ar' };
+      const region = regionMap[(opts.country || 'us').toLowerCase()] || 'wt-wt';
+      const params = new URLSearchParams({ q: opts.q, kl: region });
+      const targetUrl = 'https://html.duckduckgo.com/html/?' + params.toString();
+      const locale = `${opts.lang || 'en'}-${(opts.country || 'us').toUpperCase()}`;
+      const res = await fetchPage(targetUrl, { timeoutMs: 20000, locale });
+      let items;
+      if (res.format === 'html') {
+        items = parseDDGHTML(res.content);
+        if (items.length < 3) items = parseJinaMarkdown(res.content);
+      } else {
+        items = parseJinaMarkdown(res.content);
+      }
+      if (!items.length) throw new Error('DDG parser returned 0 results');
+      return items.slice(0, opts.num);
+    },
+    supportedEngines: ['google', 'duckduckgo']
+  },
+  searxng: {
+    label: 'SearXNG (public)',
+    placeholder: '',
+    helpUrl: 'https://searx.space/',
+    free: '100% FREE · NO KEY · meta-search of Google+Bing+more',
+    note: 'Queries multiple public SearXNG instances. Auto-cascades if one is offline.',
+    needsKey2: false,
+    noKey: true,
+    async search(opts){
+      const order = SEARXNG_INSTANCES.slice().sort(() => Math.random() - 0.5);
+      let lastErr = '';
+      for (const inst of order) {
+        const params = new URLSearchParams({
+          q: opts.q,
+          format: 'json',
+          language: opts.lang || 'en',
+          engines: 'google,bing',
+          pageno: '1',
+          count: Math.min(opts.num, 50)
+        });
+        try {
+          const r = await fetch(inst + '/search?' + params.toString(), {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!r.ok) { lastErr = `${inst}: ${r.status}`; continue; }
+          const j = await r.json();
+          if (!j.results || !j.results.length) { lastErr = `${inst}: 0`; continue; }
+          return j.results.slice(0, opts.num).map((x, i) => ({
+            position: i + 1,
+            link: x.url,
+            title: x.title,
+            snippet: x.content || ''
+          }));
+        } catch (e) {
+          lastErr = `${inst}: ${e.message}`;
+        }
+      }
+      throw new Error('All SearXNG instances failed — ' + lastErr);
+    },
+    supportedEngines: ['google']
+  },
+  google_cs: {
+    label: 'Google Custom Search',
+    placeholder: 'Google API key (starts with AIzaSy...)',
+    helpUrl: 'https://programmablesearchengine.google.com/controlpanel/all',
+    free: '100 queries/day FREE — real Google results',
+    note: 'Setup (1 time, ~2 min): <br>1) Create CSE → <a href="https://programmablesearchengine.google.com/controlpanel/create" target="_blank" rel="noopener">programmablesearchengine.google.com</a> → enable "Search the entire web" → copy <strong>cx</strong> ID into the 2nd field. <br>2) Enable Custom Search API → <a href="https://console.cloud.google.com/apis/library/customsearch.googleapis.com" target="_blank" rel="noopener">console.cloud.google.com</a>. <br>3) Create API key → <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">credentials</a> → paste above.',
+    needsKey2: true,
+    async search(opts) {
+      if (!opts.key2) throw new Error('Missing CSE ID (cx). Create one at programmablesearchengine.google.com');
+      const want = Math.min(opts.num, 100);
+      const pages = Math.min(Math.ceil(want / 10), 10);
+      const all = [];
+      for (let p = 0; p < pages; p++) {
+        const start = p * 10 + 1;
+        const params = new URLSearchParams({
+          key: opts.key, cx: opts.key2, q: opts.q,
+          num: '10', start: String(start),
+          hl: opts.lang, gl: opts.country
+        });
+        const r = await fetch('https://www.googleapis.com/customsearch/v1?' + params.toString());
+        if (!r.ok) {
+          let msg = '';
+          try { const j = await r.json(); msg = j.error?.message || j.error?.errors?.[0]?.message || ''; } catch {}
+          if (p > 0) break;
+          if (r.status === 403) throw new Error(`Google CSE 403: ${msg || 'API key invalid or Custom Search API not enabled. Go to console.cloud.google.com → APIs & Services → Library → enable Custom Search API.'}`);
+          if (r.status === 400) throw new Error(`Google CSE 400: ${msg || 'Bad request — check the CSE ID (cx).'}`);
+          if (r.status === 429) throw new Error(`Google CSE 429: Daily quota exceeded (100/day free). Try again tomorrow or upgrade.`);
+          throw new Error(`Google CSE ${r.status}: ${msg || await safeText(r)}`);
+        }
+        const j = await r.json();
+        if (!j.items || !j.items.length) break;
+        j.items.forEach((x, i) => {
+          all.push({ position: start + i, link: x.link, title: x.title, snippet: x.snippet || '' });
+        });
+        if (j.items.length < 10) break;
+        if (all.length >= want) break;
+      }
+      return all.slice(0, want);
+    },
+    supportedEngines: ['google']
+  },
+  jina: {
+    label: 'Jina Search',
+    placeholder: '(no key required — leave empty, or paste Jina key for higher rate)',
+    helpUrl: 'https://jina.ai/reader',
+    free: '100% FREE · NO KEY · NO SIGNUP',
+    note: 'Uses Jina AI Search. Works instantly, no account needed. Good for quick checks; for exact Google rankings prefer <strong>Google CSE</strong> or <strong>Gemini AI</strong>.',
+    needsKey2: false,
+    async search(opts) {
+      const url = `https://s.jina.ai/?q=${encodeURIComponent(opts.q)}`;
+      const headers = { 'Accept': 'application/json' };
+      if (opts.key) headers['Authorization'] = 'Bearer ' + opts.key;
+      if (opts.lang && opts.country) headers['X-Locale'] = `${opts.lang}-${opts.country.toUpperCase()}`;
+      const r = await fetch(url, { headers });
+      if (!r.ok) throw new Error(`Jina ${r.status}: ${await safeText(r)}`);
+      let j;
+      try { j = await r.json(); } catch (e) {
+        const txt = await r.text().catch(()=>'');
+        // Try to parse text format
+        const lines = txt.split(/\n+/);
+        const arr = [];
+        let cur = null;
+        lines.forEach(L => {
+          if (/^\[\d+\]/.test(L)) {
+            if (cur) arr.push(cur);
+            cur = { title: '', link: '', snippet: '' };
+            cur.title = L.replace(/^\[\d+\]\s*/, '').replace(/Title:\s*/i, '').trim();
+          } else if (cur && /URL Source:/i.test(L)) {
+            cur.link = L.replace(/.*URL Source:\s*/i, '').trim();
+          } else if (cur && L.trim() && !cur.snippet) {
+            cur.snippet = L.trim().slice(0, 240);
+          }
+        });
+        if (cur) arr.push(cur);
+        if (!arr.length) throw new Error('Jina returned no parseable results');
+        return arr.slice(0, opts.num).map((x, i) => ({ position: i + 1, ...x }));
+      }
+      const items = j.data || [];
+      return items.slice(0, opts.num).map((x, i) => ({
+        position: i + 1,
+        link: x.url || x.link || '',
+        title: x.title || '',
+        snippet: x.description || x.snippet || (x.content ? String(x.content).slice(0, 240) : '')
+      })).filter(x => x.link);
+    },
+    supportedEngines: ['google']
+  },
+  gemini_ai: {
+    label: 'Gemini AI (with Google Search)',
+    placeholder: 'Gemini API key (AIzaSy...)',
+    helpUrl: 'https://aistudio.google.com/apikey',
+    free: 'FREE tier — ~60 RPM, real-time Google scan via AI',
+    note: 'AI-powered automation: Gemini uses live Google Search to find your rankings. Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed.',
+    needsKey2: false,
+    async search(opts) {
+      const model = 'gemini-2.0-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(opts.key)}`;
+      const loc = opts.location || opts.country.toUpperCase();
+      const want = Math.min(opts.num, 20);
+      const prompt = `Use Google Search to find the top ${want} ORGANIC web results for the query: "${opts.q}"
+Search context — Location: ${loc} · Language: ${opts.lang} · Device: ${opts.device}
+
+Return ONLY a JSON array (no markdown fences, no commentary, no explanation), in exact organic rank order:
+[
+  {"position": 1, "link": "https://example.com/page", "title": "Page Title", "snippet": "Description text..."},
+  {"position": 2, "link": "...", "title": "...", "snippet": "..."}
+]
+
+EXCLUDE: ads, sponsored results, Knowledge Panel, People Also Ask, image carousels, video carousels, news boxes, shopping boxes. Include ONLY clean organic blue-link web results.
+
+Output ONLY the JSON array. No prose. No markdown.`;
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { temperature: 0 }
+      };
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) {
+        let msg = '';
+        try { const j = await r.json(); msg = j.error?.message || ''; } catch {}
+        if (r.status === 400 && msg.includes('API key')) throw new Error(`Gemini 400: Invalid API key. Get one at aistudio.google.com/apikey`);
+        throw new Error(`Gemini ${r.status}: ${msg || await safeText(r)}`);
+      }
+      const j = await r.json();
+      let text = j.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('') || '';
+      text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+      const startIdx = text.indexOf('[');
+      const endIdx = text.lastIndexOf(']');
+      if (startIdx === -1 || endIdx === -1) throw new Error('Gemini did not return JSON. Response was: ' + text.slice(0, 200));
+      let arr;
+      try { arr = JSON.parse(text.slice(startIdx, endIdx + 1)); }
+      catch (e) { throw new Error('Gemini JSON parse failed: ' + e.message); }
+      if (!Array.isArray(arr)) throw new Error('Gemini did not return an array');
+      return arr.map((x, i) => ({
+        position: x.position || x.rank || (i + 1),
+        link: x.link || x.url || '',
+        title: x.title || '',
+        snippet: x.snippet || x.description || ''
+      })).filter(x => x.link);
+    },
+    supportedEngines: ['google']
+  },
+  brave: {
+    label: 'Brave Search API',
+    placeholder: 'Brave Search API token (BSA...)',
+    helpUrl: 'https://api.search.brave.com/app/keys',
+    free: '2,000 queries/mo FREE',
+    note: 'Sign up at <a href="https://api.search.brave.com/app/keys" target="_blank" rel="noopener">api.search.brave.com</a> → create "Data for Search" free subscription → copy token. CORS-enabled.',
+    needsKey2: false,
+    async search(opts) {
+      const want = Math.min(opts.num, 100);
+      const per = 20;
+      const all = [];
+      for (let p = 0; p < Math.ceil(want / per); p++) {
+        const params = new URLSearchParams({
+          q: opts.q,
+          count: String(per),
+          offset: String(p),
+          country: opts.country.toUpperCase(),
+          search_lang: opts.lang,
+          safesearch: 'moderate'
+        });
+        const r = await fetch('https://api.search.brave.com/res/v1/web/search?' + params.toString(), {
+          headers: { 'Accept': 'application/json', 'X-Subscription-Token': opts.key }
+        });
+        if (!r.ok) {
+          if (p > 0) break;
+          const t = await safeText(r);
+          if (r.status === 401 || r.status === 403) throw new Error(`Brave ${r.status}: Token invalid or subscription not active. Verify at api.search.brave.com/app/keys`);
+          if (r.status === 429) throw new Error(`Brave 429: Rate limit hit (free tier = 1 req/sec, 2,000/mo).`);
+          throw new Error(`Brave ${r.status}: ${t}`);
+        }
+        const j = await r.json();
+        const items = j.web?.results || [];
+        items.forEach(x => all.push({
+          position: all.length + 1,
+          link: x.url, title: x.title, snippet: x.description || ''
+        }));
+        if (items.length < per) break;
+        if (all.length >= want) break;
+        // Brave free tier rate limit: 1 req/sec
+        await new Promise(r2 => setTimeout(r2, 1100));
+      }
+      return all.slice(0, want);
+    },
+    supportedEngines: ['google']
+  },
+  serper: {
+    label: 'Serper.dev',
+    placeholder: 'Your Serper API key (hex string)',
+    helpUrl: 'https://serper.dev/api-key',
+    free: '2,500 free queries on signup',
+    note: 'Fast, CORS-enabled, very accurate. Sign up at <a href="https://serper.dev" target="_blank" rel="noopener">serper.dev</a> and copy the key from the dashboard.',
+    needsKey2: false,
+    async search(opts) {
+      const body = { q: opts.q, gl: opts.country, hl: opts.lang, num: Math.min(opts.num, 100) };
+      if (opts.location) body.location = opts.location;
+      if (opts.device === 'mobile' || opts.device === 'tablet') body.device = 'mobile';
+      const url = 'https://google.serper.dev/search';
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-API-KEY': opts.key, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) {
+        const t = await safeText(r);
+        if (r.status === 401 || r.status === 403) throw new Error(`Serper ${r.status}: API key invalid. Check at serper.dev/dashboard`);
+        throw new Error(`Serper ${r.status}: ${t}`);
+      }
+      const j = await r.json();
+      return (j.organic || []).map((x, i) => ({
+        position: x.position || (i + 1),
+        link: x.link, title: x.title, snippet: x.snippet || ''
+      }));
+    },
+    supportedEngines: ['google']
+  },
+  serpapi: {
+    label: 'SerpAPI',
+    placeholder: 'Your SerpAPI key (64-char hex)',
+    helpUrl: 'https://serpapi.com/manage-api-key',
+    free: '100 free searches/mo (account verification required)',
+    note: '<strong>If your free key isn\'t working:</strong> 1) Verify your email at <a href="https://serpapi.com/users/sign_in" target="_blank" rel="noopener">serpapi.com/dashboard</a>. 2) Check Searches Left at top of dashboard. 3) Some ad-blockers block serpapi.com — disable extensions and retry. 4) Use the exact API key from <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">serpapi.com/manage-api-key</a>.',
+    needsKey2: false,
+    async search(opts) {
+      const engineMap = { google:'google', bing:'bing', yahoo:'yahoo', duckduckgo:'duckduckgo', baidu:'baidu', yandex:'yandex' };
+      const engine = engineMap[opts.engine] || 'google';
+      const params = new URLSearchParams({
+        engine, q: opts.q, api_key: opts.key,
+        num: Math.min(opts.num, 100), hl: opts.lang, gl: opts.country,
+        device: opts.device === 'mobile' ? 'mobile' : (opts.device === 'tablet' ? 'tablet' : 'desktop'),
+        output: 'json'
+      });
+      if (opts.location) params.set('location', opts.location);
+      const r = await fetch('https://serpapi.com/search.json?' + params.toString());
+      if (!r.ok) {
+        const t = await safeText(r);
+        if (r.status === 401) throw new Error(`SerpAPI 401: API key invalid or account not verified. Verify email at serpapi.com/dashboard.`);
+        throw new Error(`SerpAPI ${r.status}: ${t}`);
+      }
+      const j = await r.json();
+      if (j.error) {
+        if (/account/i.test(j.error) && /verif/i.test(j.error)) throw new Error('SerpAPI: account not verified. Open serpapi.com/dashboard and verify your email.');
+        if (/run out|exceeded|limit/i.test(j.error)) throw new Error('SerpAPI: free quota (100/mo) exhausted.');
+        throw new Error('SerpAPI: ' + j.error);
+      }
+      return (j.organic_results || []).map((x, i) => ({
+        position: x.position || (i + 1),
+        link: x.link, title: x.title, snippet: x.snippet || x.description || ''
+      }));
+    },
+    supportedEngines: ['google','bing','yahoo','duckduckgo','baidu','yandex']
+  },
+  valueserp: {
+    label: 'ValueSERP',
+    placeholder: 'Your ValueSERP API key',
+    helpUrl: 'https://app.valueserp.com/api-keys',
+    free: '100 free searches/mo',
+    note: 'Google + Bing + Yahoo, location-aware.',
+    async search(opts) {
+      const engineMap = { google:'google', bing:'bing', yahoo:'yahoo' };
+      const engine = engineMap[opts.engine] || 'google';
+      const params = new URLSearchParams({
+        api_key: opts.key, q: opts.q, search_type: '', engine,
+        gl: opts.country, hl: opts.lang, num: Math.min(opts.num, 100),
+        device: opts.device === 'mobile' ? 'mobile' : (opts.device === 'tablet' ? 'tablet' : 'desktop')
+      });
+      if (opts.location) params.set('location', opts.location);
+      const r = await fetch('https://api.valueserp.com/search?' + params.toString());
+      if (!r.ok) throw new Error(`ValueSERP ${r.status}: ${await safeText(r)}`);
+      const j = await r.json();
+      if (j.request_info && j.request_info.success === false) throw new Error('ValueSERP: ' + (j.request_info.message || 'request failed'));
+      return (j.organic_results || []).map((x, i) => ({
+        position: x.position || (i + 1),
+        link: x.link, title: x.title, snippet: x.snippet || ''
+      }));
+    },
+    supportedEngines: ['google','bing','yahoo']
+  },
+  dataforseo: {
+    label: 'DataForSEO',
+    placeholder: 'login:password',
+    helpUrl: 'https://app.dataforseo.com/api-dashboard',
+    free: '$1 free credit on signup',
+    note: 'Most accurate. Enter as "login:password" (basic auth).',
+    async search(opts) {
+      if (!opts.key.includes(':')) throw new Error('DataForSEO key must be "login:password"');
+      const auth = btoa(opts.key);
+      const engineMap = { google:'google', bing:'bing', yahoo:'yahoo' };
+      const engine = engineMap[opts.engine] || 'google';
+      const langMap = { en:'en', es:'es', fr:'fr', de:'de', it:'it', pt:'pt', hi:'hi', ja:'ja', 'zh-cn':'zh-CN', ar:'ar', ru:'ru', nl:'nl', ko:'ko', tr:'tr' };
+      const body = [{
+        keyword: opts.q,
+        language_code: langMap[opts.lang] || 'en',
+        device: opts.device === 'mobile' ? 'mobile' : (opts.device === 'tablet' ? 'mobile' : 'desktop'),
+        os: 'windows',
+        depth: Math.min(opts.num, 100)
+      }];
+      if (opts.locationCoord) {
+        body[0].location_coordinate = opts.locationCoord; // "lat,lng,radius"
+      } else if (opts.location) {
+        body[0].location_name = opts.location;
+      } else {
+        const countryMap = { us:'United States', in:'India', gb:'United Kingdom', ca:'Canada', au:'Australia', de:'Germany', fr:'France', es:'Spain', it:'Italy', br:'Brazil', mx:'Mexico', jp:'Japan', cn:'China', ru:'Russia', ae:'United Arab Emirates', sg:'Singapore', nl:'Netherlands', tr:'Turkey', kr:'South Korea', za:'South Africa' };
+        body[0].location_name = countryMap[opts.country] || 'United States';
+      }
+      const url = `https://api.dataforseo.com/v3/serp/${engine}/organic/live/advanced`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) throw new Error(`DataForSEO ${r.status}: ${await safeText(r)}`);
+      const j = await r.json();
+      const task = j?.tasks?.[0];
+      if (task?.status_code && task.status_code !== 20000) throw new Error('DataForSEO: ' + (task.status_message || task.status_code));
+      const items = task?.result?.[0]?.items || [];
+      return items.filter(it => it.type === 'organic').map(x => ({
+        position: x.rank_absolute || x.rank_group,
+        link: x.url, title: x.title, snippet: x.description || ''
+      }));
+    },
+    supportedEngines: ['google','bing','yahoo']
+  }
+};
+
+async function safeText(r){
+  try { return (await r.text()).slice(0, 200); } catch { return ''; }
+}
+
+// =========================================================
+//  RANK DETECTION
+// =========================================================
+function normalizeDomain(input){
+  if (!input) return '';
+  return String(input).toLowerCase().trim()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split(/[\/?#]/)[0];
+}
+function urlHostname(url){
+  try {
+    return new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    return '';
+  }
+}
+function findRank(results, targetDomain, opts){
+  if (!targetDomain) return null;
+  const t = normalizeDomain(targetDomain);
+  const sub = opts && opts.subdomains;
+  const anywhere = opts && opts.anywhere;
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    const host = urlHostname(r.link);
+    let matched = false;
+    if (anywhere) {
+      matched = (r.link || '').toLowerCase().includes(t);
+    } else if (sub) {
+      matched = (host === t || host.endsWith('.' + t));
+    } else {
+      matched = (host === t);
+    }
+    if (matched) return { ...r, position: r.position || (i + 1) };
+  }
+  return null;
+}
+
+// =========================================================
+//  RUN
+// =========================================================
+async function runOne(item){
+  const info = PROVIDERS[PROVIDER];
+  const key = document.getElementById('api-key').value.trim();
+  const key2 = document.getElementById('api-key2').value.trim();
+  if (!info.noKey && PROVIDER !== 'jina' && !key) throw new Error('Add API key first (Config tab)');
+  if (info.needsKey2 && !key2) throw new Error('Add Custom Search Engine ID (cx) in the second field');
+
+  const engine = document.getElementById('opt-engine').value;
+  const device = document.getElementById('opt-device').value;
+  const lang = document.getElementById('opt-lang').value;
+  const country = document.getElementById('opt-country').value;
+  const num = parseInt(document.getElementById('opt-depth').value, 10) || 100;
+  const locOverride = document.getElementById('opt-location').value.trim();
+
+  let location = locOverride;
+  let locationCoord = null;
+  if (!location && LOC.place) location = LOC.place;
+  if (LOC.lat != null && LOC.lng != null && PROVIDER === 'dataforseo' && !locOverride) {
+    locationCoord = `${LOC.lat.toFixed(6)},${LOC.lng.toFixed(6)},10`;
+  }
+
+  const sup = info.supportedEngines;
+  if (!sup.includes(engine)) {
+    throw new Error(`${info.label} doesn't support "${engine}". Switch engine to: ${sup.join(', ')}`);
+  }
+
+  const results = await info.search({
+    q: item.keyword, engine, device, lang, country, num, location, locationCoord, key, key2
+  });
+
+  const targetDomain = document.getElementById('target-domain').value.trim();
+  const match = findRank(results, targetDomain, {
+    subdomains: document.getElementById('opt-subdomains').checked,
+    anywhere: document.getElementById('opt-anywhere').checked
+  });
+
+  // store previous position
+  if (item.position != null) item.prev = item.position;
+
+  if (match) {
+    item.position = match.position;
+    item.url = match.link;
+    item.title = match.title;
+    item.snippet = match.snippet;
+  } else {
+    item.position = null;
+    item.url = null;
+    item.title = null;
+    item.snippet = null;
+  }
+  item.organic = results;
+  item.engine = engine;
+  item.location = location || country.toUpperCase();
+  item.device = device;
+  item.ts = Date.now();
+  item.status = 'done';
+
+  // history
+  if (document.getElementById('opt-autosave').value === '1') {
+    saveHistoryEntry(item, targetDomain);
+  }
+}
+
+async function runMany(items){
+  if (RUNNING) { toast('Already running. Cancel first.', 'warn'); return; }
+  if (!items.length) { toast('No keywords to check', 'warn'); return; }
+  const info = PROVIDERS[PROVIDER];
+  const key = document.getElementById('api-key').value.trim();
+  const key2 = document.getElementById('api-key2').value.trim();
+  if (!info.noKey && PROVIDER !== 'jina' && !key) { toast('Add API key in Config tab first, or pick a NO-KEY provider', 'err'); setTab('config'); return; }
+  if (info.needsKey2 && !key2) { toast('Add Custom Search Engine ID (cx) in the second field', 'err'); setTab('config'); return; }
+  if (!document.getElementById('target-domain').value.trim()) {
+    toast('Enter target domain first', 'err'); setTab('config'); return;
+  }
+
+  RUNNING = true;
+  CANCEL_RUN = false;
+  let concurrency = parseInt(document.getElementById('opt-concurrency').value, 10) || 2;
+  let delay = parseInt(document.getElementById('opt-delay').value, 10) || 0;
+  // Brave free tier: 1 req/sec — force serial with 1.1s delay
+  if (PROVIDER === 'brave') { concurrency = 1; delay = Math.max(delay, 1100); }
+  // Gemini AI: respect 60 RPM default — keep concurrency low
+  if (PROVIDER === 'gemini_ai') { concurrency = Math.min(concurrency, 2); }
+  // No-key Jina Reader paths: respect free-tier 20 RPM (~3s spacing)
+  if (PROVIDER === 'auto' || PROVIDER === 'direct_google' || PROVIDER === 'direct_bing' || PROVIDER === 'ddg') {
+    concurrency = 1; delay = Math.max(delay, 3000);
+  }
+  if (PROVIDER === 'jina') { concurrency = 1; delay = Math.max(delay, 3000); }
+  if (PROVIDER === 'searxng') { concurrency = 1; delay = Math.max(delay, 2000); }
+
+  progShow(`Checking ${items.length} keyword${items.length===1?'':'s'}...`);
+
+  // mark queued
+  items.forEach(it => { it.status = 'queued'; });
+  renderKwList();
+
+  let done = 0, ok = 0, err = 0;
+  const queue = items.slice();
+
+  async function worker(){
+    while (queue.length) {
+      if (CANCEL_RUN) break;
+      const it = queue.shift();
+      if (!it) break;
+      it.status = 'running';
+      renderKwList();
+      const baseMsg = `→ "${it.keyword.slice(0,40)}"`;
+      progSet(Math.round(done * 100 / items.length), baseMsg);
+      window.__SRP_PROGRESS_HOOK = (msg) => progSet(Math.round(done * 100 / items.length), `${baseMsg} · ${msg}`);
+      try {
+        await runOne(it);
+        ok++;
+      } catch (e) {
+        it.status = 'err';
+        it.error = e.message || String(e);
+        err++;
+        console.warn('SERP error for', it.keyword, e);
+      }
+      window.__SRP_PROGRESS_HOOK = null;
+      done++;
+      progSet(Math.round(done * 100 / items.length), `${done} / ${items.length} done · ${ok} ok · ${err} errors`);
+      renderKwList();
+      renderHeaderStats();
+      if (SEL >= 0 && KW[SEL] === it) renderResultsPane();
+      if (delay && queue.length) await new Promise(r => setTimeout(r, delay));
+    }
+  }
+
+  const workers = [];
+  for (let i = 0; i < concurrency; i++) workers.push(worker());
+  await Promise.all(workers);
+
+  progHide();
+  saveKeywords();
+  RUNNING = false;
+  if (CANCEL_RUN) toast(`Cancelled — ${done}/${items.length} done`, 'warn');
+  else if (err === 0) toast(`✓ All ${ok} done`, 'info');
+  else toast(`Done: ${ok} ok, ${err} errors`, err > 0 ? 'warn' : 'info');
+}
+
+function cancelRun(){ CANCEL_RUN = true; }
+
+function runAll(){ runMany(KW.slice()); }
+function runSelected(){
+  if (SEL < 0 || !KW[SEL]) { toast('Select a keyword first', 'warn'); return; }
+  runMany([KW[SEL]]);
+}
+
+// =========================================================
+//  RESULTS PANE (center)
+// =========================================================
+function rankBoxClass(pos){
+  if (pos == null) return '';
+  if (pos === 1) return 'r1';
+  if (pos <= 3) return 'r3';
+  if (pos <= 10) return 'r10';
+  if (pos <= 30) return 'r30';
+  return 'r100';
+}
+
+function renderResultsPane(){
+  const root = document.getElementById('rp-list');
+  const kwLabel = document.getElementById('rp-kw-label');
+  const engineLabel = document.getElementById('rp-engine-label');
+  const expBtn = document.getElementById('rp-export-btn');
+
+  if (SEL < 0 || !KW[SEL]) {
+    kwLabel.textContent = '— select a keyword —';
+    engineLabel.textContent = '';
+    expBtn.disabled = true;
+    root.innerHTML = '';
+    const e = document.createElement('div');
+    e.className = 'rp-empty';
+    e.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/><path d="M14 8h7v7"/></svg><div class="re-t">Ready to track rankings</div><div class="re-s">1. Pick a target location on the map · 2. Enter your domain on the right · 3. Add API key for any provider · 4. Add keywords on the left and hit <strong>Check All</strong></div>`;
+    root.appendChild(e);
+    return;
+  }
+
+  const k = KW[SEL];
+  kwLabel.textContent = k.keyword;
+  engineLabel.textContent = k.engine ? `${k.engine.toUpperCase()} · ${k.device || ''} · ${k.location || ''}` : '';
+  expBtn.disabled = !k.organic || !k.organic.length;
+
+  root.innerHTML = '';
+
+  // Summary card
+  const summary = document.createElement('div');
+  summary.className = 'rp-summary';
+  const targetDomain = document.getElementById('target-domain').value.trim() || '(no target set)';
+  const posTxt = k.position != null ? `#${k.position}` : '–';
+  const posSub = k.position != null
+    ? (k.position === 1 ? 'TOP 1' : k.position <= 3 ? 'TOP 3' : k.position <= 10 ? 'TOP 10' : k.position <= 30 ? 'TOP 30' : 'TOP 100')
+    : 'NOT FOUND';
+  summary.innerHTML = `
+    <div class="rp-rank-box ${rankBoxClass(k.position)}">
+      <div class="rb-num">${posTxt}</div>
+      <div class="rb-sub">${posSub}</div>
+    </div>
+    <div class="rp-summary-info">
+      <div class="rp-summary-kw">${escapeHtml(k.keyword)}</div>
+      ${k.url ? `<div class="rp-summary-url"><a href="${escapeAttr(k.url)}" target="_blank" rel="noopener">${escapeHtml(k.url)}</a></div>` : `<div class="rp-summary-url" style="color:var(--text3)">No URL — ${escapeHtml(targetDomain)} not in top ${k.organic ? k.organic.length : '?'}</div>`}
+      ${k.title ? `<div class="rp-summary-snip"><strong>${escapeHtml(k.title)}</strong>${k.snippet ? ' — ' + escapeHtml(k.snippet) : ''}</div>` : ''}
+      <div class="rp-summary-meta">
+        <span><strong>Target:</strong> ${escapeHtml(targetDomain)}</span>
+        ${k.engine ? `<span><strong>Engine:</strong> ${escapeHtml(k.engine)}</span>` : ''}
+        ${k.device ? `<span><strong>Device:</strong> ${escapeHtml(k.device)}</span>` : ''}
+        ${k.location ? `<span><strong>Location:</strong> ${escapeHtml(k.location)}</span>` : ''}
+        ${k.ts ? `<span><strong>Checked:</strong> ${escapeHtml(fmtTime(k.ts))}</span>` : ''}
+        ${k.prev != null ? `<span><strong>Prev:</strong> ${k.prev}</span>` : ''}
+      </div>
+    </div>
+  `;
+  root.appendChild(summary);
+
+  // Error
+  if (k.status === 'err') {
+    const errEl = document.createElement('div');
+    errEl.className = 'serp-row';
+    errEl.style.borderColor = 'var(--danger)';
+    errEl.style.background = 'rgba(220,38,38,.08)';
+    errEl.innerHTML = `<div class="serp-pos" style="color:var(--danger)">!</div><div class="serp-body"><div class="serp-title" style="color:var(--danger)">Error</div><div class="serp-snip">${escapeHtml(k.error || 'Unknown error')}</div></div>`;
+    root.appendChild(errEl);
+  }
+
+  // Organic results
+  if (k.organic && k.organic.length) {
+    const targ = normalizeDomain(targetDomain);
+    const sub = document.getElementById('opt-subdomains').checked;
+    const anywhere = document.getElementById('opt-anywhere').checked;
+    k.organic.forEach((r, i) => {
+      const host = urlHostname(r.link);
+      let matched = false;
+      if (anywhere) matched = (r.link || '').toLowerCase().includes(targ);
+      else if (sub) matched = (host === targ || host.endsWith('.' + targ));
+      else matched = (host === targ);
+      const row = document.createElement('div');
+      row.className = 'serp-row' + (matched ? ' match' : '');
+      row.innerHTML = `
+        <div class="serp-pos">${r.position || i + 1}</div>
+        <div class="serp-body">
+          <div class="serp-title"><a href="${escapeAttr(r.link)}" target="_blank" rel="noopener">${escapeHtml(r.title || '(no title)')}</a><span class="serp-domain">${escapeHtml(host)}</span></div>
+          <div class="serp-url">${escapeHtml(r.link)}</div>
+          <div class="serp-snip">${escapeHtml(r.snippet || '')}</div>
+        </div>
+      `;
+      root.appendChild(row);
+    });
+  } else if (k.status !== 'err') {
+    const phEl = document.createElement('div');
+    phEl.className = 'rp-empty';
+    phEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg><div class="re-t">Not checked yet</div><div class="re-s">Hit <strong>Check Selected</strong> below or <strong>Check All</strong> in the queue.</div>`;
+    root.appendChild(phEl);
+  }
+}
+
+function updateRpLabel(){
+  const engineLabel = document.getElementById('rp-engine-label');
+  const engine = document.getElementById('opt-engine').value;
+  const device = document.getElementById('opt-device').value;
+  if (SEL < 0) engineLabel.textContent = `${engine.toUpperCase()} · ${device}`;
+}
+
+// =========================================================
+//  RUN PANEL (right)
+// =========================================================
+function renderRunPanel(){
+  const root = document.getElementById('run-panel-inner');
+  if (SEL < 0 || !KW[SEL]) {
+    root.innerHTML = `
+      <div class="no-data-ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div class="nf-t">Select a keyword</div>
+        <div class="nf-s">Pick a keyword from the left, or use <strong>Check All</strong> in the queue footer.</div>
+      </div>
+    `;
+    return;
+  }
+  const k = KW[SEL];
+  const targetDomain = document.getElementById('target-domain').value.trim();
+  const posTxt = k.position != null ? `#${k.position}` : '–';
+
+  root.innerHTML = `
+    <div class="sec-h" style="cursor:default"><span class="sec-dot"></span> Selected Keyword</div>
+    <div class="frow-full">
+      <span class="flbl">Keyword</span>
+      <input type="text" class="finp" value="${escapeAttr(k.keyword)}" onchange="updateKeywordText('${k.id}', this.value)">
+    </div>
+
+    <div class="target-card" style="margin-top:10px">
+      <div class="target-label"><span class="sec-dot b"></span> Current Rank</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+        <div class="rp-rank-box ${rankBoxClass(k.position)}" style="width:74px;height:74px">
+          <div class="rb-num">${posTxt}</div>
+          <div class="rb-sub">${k.position != null ? (k.position === 1 ? 'TOP 1' : k.position <= 3 ? 'TOP 3' : k.position <= 10 ? 'TOP 10' : k.position <= 30 ? 'TOP 30' : 'TOP 100') : 'NOT FOUND'}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:3px">${escapeHtml(targetDomain || 'no target set')}</div>
+          ${k.url ? `<div style="font-size:11px;color:var(--accent);font-family:var(--mono);word-break:break-all;line-height:1.4"><a href="${escapeAttr(k.url)}" target="_blank" rel="noopener" style="color:inherit">${escapeHtml(k.url)}</a></div>` : '<div style="font-size:11px;color:var(--text3)">URL not in results</div>'}
+          ${k.prev != null ? `<div style="font-size:10.5px;color:var(--text3);margin-top:4px;font-family:var(--mono)">prev: ${k.prev}${k.position!=null ? (k.prev > k.position ? ` ▲${k.prev-k.position}` : k.prev < k.position ? ` ▼${k.position-k.prev}` : ' =') : ''}</div>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="display:flex;gap:6px;margin-top:10px">
+      <button class="btn primary full" onclick="runMany([KW[${SEL}]])">▶ Check This Keyword</button>
+    </div>
+    <div class="btn-row" style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn sm full" onclick="copyToClipboard(KW[${SEL}].url || '')" ${k.url ? '' : 'disabled'}>Copy URL</button>
+      <button class="btn sm full" onclick="copyToClipboard(KW[${SEL}].keyword)">Copy Keyword</button>
+    </div>
+
+    ${k.engine ? `
+    <div class="sec-h" style="cursor:default;margin-top:14px"><span class="sec-dot a"></span> Last Check</div>
+    <div class="frow"><span class="flbl">Engine</span><input class="finp" value="${escapeAttr(k.engine)}" disabled></div>
+    <div class="frow"><span class="flbl">Device</span><input class="finp" value="${escapeAttr(k.device || '')}" disabled></div>
+    <div class="frow"><span class="flbl">Location</span><input class="finp" value="${escapeAttr(k.location || '')}" disabled></div>
+    <div class="frow"><span class="flbl">When</span><input class="finp" value="${escapeAttr(fmtTime(k.ts) || '')}" disabled></div>
+    <div class="frow"><span class="flbl">Results</span><input class="finp" value="${k.organic ? k.organic.length : 0} URLs" disabled></div>
+    ` : ''}
+
+    ${k.error ? `
+    <div style="background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);border-left:3px solid var(--danger);border-radius:6px;padding:9px 11px;margin-top:10px;font-size:11px;color:var(--danger);line-height:1.45;word-break:break-word">
+      <strong>Error:</strong> ${escapeHtml(k.error)}
+    </div>` : ''}
+  `;
+}
+
+function updateKeywordText(id, val){
+  const k = KW.find(x => x.id === id);
+  if (!k) return;
+  val = (val || '').trim();
+  if (!val) { toast('Keyword cannot be empty', 'err'); return; }
+  k.keyword = val;
+  saveKeywords();
+  renderKwList();
+  renderResultsPane();
+}
+
+function copyToClipboard(s){
+  if (!s) return;
+  navigator.clipboard?.writeText(s).then(() => toast('Copied', 'info', 1500), () => toast('Copy failed', 'err'));
+}
+
+// =========================================================
+//  MAP
+// =========================================================
+function initMap(){
+  MAP = L.map('map', { zoomControl: true, attributionControl: true }).setView([20, 0], 2);
+
+  TILES.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  });
+  TILES.esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: '&copy; Esri'
+  });
+  TILES.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; CARTO'
+  });
+  TILES[CURRENT_LAYER].addTo(MAP);
+
+  MAP.on('click', (e) => setLocationFromMap(e.latlng.lat, e.latlng.lng));
+  MAP.on('moveend zoomend', updateMapStatus);
+  MAP.on('zoomend', () => document.getElementById('ms-zoom').textContent = 'z' + MAP.getZoom());
+
+  if (LOC.lat != null && LOC.lng != null) {
+    placeMarker(LOC.lat, LOC.lng);
+    MAP.setView([LOC.lat, LOC.lng], 11);
+  }
+  updateMapStatus();
+}
+
+function setLayer(name){
+  document.querySelectorAll('.lpill').forEach(p => p.classList.toggle('active', p.dataset.layer === name));
+  if (TILES[CURRENT_LAYER]) MAP.removeLayer(TILES[CURRENT_LAYER]);
+  CURRENT_LAYER = name;
+  TILES[name].addTo(MAP);
+}
+
+function placeMarker(lat, lng){
+  if (MARKER) MAP.removeLayer(MARKER);
+  MARKER = L.marker([lat, lng], { draggable: true }).addTo(MAP);
+  MARKER.on('dragend', (e) => {
+    const ll = e.target.getLatLng();
+    setLocationFromMap(ll.lat, ll.lng);
+  });
+}
+
+function setLocationFromMap(lat, lng){
+  LOC.lat = lat; LOC.lng = lng;
+  placeMarker(lat, lng);
+  updateMapStatus();
+  reverseGeocode(lat, lng);
+}
+
+function updateMapStatus(){
+  if (LOC.lat != null) {
+    document.getElementById('ms-coords').textContent = `${LOC.lat.toFixed(6)}, ${LOC.lng.toFixed(6)}`;
+  }
+  if (MAP) document.getElementById('ms-zoom').textContent = 'z' + MAP.getZoom();
+}
+
+// Nominatim reverse + forward geocoding (free, no key, fair-use rate limit)
+async function reverseGeocode(lat, lng){
+  clearTimeout(GEOCODE_TIMER);
+  GEOCODE_TIMER = setTimeout(async () => {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=12&addressdetails=1`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const j = await r.json();
+      const a = j.address || {};
+      const city = a.city || a.town || a.village || a.county || a.state_district || '';
+      const state = a.state || a.region || '';
+      const country = a.country || '';
+      const parts = [city, state, country].filter(Boolean);
+      LOC.place = parts.join(', ');
+      LOC.city = city;
+      LOC.state = state;
+      LOC.country = country;
+      document.getElementById('ms-addr').textContent = j.display_name || LOC.place || '(unknown)';
+      renderLocCard();
+      localStorage.setItem(LS_LOC, JSON.stringify(LOC));
+    } catch (e) {
+      document.getElementById('ms-addr').textContent = '(reverse geocode failed)';
+    }
+  }, 350);
+}
+
+async function doSearch(){
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  // try lat,lng
+  const m = q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if (m) {
+    const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      MAP.setView([lat, lng], 12);
+      setLocationFromMap(lat, lng);
+      return;
+    }
+  }
+  // forward geocode
+  try {
+    progShow('Searching place...');
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&addressdetails=1`);
+    const arr = await r.json();
+    progHide();
+    if (!arr.length) { toast('No matching place found', 'warn'); return; }
+    const x = arr[0];
+    const lat = parseFloat(x.lat), lng = parseFloat(x.lon);
+    MAP.setView([lat, lng], 11);
+    setLocationFromMap(lat, lng);
+    toast(`Found: ${x.display_name.slice(0, 60)}${x.display_name.length>60?'...':''}`, 'info', 2500);
+  } catch (e) {
+    progHide();
+    toast('Search failed: ' + (e.message || e), 'err');
+  }
+}
+
+function renderLocCard(){
+  const place = document.getElementById('loc-place');
+  const coords = document.getElementById('loc-coords');
+  const pills = document.getElementById('loc-pills');
+  if (LOC.lat == null) {
+    place.textContent = 'No location selected';
+    coords.textContent = '— click map or search above —';
+    pills.innerHTML = '';
+    return;
+  }
+  place.textContent = LOC.place || '(no name)';
+  coords.textContent = `${LOC.lat.toFixed(5)}, ${LOC.lng.toFixed(5)}`;
+  const pillArr = [];
+  if (LOC.city) pillArr.push(`<span class="loc-pill"><strong>City:</strong> ${escapeHtml(LOC.city)}</span>`);
+  if (LOC.state) pillArr.push(`<span class="loc-pill"><strong>State:</strong> ${escapeHtml(LOC.state)}</span>`);
+  if (LOC.country) pillArr.push(`<span class="loc-pill"><strong>Country:</strong> ${escapeHtml(LOC.country)}</span>`);
+  pills.innerHTML = pillArr.join('');
+}
+
+// =========================================================
+//  HISTORY
+// =========================================================
+function loadHistory(){
+  try { return JSON.parse(localStorage.getItem(LS_HIST) || '[]'); } catch { return []; }
+}
+function saveHistoryEntry(item, targetDomain){
+  const h = loadHistory();
+  h.unshift({
+    ts: item.ts,
+    keyword: item.keyword,
+    position: item.position,
+    url: item.url,
+    title: item.title,
+    snippet: item.snippet,
+    engine: item.engine,
+    device: item.device,
+    location: item.location,
+    domain: targetDomain,
+    provider: PROVIDER
+  });
+  // cap at 1000
+  if (h.length > 1000) h.length = 1000;
+  try { localStorage.setItem(LS_HIST, JSON.stringify(h)); } catch (e) { console.warn('history save failed', e); }
+}
+function renderHistory(){
+  const root = document.getElementById('hist-list');
+  const h = loadHistory();
+  if (!h.length) { root.innerHTML = '<div class="hist-empty">No history yet. Run some checks first.</div>'; return; }
+  root.innerHTML = '';
+  h.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'hist-item';
+    const pos = e.position != null ? `#${e.position}` : 'NF';
+    div.innerHTML = `
+      <div class="hist-top">
+        <span class="hist-kw">${escapeHtml(e.keyword)}</span>
+        <span class="hist-pos ${e.position == null ? 'np' : ''}">${pos}</span>
+      </div>
+      <div class="hist-meta">
+        <span>${escapeHtml(e.domain || '')}</span>
+        <span>${escapeHtml(e.engine || '')}</span>
+        <span>${escapeHtml(e.location || '')}</span>
+        <span>${escapeHtml(fmtTime(e.ts))}</span>
+      </div>
+    `;
+    root.appendChild(div);
+  });
+}
+function clearHistory(){
+  if (!confirm('Clear all ranking history?')) return;
+  localStorage.removeItem(LS_HIST);
+  renderHistory();
+  toast('History cleared', 'info');
+}
+
+// =========================================================
+//  EXPORTS
+// =========================================================
+function csvCell(v){
+  if (v == null) return '';
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function downloadBlob(content, filename, mime='text/plain'){
+  const b = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(b);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+}
+function stamp(){ return new Date().toISOString().slice(0,19).replace(/[:T]/g, '-'); }
+
+function exportCSV(){
+  if (!KW.length) { toast('Nothing to export', 'warn'); return; }
+  const targetDomain = document.getElementById('target-domain').value.trim();
+  const head = ['keyword','position','url','title','snippet','target_domain','engine','device','location','provider','checked_at'];
+  const rows = [head.join(',')];
+  KW.forEach(k => {
+    rows.push([
+      csvCell(k.keyword),
+      csvCell(k.position),
+      csvCell(k.url),
+      csvCell(k.title),
+      csvCell(k.snippet),
+      csvCell(targetDomain),
+      csvCell(k.engine),
+      csvCell(k.device),
+      csvCell(k.location),
+      csvCell(PROVIDER),
+      csvCell(k.ts ? new Date(k.ts).toISOString() : '')
+    ].join(','));
+  });
+  downloadBlob('﻿' + rows.join('\r\n'), `serp-rankings-${stamp()}.csv`, 'text/csv;charset=utf-8');
+  toast('CSV downloaded', 'info');
+}
+function exportJSON(){
+  if (!KW.length) { toast('Nothing to export', 'warn'); return; }
+  const targetDomain = document.getElementById('target-domain').value.trim();
+  const data = {
+    exported_at: new Date().toISOString(),
+    target_domain: targetDomain,
+    provider: PROVIDER,
+    settings: JSON.parse(localStorage.getItem(LS_SET) || '{}'),
+    location: LOC,
+    keywords: KW.map(k => ({
+      keyword: k.keyword,
+      position: k.position,
+      url: k.url,
+      title: k.title,
+      snippet: k.snippet,
+      engine: k.engine,
+      device: k.device,
+      location: k.location,
+      checked_at: k.ts ? new Date(k.ts).toISOString() : null,
+      prev_position: k.prev,
+      organic: k.organic || []
+    }))
+  };
+  downloadBlob(JSON.stringify(data, null, 2), `serp-rankings-${stamp()}.json`, 'application/json');
+  toast('JSON downloaded', 'info');
+}
+function exportSingleKeyword(){
+  if (SEL < 0 || !KW[SEL]) return;
+  const k = KW[SEL];
+  if (!k.organic || !k.organic.length) { toast('No results to export', 'warn'); return; }
+  const head = ['position','url','domain','title','snippet'];
+  const rows = [head.join(',')];
+  k.organic.forEach((r, i) => {
+    rows.push([
+      csvCell(r.position || i + 1),
+      csvCell(r.link),
+      csvCell(urlHostname(r.link)),
+      csvCell(r.title),
+      csvCell(r.snippet)
+    ].join(','));
+  });
+  const slug = k.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0,40);
+  downloadBlob('﻿' + rows.join('\r\n'), `serp-${slug}-${stamp()}.csv`, 'text/csv;charset=utf-8');
+  toast('Keyword SERP exported', 'info');
+}
+function exportHistory(){
+  const h = loadHistory();
+  if (!h.length) { toast('No history to export', 'warn'); return; }
+  const head = ['checked_at','keyword','position','url','domain','engine','device','location','provider'];
+  const rows = [head.join(',')];
+  h.forEach(e => {
+    rows.push([
+      csvCell(new Date(e.ts).toISOString()),
+      csvCell(e.keyword),
+      csvCell(e.position),
+      csvCell(e.url),
+      csvCell(e.domain),
+      csvCell(e.engine),
+      csvCell(e.device),
+      csvCell(e.location),
+      csvCell(e.provider)
+    ].join(','));
+  });
+  downloadBlob('﻿' + rows.join('\r\n'), `serp-history-${stamp()}.csv`, 'text/csv;charset=utf-8');
+  toast('History exported', 'info');
+}
+
+// =========================================================
+//  HELPERS
+// =========================================================
+function escapeHtml(s){
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+function fmtTime(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = Date.now();
+  const diff = now - ts;
+  if (diff < 60_000) return 'just now';
+  if (diff < 3_600_000) return Math.floor(diff/60_000) + 'm ago';
+  if (diff < 86_400_000) return Math.floor(diff/3_600_000) + 'h ago';
+  if (diff < 604_800_000) return Math.floor(diff/86_400_000) + 'd ago';
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+// =========================================================
+//  KEYBOARD
+// =========================================================
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+    if (e.key === 'Enter' && e.target.id === 'search-input') return; // handled inline
+    return;
+  }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+    if (SEL < KW.length - 1) { selectKeyword(SEL + 1); e.preventDefault(); }
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    if (SEL > 0) { selectKeyword(SEL - 1); e.preventDefault(); }
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (SEL >= 0 && KW[SEL]) { removeKeyword(KW[SEL].id); e.preventDefault(); }
+  } else if (e.key === 'Enter') {
+    runAll();
+  }
+});
+
+// =========================================================
+//  INIT
+// =========================================================
+window.addEventListener('load', () => {
+  loadSettings();
+  initMap();
+  renderHistory();
+});
+</script>
+
+<script src="global-nav.js"></script>
+</body>
+</html>

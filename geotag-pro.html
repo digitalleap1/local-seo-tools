@@ -1,0 +1,3258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoTag Pro - Bulk Photo & Video Geotagging + Image SEO Suite</title>
+<meta name="description" content="Bulk geotag JPG. Edit EXIF, generate SEO keywords, alt text, slugs. GPX + JSON sidecar export. 100% client-side.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#2563eb; --accent-h:#1d4ed8; --accent-soft:rgba(37,99,235,.08);
+  --teal:#0d9488; --teal-h:#0f766e;
+  --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --map-filter:none;
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#3b82f6; --accent-h:#60a5fa; --accent-soft:rgba(59,130,246,.12);
+  --teal:#14b8a6; --teal-h:#2dd4bf;
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+  --map-filter:brightness(.82) saturate(.9);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  font-size:13px;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s,color .25s;
+}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ---------- HEADER ---------- */
+#header{
+  height:56px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;
+  box-shadow:var(--shadow-sm);z-index:200;
+}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--accent),var(--teal));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(37,99,235,.3);
+}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{
+  font-size:9.5px;font-family:var(--mono);font-weight:700;
+  color:var(--teal);border:1px solid var(--teal);
+  border-radius:4px;padding:1.5px 6px;letter-spacing:.6px;
+}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.geo strong{color:var(--teal)}
+.hdr-stat.mod strong{color:var(--amber)}
+.hdr-spacer{flex:1}
+
+.hdr-link{
+  display:flex;align-items:center;gap:5px;padding:6px 12px;
+  border:1px solid var(--border);border-radius:7px;
+  background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;
+  text-decoration:none;transition:all .15s;
+}
+.hdr-link:hover{border-color:var(--purple);color:var(--purple);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{
+  display:flex;align-items:center;gap:6px;padding:6px 11px;
+  border:1px solid var(--border);border-radius:20px;
+  background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;
+  transition:all .2s;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+/* ---------- APP ---------- */
+#app{
+  flex:1;display:flex;overflow:hidden;
+  height:calc(100vh - 56px - 32px);
+}
+
+/* ---------- LEFT QUEUE ---------- */
+#queue-panel{
+  width:260px;min-width:230px;background:var(--bg2);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;
+}
+.qp-header{
+  padding:11px 12px 9px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.qp-title{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--text2);flex:1;font-family:var(--mono);
+}
+.btn-add{
+  display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;
+  background:var(--accent);color:#fff;font-size:11px;font-weight:700;border:none;
+  transition:all .15s;
+}
+.btn-add:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+
+.drop-mini{
+  margin:9px;border:2px dashed var(--border2);border-radius:10px;
+  padding:18px 10px;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--bg3);
+}
+.drop-mini:hover,.drop-mini.drag{
+  border-color:var(--accent);background:var(--accent-soft);transform:scale(1.01);
+}
+.drop-mini svg{width:26px;height:26px;color:var(--accent);margin-bottom:6px}
+.drop-mini p{font-size:11px;color:var(--text2);line-height:1.55;margin-top:2px}
+.drop-mini strong{color:var(--text);font-weight:700;font-size:11.5px}
+.drop-mini .jpg-only{
+  margin-top:6px;font-size:9.5px;font-family:var(--mono);
+  color:var(--amber);font-weight:700;
+}
+
+#file-list{flex:1;overflow-y:auto;padding:5px}
+.flist-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;color:var(--text3);gap:8px;padding:20px;
+}
+.flist-empty svg{width:38px;height:38px;opacity:.3}
+.flist-empty .et{font-size:12.5px;color:var(--text2);font-weight:500}
+.flist-empty .es{font-size:10.5px}
+
+.file-item{
+  display:flex;align-items:center;gap:8px;padding:7px 7px;border-radius:7px;
+  cursor:pointer;border:1px solid transparent;margin-bottom:3px;
+  transition:all .12s;position:relative;
+}
+.file-item:hover{background:var(--bg3)}
+.file-item.active{
+  background:var(--accent-soft);border-color:rgba(37,99,235,.28);
+}
+.fi-thumb{
+  width:40px;height:40px;border-radius:6px;background:var(--bg3);
+  border:1px solid var(--border);flex-shrink:0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9.5px;font-weight:700;color:var(--text2);font-family:var(--mono);
+}
+.fi-thumb img{width:100%;height:100%;object-fit:cover}
+.fi-info{flex:1;min-width:0}
+.fi-name{
+  font-size:11.5px;font-weight:600;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.fi-meta{font-size:9.5px;color:var(--text2);font-family:var(--mono);margin-top:2px;display:flex;gap:5px;align-items:center}
+.fi-badge{
+  width:8px;height:8px;border-radius:50%;background:var(--border2);
+  flex-shrink:0;box-shadow:0 0 0 2px var(--bg2);
+}
+.fi-badge.has-gps{background:var(--success);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(22,163,74,.4)}
+.fi-badge.modified{background:var(--amber);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(217,119,6,.4)}
+.fi-badge.done{background:var(--teal);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(13,148,136,.4)}
+.fi-del{
+  width:18px;height:18px;border-radius:50%;background:var(--bg3);
+  border:1px solid var(--border);color:var(--text2);font-size:11px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  opacity:0;transition:opacity .15s;line-height:1;
+}
+.file-item:hover .fi-del{opacity:1}
+.fi-del:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+
+#queue-footer{
+  border-top:1px solid var(--border);padding:9px;display:none;
+  gap:5px;flex-direction:column;background:var(--bg);
+}
+#queue-footer.visible{display:flex}
+.qf-row{display:flex;gap:5px}
+
+/* ---------- MAP CENTER ---------- */
+#map-area{flex:1;display:flex;flex-direction:column;position:relative;min-width:0}
+#map-bar{
+  display:flex;align-items:center;gap:6px;padding:8px 10px;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+#search-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:7px;padding:7px 12px 7px 32px;
+  font-size:12.5px;color:var(--text);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a9ab5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>");
+  background-repeat:no-repeat;background-position:10px center;
+  transition:border-color .15s,box-shadow .15s;
+}
+#search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#search-input::placeholder{color:var(--text3)}
+.layer-pills{display:flex;gap:3px;margin-left:2px}
+.lpill{
+  padding:5px 9px;border-radius:5px;
+  font-size:9.5px;font-family:var(--mono);font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;transition:all .15s;
+}
+.lpill:hover{border-color:var(--accent);color:var(--accent)}
+.lpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#map{flex:1;z-index:1;background:var(--bg3)}
+#map .leaflet-tile-pane{filter:var(--map-filter);transition:filter .4s}
+
+#map-status{
+  height:28px;background:var(--bg2);border-top:1px solid var(--border);
+  padding:0 12px;display:flex;align-items:center;gap:12px;
+  font-size:10.5px;font-family:var(--mono);color:var(--text2);flex-shrink:0;
+}
+.ms-coords{color:var(--teal);font-weight:700;white-space:nowrap}
+.ms-addr{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-zoom{color:var(--text3)}
+
+/* ---------- RIGHT EDITOR ---------- */
+#edit-panel{
+  width:360px;min-width:320px;background:var(--bg2);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;
+}
+.ep-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;scrollbar-width:none}
+.ep-tabs::-webkit-scrollbar{display:none}
+.eptab{
+  flex:1;min-width:0;padding:10px 4px;font-size:10px;font-weight:700;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.7px;
+  background:none;border:none;color:var(--text2);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;
+}
+.eptab:hover{color:var(--text);background:var(--bg2)}
+.eptab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--bg2)}
+.ep-panel{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.ep-panel.active{display:flex}
+.ep-inner{padding:13px}
+
+.no-file-ph{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;color:var(--text2);gap:10px;padding:30px;
+}
+.no-file-ph svg{width:42px;height:42px;opacity:.25}
+.no-file-ph .nf-t{font-size:13.5px;font-weight:600;color:var(--text);opacity:.6}
+.no-file-ph .nf-s{font-size:11.5px;line-height:1.5}
+
+/* ---------- PREVIEW ---------- */
+.preview-box{
+  position:relative;margin-bottom:12px;border-radius:var(--radius-lg);
+  overflow:hidden;background:var(--bg3);border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.prev-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#000}
+.prev-badges{
+  position:absolute;top:7px;right:7px;display:flex;gap:4px;flex-wrap:wrap;
+  justify-content:flex-end;max-width:60%;
+}
+.prev-info{
+  position:absolute;bottom:7px;left:7px;right:7px;
+  display:flex;justify-content:space-between;font-family:var(--mono);
+  font-size:9.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);font-weight:600;
+}
+
+/* ---------- FORMAT NOTICE ---------- */
+.fmt-notice{
+  background:var(--amber-soft);border:1px solid rgba(217,119,6,.3);
+  border-left:3px solid var(--amber);
+  border-radius:7px;padding:9px 11px;margin-bottom:11px;
+  font-size:11px;line-height:1.5;color:var(--text);
+}
+.fmt-notice strong{color:var(--amber)}
+.fmt-notice.video{
+  background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.3);
+  border-left-color:var(--purple);
+}
+.fmt-notice.video strong{color:var(--purple)}
+.ffmpeg-box{
+  display:none;margin-top:8px;padding:9px 11px;
+  background:#0b0e14;color:#a3e635;border-radius:6px;
+  font-family:var(--mono);font-size:10.5px;
+  line-height:1.55;word-break:break-all;
+  border:1px solid var(--border2);
+}
+[data-theme="light"] .ffmpeg-box{background:#1f2937;color:#a7f3d0}
+.ffmpeg-box.visible{display:block}
+
+/* ---------- COORD CARD ---------- */
+.coord-card{
+  background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(13,148,136,.07));
+  border:1px solid rgba(37,99,235,.22);
+  border-radius:var(--radius-lg);padding:11px 13px;margin-bottom:11px;
+}
+[data-theme="dark"] .coord-card{
+  background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(20,184,166,.08));
+  border-color:rgba(59,130,246,.22);
+}
+.cc-coords{
+  font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--teal);
+  margin-bottom:4px;line-height:1.3;
+}
+.cc-sub{font-size:10.5px;color:var(--text2);display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono)}
+.cc-addr{
+  font-size:11px;color:var(--text);margin-top:8px;
+  display:none;align-items:flex-start;gap:5px;line-height:1.45;
+}
+.cc-addr.visible{display:flex}
+.cc-addr-pin{color:var(--accent);flex-shrink:0;font-size:13px;line-height:1.1}
+
+/* ---------- PRESETS ---------- */
+.section-label{
+  font-size:9.5px;font-family:var(--mono);text-transform:uppercase;
+  letter-spacing:1px;color:var(--text2);margin-bottom:6px;font-weight:700;
+}
+.preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+.pchip{
+  padding:6px 4px;border-radius:6px;background:var(--bg3);
+  border:1px solid var(--border);color:var(--text2);
+  font-size:10px;font-weight:600;text-align:center;
+  cursor:pointer;transition:all .15s;line-height:1.3;
+}
+.pchip:hover{
+  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
+  transform:translateY(-1px);
+}
+
+/* ---------- SECTION HEADER ---------- */
+.sec-h{
+  font-size:9.5px;font-family:var(--mono);text-transform:uppercase;
+  letter-spacing:1px;color:var(--text2);font-weight:700;
+  padding:11px 0 7px;border-bottom:1px solid var(--border);margin-bottom:9px;
+  display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;
+}
+.sec-h::after{content:'';width:8px;height:8px;border-right:1.5px solid var(--text3);border-bottom:1.5px solid var(--text3);transform:rotate(45deg);margin-left:auto;transition:transform .2s}
+.sec-h.closed::after{transform:rotate(-45deg)}
+.sec-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.sec-dot.g{background:var(--teal)}
+.sec-dot.a{background:var(--amber)}
+.sec-dot.p{background:var(--purple)}
+.sec-dot.d{background:var(--danger)}
+.sec-body.closed{display:none}
+
+/* ---------- FIELDS ---------- */
+.frow{display:grid;grid-template-columns:108px 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.flbl{font-size:10.5px;color:var(--text2);font-family:var(--mono);line-height:1.3}
+.finp{
+  background:var(--bg3);border:1px solid var(--border);border-radius:5px;
+  padding:6px 9px;font-size:11px;font-family:var(--mono);
+  color:var(--text);width:100%;transition:all .15s;
+}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.finp:disabled{opacity:.5;cursor:not-allowed}
+select.finp{cursor:pointer}
+textarea.finp{font-family:var(--font);font-size:11.5px;line-height:1.5;resize:vertical;min-height:60px}
+
+.frow-full{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.frow-full .flbl{font-size:10px}
+.frow-help{font-size:9.5px;color:var(--text3);margin-top:3px;font-family:var(--font);line-height:1.4}
+
+/* ---------- KEYWORD CHIPS ---------- */
+.kw-input-wrap{
+  background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:5px 6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:36px;
+}
+.kw-input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.kw-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid rgba(37,99,235,.25);
+  padding:3px 4px 3px 8px;border-radius:14px;
+  font-size:10.5px;font-weight:600;font-family:var(--font);
+}
+.kw-chip-del{
+  width:14px;height:14px;border-radius:50%;background:transparent;
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--accent);line-height:1;padding:0;
+}
+.kw-chip-del:hover{background:var(--accent);color:#fff}
+.kw-input{
+  flex:1;min-width:80px;border:none;background:transparent;outline:none;
+  font-size:11px;color:var(--text);font-family:var(--font);padding:3px;
+}
+
+.kw-suggest-wrap{margin-top:8px}
+.kw-suggest-row{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:6px;background:var(--bg);border-radius:6px;
+  border:1px dashed var(--border);
+}
+.kw-suggest-empty{font-size:10.5px;color:var(--text3);padding:5px}
+.kw-sugg{
+  display:inline-flex;align-items:center;gap:3px;cursor:pointer;
+  background:var(--bg3);color:var(--text2);
+  border:1px solid var(--border);
+  padding:3px 8px;border-radius:12px;
+  font-size:10.5px;font-weight:500;font-family:var(--font);
+  transition:all .12s;
+}
+.kw-sugg:hover{
+  background:var(--teal);color:#fff;border-color:var(--teal);
+  transform:translateY(-1px);
+}
+.kw-sugg::before{content:'+';font-weight:700;opacity:.5;font-size:11px}
+.kw-sugg.added{background:var(--success);color:#fff;border-color:var(--success);opacity:.6;cursor:default}
+.kw-sugg.added::before{content:'✓'}
+
+/* ---------- SEO SCORE ---------- */
+.seo-score-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:12px;margin-bottom:12px;
+}
+.seo-score-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.seo-ring{
+  position:relative;width:56px;height:56px;flex-shrink:0;
+}
+.seo-ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.seo-ring .ring-bg{stroke:var(--border);stroke-width:5;fill:none}
+.seo-ring .ring-fg{stroke:var(--success);stroke-width:5;fill:none;stroke-linecap:round;transition:stroke-dashoffset .6s,stroke .6s}
+.seo-ring .ring-text{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:800;font-size:14px;color:var(--text);line-height:1;
+}
+.seo-ring .ring-text small{font-size:8px;color:var(--text2);font-weight:600;margin-top:1px}
+.seo-score-info{flex:1;min-width:0}
+.seo-score-label{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.seo-score-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.seo-checks{display:flex;flex-direction:column;gap:5px}
+.seo-check{
+  display:flex;align-items:center;gap:7px;font-size:11px;
+  padding:5px 8px;border-radius:5px;background:var(--bg);
+}
+.seo-check .chk{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#fff;line-height:1;
+}
+.seo-check.ok .chk{background:var(--success)}
+.seo-check.no .chk{background:var(--border2);color:var(--text3)}
+.seo-check.warn .chk{background:var(--amber)}
+.seo-check-label{flex:1;color:var(--text2)}
+.seo-check.ok .seo-check-label{color:var(--text)}
+
+/* ---------- FILENAME GENERATOR ---------- */
+.slug-preview{
+  margin-top:6px;padding:8px 10px;background:var(--bg);
+  border-radius:6px;border-left:3px solid var(--accent);
+  font-family:var(--mono);font-size:11px;color:var(--accent);
+  word-break:break-all;line-height:1.4;
+}
+.slug-preview small{display:block;color:var(--text3);font-size:9.5px;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+
+/* ---------- BUTTONS ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:8px 14px;border-radius:var(--radius);
+  font-size:12px;font-weight:600;font-family:var(--font);
+  cursor:pointer;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);
+  transition:all .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--bg4);border-color:var(--text2);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-h);border-color:var(--accent-h)}
+.btn.success{background:var(--success);border-color:var(--success);color:#fff}
+.btn.success:hover{filter:brightness(1.08)}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.teal:hover{background:var(--teal-h)}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+.btn.amber:hover{filter:brightness(1.08)}
+.btn.purple{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn.purple:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.danger:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:11px}
+.btn.xs{padding:3px 8px;font-size:10px}
+.btn.full{width:100%}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+
+/* ---------- BADGE ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:4px;letter-spacing:.4px;
+  background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+}
+.badge.b{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.3);color:#60a5fa}
+.badge.g{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.3);color:#4ade80}
+.badge.a{background:rgba(217,119,6,.15);border-color:rgba(217,119,6,.3);color:#fbbf24}
+.badge.r{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.3);color:#f87171}
+.badge.p{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.3);color:#a78bfa}
+
+/* ---------- RAW EXIF TABLE ---------- */
+.raw-outer{flex:1;overflow-y:auto;background:var(--bg)}
+.raw-toolbar{
+  padding:8px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;background:var(--bg2);position:sticky;top:0;z-index:3;
+}
+.raw-count{font-size:10.5px;font-family:var(--mono);color:var(--text2);flex:1;font-weight:600}
+.raw-filter{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--text);
+}
+.raw-tbl{width:100%;border-collapse:collapse;font-size:10.5px;font-family:var(--mono)}
+.raw-tbl th{
+  text-align:left;padding:7px 11px;background:var(--bg2);color:var(--text2);
+  border-bottom:1px solid var(--border);
+  font-size:9px;text-transform:uppercase;letter-spacing:.8px;
+  position:sticky;top:39px;z-index:2;font-weight:700;
+}
+.raw-tbl td{padding:6px 11px;border-bottom:1px solid var(--border);vertical-align:top}
+.raw-tbl tr:hover td{background:var(--bg3)}
+.raw-tbl td.ti{color:var(--text3);font-size:9px;font-weight:700}
+.raw-tbl td.tk{color:var(--accent);word-break:break-word;font-weight:600}
+.raw-tbl td.tv{color:var(--text);word-break:break-all;max-width:160px}
+
+/* ---------- TOAST ---------- */
+#toast{
+  position:fixed;bottom:50px;right:18px;
+  padding:10px 18px;border-radius:8px;
+  background:var(--success);color:#fff;
+  font-size:12.5px;font-weight:600;
+  opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none;z-index:9999;
+  box-shadow:var(--shadow-lg);max-width:340px;
+  display:flex;align-items:center;gap:8px;
+}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{background:var(--danger)}
+#toast.info{background:var(--accent)}
+#toast.warn{background:var(--amber)}
+
+/* ---------- PROGRESS OVERLAY ---------- */
+#progress-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:8888;
+}
+#progress-overlay.visible{display:flex}
+.prog-box{
+  background:var(--bg2);border-radius:14px;padding:32px 40px;
+  text-align:center;min-width:280px;box-shadow:var(--shadow-lg);
+  border:1px solid var(--border);
+}
+.prog-title{font-size:14.5px;font-weight:700;margin-bottom:10px;color:var(--text)}
+.prog-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:9px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:3px;transition:width .25s}
+.prog-sub{font-size:11px;color:var(--text2);font-family:var(--mono)}
+
+/* ---------- FOOTER ---------- */
+#footer{
+  height:32px;background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+  font-size:11px;color:var(--text2);flex-shrink:0;
+}
+#footer .dev-tag{
+  display:flex;align-items:center;gap:5px;font-weight:600;color:var(--text);
+}
+#footer .dev-tag svg{width:12px;height:12px;color:var(--accent)}
+#footer .dev-by{color:var(--text2);font-weight:500}
+#footer .dev-by strong{color:var(--accent);font-weight:700}
+#footer a{color:var(--text2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s}
+#footer a:hover{color:var(--accent)}
+#footer a svg{width:12px;height:12px}
+#footer .ft-spacer{flex:1}
+#footer .ft-stat{font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+/* ---------- KEYBOARD HINT ---------- */
+kbd{
+  background:var(--bg3);border:1px solid var(--border);border-bottom-width:2px;
+  border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:9.5px;
+  color:var(--text2);font-weight:600;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1100px){
+  #queue-panel{width:230px}
+  #edit-panel{width:330px}
+}
+@media (max-width:880px){
+  #queue-panel{width:200px;min-width:200px}
+  #edit-panel{width:300px;min-width:300px}
+  .preset-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:700px){
+  #app{flex-direction:column;overflow:auto;height:auto}
+  #queue-panel{width:100%;height:200px;border-right:none;border-bottom:1px solid var(--border)}
+  #file-list{display:flex;flex-direction:row;padding:5px;overflow-x:auto;overflow-y:hidden;gap:5px}
+  .file-item{flex-direction:column;width:74px;flex-shrink:0;padding:6px 4px}
+  .fi-info{display:none}
+  #map-area{height:320px}
+  #edit-panel{width:100%;flex:none}
+  .ep-panel.active{height:480px}
+  #footer{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
+}
+
+/* ---------- AI AUTO-FILL CARD ---------- */
+.ai-fill-card{
+  background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(219,39,119,.05));
+  border:1px solid rgba(124,58,237,.25);border-radius:var(--radius-lg);
+  margin-bottom:12px;overflow:hidden;
+}
+[data-theme="dark"] .ai-fill-card{
+  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(236,72,153,.06));
+  border-color:rgba(167,139,250,.25);
+}
+.ai-fill-head{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;
+  user-select:none;
+}
+.ai-fill-head:hover{background:rgba(124,58,237,.04)}
+.ai-fill-title{
+  font-size:12.5px;font-weight:700;color:var(--purple);
+  display:flex;align-items:center;gap:6px;
+}
+.ai-fill-title svg{width:15px;height:15px}
+.ai-prov-tag{
+  font-size:9.5px;font-family:var(--mono);font-weight:700;
+  padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2);
+  border:1px solid var(--border);
+}
+.ai-prov-tag.ready{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.3);color:var(--success)}
+.ai-fill-arrow{
+  margin-left:auto;width:8px;height:8px;border-right:1.5px solid var(--text3);
+  border-bottom:1.5px solid var(--text3);transform:rotate(45deg);transition:transform .2s;
+}
+.ai-fill-card.closed .ai-fill-arrow{transform:rotate(-45deg)}
+.ai-fill-body{padding:0 12px 12px;display:block}
+.ai-fill-card.closed .ai-fill-body{display:none}
+.ai-prov-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;
+  background:var(--bg3);padding:3px;border-radius:7px;border:1px solid var(--border);}
+.ai-prov-btn{
+  padding:6px 4px;border-radius:5px;background:transparent;border:none;
+  color:var(--text2);font-size:10.5px;font-weight:700;font-family:var(--font);
+  cursor:pointer;transition:all .15s;
+}
+.ai-prov-btn:hover{color:var(--text)}
+.ai-prov-btn.active{background:var(--purple);color:#fff;box-shadow:var(--shadow-sm)}
+.ai-key-wrap{position:relative;margin-bottom:6px}
+.ai-key-wrap .finp{padding-right:50px;font-size:10.5px}
+.ai-key-toggle{
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  background:var(--bg3);border:1px solid var(--border);border-radius:4px;
+  font-size:9px;padding:2px 7px;font-family:var(--mono);font-weight:700;
+  color:var(--text2);cursor:pointer;
+}
+.ai-key-toggle:hover{background:var(--purple);border-color:var(--purple);color:#fff}
+.ai-key-help{font-size:9.5px;color:var(--text3);margin-bottom:6px;line-height:1.4}
+.ai-key-help a{color:var(--purple);text-decoration:none}
+.ai-key-help a:hover{text-decoration:underline}
+.ai-fill-row{display:flex;gap:6px;margin-top:8px}
+.ai-fill-row .btn{flex:1}
+.ai-status{
+  font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center;
+  margin-top:6px;padding:4px;border-radius:4px;background:var(--bg3);
+  border:1px solid var(--border);
+}
+.ai-status.busy{color:var(--amber);background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.3)}
+.ai-status.ok{color:var(--success);background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)}
+.ai-status.err{color:var(--danger);background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.3)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    </div>
+    <span class="logo-name">GeoTag<span>Pro</span></span>
+    <span class="logo-tag">PHOTO · VIDEO · SEO</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat">Files <strong id="h-count">0</strong></div>
+  <div class="hdr-stat geo">Geo <strong id="h-geo">0</strong></div>
+  <div class="hdr-stat mod">Edited <strong id="h-mod">0</strong></div>
+  <div class="hdr-spacer"></div>
+  <a href="ai-seo-scanner.html" class="hdr-link" title="AI-powered bulk SEO scanner" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+    AI SEO Scanner
+  </a>
+  <a href="tools.html" class="hdr-link" title="Convert / Compress / Resize / Crop / Optimize">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    Image Tools
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="AI Content & Blog Writer (AEO/GEO/SXO/EEAT)" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    Content Writer
+  </a>
+  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Citations
+  </a>
+  <a href="gbp-audit.html" class="hdr-link" title="GBP Local Audit" style="border-color:rgba(217,119,6,.4);color:#d97706">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    GBP Audit
+  </a>
+  <a href="nap-checker.html" class="hdr-link" title="NAP Consistency Checker" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+    NAP
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <button class="btn sm" onclick="clearAllFiles()" title="Clear all files">Clear All</button>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+    <svg id="t-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <span id="t-label">Dark</span>
+  </button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- LEFT QUEUE -->
+  <div id="queue-panel">
+    <div class="qp-header">
+      <span class="qp-title">Media Queue</span>
+      <button class="btn-add" onclick="document.getElementById('bulk-input').click()">+ Add</button>
+      <input type="file" id="bulk-input" multiple accept="image/*,video/*" style="display:none" onchange="handleFiles(this.files);this.value='';">
+    </div>
+
+    <div class="drop-mini" id="drop-mini"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="onDrop(event)"
+      onclick="document.getElementById('bulk-input').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+      <p>Drop or click to add<br><strong>Photos &amp; Videos</strong></p>
+      <div class="jpg-only">JPG</div>
+    </div>
+
+    <div id="file-list">
+      <div class="flist-empty" id="flist-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        <div class="et">No files yet</div>
+        <div class="es">Drop or click above to add</div>
+      </div>
+    </div>
+
+    <div id="queue-footer">
+      <div class="qf-row">
+        <button class="btn teal full sm" onclick="applyGpsToAll()" title="Apply current GPS to every file">Apply GPS to All</button>
+      </div>
+      <div class="qf-row">
+        <button class="btn purple full sm" onclick="applySeoToAll()" title="Apply current SEO fields to every file">Apply SEO to All</button>
+      </div>
+      <div class="qf-row">
+        <button class="btn sm full" onclick="downloadSelected()">Download Selected</button>
+      </div>
+      <div class="qf-row">
+        <button class="btn amber sm full" onclick="downloadAll()">Export All as ZIP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER MAP -->
+  <div id="map-area">
+    <div id="map-bar">
+      <input type="text" id="search-input" placeholder="Search place, address, or coords (lat,lng)..." onkeypress="if(event.key==='Enter') doSearch()">
+      <button class="btn sm primary" onclick="doSearch()">Go</button>
+      <button class="btn sm" onclick="useMyLoc()" title="Use my location">My Loc</button>
+      <div class="layer-pills">
+        <button class="lpill active" onclick="setLayer('osm',this)">Street</button>
+        <button class="lpill" onclick="setLayer('sat',this)">Sat</button>
+        <button class="lpill" onclick="setLayer('dark',this)">Dark</button>
+        <button class="lpill" onclick="setLayer('topo',this)">Topo</button>
+      </div>
+    </div>
+    <div id="map"></div>
+    <div id="map-status">
+      <span class="ms-coords" id="ms-coords">Click map to drop GPS pin</span>
+      <span class="ms-addr" id="ms-addr"></span>
+      <span class="ms-zoom" id="ms-zoom">z2</span>
+    </div>
+  </div>
+
+  <!-- RIGHT EDITOR -->
+  <div id="edit-panel">
+    <div class="ep-tabs">
+      <button class="eptab active" onclick="switchTab('gps',this)">GPS</button>
+      <button class="eptab" onclick="switchTab('seo',this)">SEO</button>
+      <button class="eptab" onclick="switchTab('meta',this)">EXIF</button>
+      <button class="eptab" onclick="switchTab('camera',this)">Camera</button>
+      <button class="eptab" onclick="switchTab('raw',this)">Raw</button>
+    </div>
+
+    <!-- GPS TAB -->
+    <div class="ep-panel active" id="ep-gps">
+      <div class="no-file-ph" id="nf-gps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="nf-t">No file selected</div>
+        <div class="nf-s">Add files from the queue, then click any to edit GPS coordinates</div>
+      </div>
+
+      <div id="gps-editor" style="display:none" class="ep-inner">
+        <div class="preview-box" id="preview-box"></div>
+
+        <div id="format-notice" class="fmt-notice" style="display:none"></div>
+
+        <div class="coord-card">
+          <div class="cc-coords" id="cc-coords">No GPS data</div>
+          <div class="cc-sub">
+            <span id="cc-alt">Alt: -</span>
+            <span id="cc-dop">DOP: -</span>
+            <span id="cc-dim">-</span>
+          </div>
+          <div class="cc-addr" id="cc-addr">
+            <span class="cc-addr-pin">&#9679;</span>
+            <span id="cc-addr-text"></span>
+          </div>
+        </div>
+
+        <div class="section-label">Quick Presets</div>
+        <div class="preset-grid">
+          <div class="pchip" onclick="setPreset(48.8566,2.3522,'Paris')">Paris</div>
+          <div class="pchip" onclick="setPreset(40.7128,-74.006,'New York')">NYC</div>
+          <div class="pchip" onclick="setPreset(35.6762,139.6503,'Tokyo')">Tokyo</div>
+          <div class="pchip" onclick="setPreset(51.5074,-0.1278,'London')">London</div>
+          <div class="pchip" onclick="setPreset(37.7749,-122.4194,'San Francisco')">SF</div>
+          <div class="pchip" onclick="setPreset(-33.8688,151.2093,'Sydney')">Sydney</div>
+          <div class="pchip" onclick="setPreset(25.2048,55.2708,'Dubai')">Dubai</div>
+          <div class="pchip" onclick="setPreset(28.6139,77.209,'New Delhi')">Delhi</div>
+          <div class="pchip" onclick="setPreset(48.1351,11.582,'Munich')">Munich</div>
+          <div class="pchip" onclick="setPreset(41.9028,12.4964,'Rome')">Rome</div>
+          <div class="pchip" onclick="setPreset(1.3521,103.8198,'Singapore')">SG</div>
+          <div class="pchip" onclick="setPreset(19.076,72.8777,'Mumbai')">Mumbai</div>
+        </div>
+
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot g"></span>Coordinates</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Latitude</label><input class="finp" type="number" id="gpsLat" step="0.000001" min="-90" max="90" placeholder="-90 to 90" onchange="onCoordsChange()"></div>
+          <div class="frow"><label class="flbl">Longitude</label><input class="finp" type="number" id="gpsLng" step="0.000001" min="-180" max="180" placeholder="-180 to 180" onchange="onCoordsChange()"></div>
+          <div class="frow"><label class="flbl">Altitude (m)</label><input class="finp" type="number" id="gpsAlt" step="0.1" placeholder="meters" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">Alt Ref</label>
+            <select class="finp" id="gpsAltRef" onchange="markDirty()">
+              <option value="0">Above Sea Level</option>
+              <option value="1">Below Sea Level</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot a"></span>Direction &amp; Motion</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Direction</label><input class="finp" type="number" id="gpsDir" step="0.1" min="0" max="360" placeholder="0-360 deg" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">Dir Ref</label>
+            <select class="finp" id="gpsDirRef" onchange="markDirty()">
+              <option value="T">True North</option>
+              <option value="M">Magnetic North</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Speed (km/h)</label><input class="finp" type="number" id="gpsSpeed" step="0.1" min="0" placeholder="km/h" onchange="markDirty()"></div>
+        </div>
+
+        <div class="sec-h closed" onclick="toggleSec(this)"><span class="sec-dot"></span>Timestamp &amp; Accuracy</div>
+        <div class="sec-body closed">
+          <div class="frow"><label class="flbl">GPS Date</label><input class="finp" type="date" id="gpsDate" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">GPS Time UTC</label><input class="finp" type="time" id="gpsTime" step="1" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">DOP</label><input class="finp" type="number" id="gpsDop" step="0.01" min="0" placeholder="0.0 = best" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">Measure</label>
+            <select class="finp" id="gpsMeasure" onchange="markDirty()">
+              <option value="">Unknown</option>
+              <option value="2">2D Fix</option>
+              <option value="3">3D Fix</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Method</label><input class="finp" type="text" id="gpsProcMethod" placeholder="GPS / NETWORK / MANUAL" onchange="markDirty()"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="applyGpsToSelected()">Apply GPS</button>
+          <button class="btn sm" onclick="setGpsNow()">Now</button>
+          <button class="btn danger sm" onclick="clearGps()">Clear</button>
+        </div>
+
+        <div class="btn-row" id="vid-extra-btns" style="display:none">
+          <button class="btn amber sm full" onclick="exportGpx()">Export GPX Sidecar</button>
+          <button class="btn sm full" onclick="toggleFfmpeg()">Show FFmpeg Command</button>
+        </div>
+        <div class="ffmpeg-box" id="ffmpeg-box"></div>
+      </div>
+    </div>
+
+    <!-- SEO TAB -->
+    <div class="ep-panel" id="ep-seo">
+      <div class="no-file-ph" id="nf-seo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+        <div class="nf-t">No file selected</div>
+        <div class="nf-s">Select a file to optimize SEO with keywords, alt text and slug</div>
+      </div>
+
+      <div id="seo-editor" style="display:none" class="ep-inner">
+        <!-- AI AUTO-FILL -->
+        <div class="ai-fill-card" id="ai-fill-card">
+          <div class="ai-fill-head" onclick="toggleAiFill()">
+            <div class="ai-fill-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+              AI Auto-Fill
+            </div>
+            <span class="ai-prov-tag" id="ai-prov-tag">Heuristic</span>
+            <span class="ai-fill-arrow"></span>
+          </div>
+          <div class="ai-fill-body">
+            <div class="ai-prov-row">
+              <button class="ai-prov-btn active" data-aiprov="heuristic" onclick="setAiProv('heuristic',this)">Heuristic</button>
+              <button class="ai-prov-btn" data-aiprov="gemini" onclick="setAiProv('gemini',this)">Gemini</button>
+              <button class="ai-prov-btn" data-aiprov="openai" onclick="setAiProv('openai',this)">OpenAI</button>
+              <button class="ai-prov-btn" data-aiprov="claude" onclick="setAiProv('claude',this)">Claude</button>
+            </div>
+            <div id="ai-key-area"></div>
+            <div class="frow"><label class="flbl">Target KW</label><input class="finp" type="text" id="ai-keyword" placeholder="e.g. wedding photographer" oninput="AI_OPTS.keyword=this.value;aiSaveOpts()"></div>
+            <div class="frow"><label class="flbl">Brand</label><input class="finp" type="text" id="ai-brand" placeholder="Your brand" oninput="AI_OPTS.brand=this.value;aiSaveOpts()"></div>
+            <div class="frow"><label class="flbl">Tone</label>
+              <select class="finp" id="ai-tone" onchange="AI_OPTS.tone=this.value;aiSaveOpts()">
+                <option value="Professional">Professional</option>
+                <option value="Casual">Casual</option>
+                <option value="Luxury">Luxury</option>
+                <option value="Playful">Playful</option>
+                <option value="Technical">Technical</option>
+                <option value="Marketing">Marketing</option>
+              </select>
+            </div>
+            <div class="frow"><label class="flbl">Language</label>
+              <select class="finp" id="ai-lang" onchange="AI_OPTS.language=this.value;aiSaveOpts()">
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="German">German</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Arabic">Arabic</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Italian">Italian</option>
+              </select>
+            </div>
+            <div class="frow"><label class="flbl">Mode</label>
+              <select class="finp" id="ai-mode" onchange="AI_OPTS.overwriteMode=this.value;aiSaveOpts()">
+                <option value="empty">Fill empty fields only</option>
+                <option value="all">Overwrite all fields</option>
+                <option value="ai-only">Replace AI-fillable only (keep author/copyright)</option>
+              </select>
+            </div>
+            <div class="ai-fill-row">
+              <button class="btn purple sm" onclick="aiFillSelected()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+                Fill This File
+              </button>
+              <button class="btn primary sm" onclick="aiFillAll()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v4H3z"/><path d="M3 11h18v4H3z"/><path d="M3 19h18v2H3z"/></svg>
+                Fill All Files
+              </button>
+            </div>
+            <div class="ai-status" id="ai-status">Ready</div>
+          </div>
+        </div>
+
+        <!-- SEO Score -->
+        <div class="seo-score-card">
+          <div class="seo-score-top">
+            <div class="seo-ring">
+              <svg viewBox="0 0 60 60">
+                <circle class="ring-bg" cx="30" cy="30" r="26"/>
+                <circle class="ring-fg" id="seo-ring-fg" cx="30" cy="30" r="26" stroke-dasharray="163.36" stroke-dasharray="163.36" stroke-dashoffset="163.36"/>
+              </svg>
+              <div class="ring-text"><span id="seo-pct">0</span><small>SEO</small></div>
+            </div>
+            <div class="seo-score-info">
+              <div class="seo-score-label" id="seo-grade">Not analyzed</div>
+              <div class="seo-score-sub" id="seo-summary">Fill in fields below to boost your image SEO score.</div>
+            </div>
+          </div>
+          <div class="seo-checks" id="seo-checks"></div>
+        </div>
+
+        <!-- Title -->
+        <div class="frow-full">
+          <label class="flbl">Image Title <span style="color:var(--text3);font-weight:400">(Windows/SEO)</span></label>
+          <input class="finp" id="s_title" type="text" maxlength="120" placeholder="e.g. Eiffel Tower at Sunset, Paris" oninput="onSeoChange()">
+          <div class="frow-help"><span id="s_title_count">0</span>/120 - shows in Windows Explorer, Google Images</div>
+        </div>
+
+        <!-- Alt text -->
+        <div class="frow-full">
+          <label class="flbl">Alt Text / Description</label>
+          <textarea class="finp" id="s_alt" maxlength="200" placeholder="Describe the image clearly for screen readers and search engines" oninput="onSeoChange()" rows="2"></textarea>
+          <div class="frow-help"><span id="s_alt_count">0</span>/200 - written to ImageDescription EXIF tag</div>
+        </div>
+
+        <!-- Keywords -->
+        <div class="frow-full">
+          <label class="flbl">Keywords / Tags</label>
+          <div class="kw-input-wrap" id="kw-wrap" onclick="document.getElementById('kw-input').focus()">
+            <input id="kw-input" class="kw-input" type="text" placeholder="Type then press Enter or comma..." onkeydown="onKwKey(event)">
+          </div>
+          <div class="frow-help"><span id="kw-count">0</span> keywords - written to XPKeywords (Windows) for indexing</div>
+          <div class="kw-suggest-wrap">
+            <div class="section-label" style="margin-bottom:4px;display:flex;align-items:center;gap:6px">
+              <span>Smart Suggestions</span>
+              <button class="btn xs ghost" onclick="regenerateSuggestions()" title="Regenerate" style="padding:2px 7px;font-size:9.5px">Refresh</button>
+            </div>
+            <div class="kw-suggest-row" id="kw-sugg-row">
+              <div class="kw-suggest-empty">Add GPS or fill title to unlock suggestions.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Headline / Caption -->
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot p"></span>Caption &amp; Credit</div>
+        <div class="sec-body">
+          <div class="frow-full">
+            <label class="flbl">Headline / Caption</label>
+            <input class="finp" id="s_caption" type="text" maxlength="160" placeholder="Short caption shown beneath the photo" oninput="onSeoChange()">
+          </div>
+          <div class="frow-full">
+            <label class="flbl">Subject</label>
+            <input class="finp" id="s_subject" type="text" placeholder="Main subject line" oninput="onSeoChange()">
+          </div>
+          <div class="frow-full">
+            <label class="flbl">Comment / Notes</label>
+            <textarea class="finp" id="s_comment" rows="2" placeholder="Internal notes or extended comment" oninput="onSeoChange()"></textarea>
+          </div>
+          <div class="frow"><label class="flbl">Author</label><input class="finp" id="s_author" type="text" placeholder="Photographer / creator" oninput="onSeoChange()"></div>
+          <div class="frow"><label class="flbl">Copyright</label><input class="finp" id="s_copyright" type="text" placeholder="(c) 2026 Your Name" oninput="onSeoChange()"></div>
+          <div class="frow"><label class="flbl">Credit / Source</label><input class="finp" id="s_credit" type="text" placeholder="Brand or website" oninput="onSeoChange()"></div>
+        </div>
+
+        <!-- Filename / Slug -->
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot"></span>SEO Filename</div>
+        <div class="sec-body">
+          <div class="frow-full">
+            <label class="flbl">SEO Filename Slug</label>
+            <input class="finp" id="s_slug" type="text" placeholder="auto-generated-from-title" oninput="onSlugManual()">
+            <div class="frow-help">Lowercase, hyphenated. Used when downloading.</div>
+          </div>
+          <div class="slug-preview" id="slug-preview">
+            <small>Preview</small><span id="slug-out">filename-here.jpg</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn sm" onclick="autoGenSlug()">Auto from Title</button>
+            <button class="btn sm" onclick="autoGenSlugLoc()">From Title + Location</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary full" onclick="applySeoToSelected()">Apply SEO to This File</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- METADATA TAB -->
+    <div class="ep-panel" id="ep-meta">
+      <div class="no-file-ph" id="nf-meta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        <div class="nf-t">No file selected</div>
+        <div class="nf-s">Choose a file to edit description, dates and orientation (JPG: embedded EXIF; others: sidecar)</div>
+      </div>
+
+      <div id="meta-editor" style="display:none" class="ep-inner">
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot"></span>Image Info</div>
+        <div class="sec-body">
+          <div class="frow-full"><label class="flbl">Description</label><textarea class="finp" id="m_Desc" rows="2" placeholder="Image description" oninput="markDirty();syncSeoFromMeta()"></textarea></div>
+          <div class="frow"><label class="flbl">Artist</label><input class="finp" id="m_Artist" type="text" placeholder="Photographer name" oninput="markDirty();syncSeoFromMeta()"></div>
+          <div class="frow"><label class="flbl">Copyright</label><input class="finp" id="m_Copyright" type="text" placeholder="(c) Name" oninput="markDirty();syncSeoFromMeta()"></div>
+          <div class="frow"><label class="flbl">Software</label><input class="finp" id="m_Software" type="text" placeholder="GeoTag Pro" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Orientation</label>
+            <select class="finp" id="m_Ori" onchange="markDirty()">
+              <option value="1">1 - Normal</option>
+              <option value="3">3 - Rotate 180</option>
+              <option value="6">6 - Rotate 90 CW</option>
+              <option value="8">8 - Rotate 90 CCW</option>
+              <option value="2">2 - Flip H</option>
+              <option value="4">4 - Flip V</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">X Resolution</label><input class="finp" id="m_XRes" type="number" placeholder="dpi" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Y Resolution</label><input class="finp" id="m_YRes" type="number" placeholder="dpi" oninput="markDirty()"></div>
+        </div>
+
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot a"></span>Date &amp; Time</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Date Original</label><input class="finp" id="m_DTO" type="datetime-local" step="1" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">Date Digitized</label><input class="finp" id="m_DTD" type="datetime-local" step="1" onchange="markDirty()"></div>
+          <div class="frow"><label class="flbl">Date Modified</label><input class="finp" id="m_DT" type="datetime-local" step="1" onchange="markDirty()"></div>
+          <div class="btn-row">
+            <button class="btn sm" onclick="setAllDatesNow()">All Dates = Now</button>
+            <button class="btn sm" onclick="copyDtoToOthers()">DTO &rarr; Others</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn success" onclick="downloadSelected()">Save &amp; Download</button>
+          <button class="btn sm" onclick="copyExifJson()">Copy JSON</button>
+          <button class="btn danger sm" onclick="clearAllMeta()">Strip All EXIF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMERA TAB -->
+    <div class="ep-panel" id="ep-camera">
+      <div class="no-file-ph" id="nf-camera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        <div class="nf-t">No file selected</div>
+        <div class="nf-s">Edit camera, lens and exposure metadata</div>
+      </div>
+
+      <div id="camera-editor" style="display:none" class="ep-inner">
+        <div class="sec-h" onclick="toggleSec(this)"><span class="sec-dot g"></span>Camera &amp; Lens</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Make</label><input class="finp" id="m_Make" type="text" placeholder="e.g. Canon" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Model</label><input class="finp" id="m_Model" type="text" placeholder="e.g. EOS R5" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Lens Make</label><input class="finp" id="m_LensMake" type="text" placeholder="e.g. Sigma" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Lens Model</label><input class="finp" id="m_LensModel" type="text" placeholder="e.g. 24-70mm f/2.8" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Body Serial</label><input class="finp" id="m_Serial" type="text" placeholder="Serial #" oninput="markDirty()"></div>
+        </div>
+
+        <div class="sec-h" onclick="toggleSec(this)">Exposure</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Exposure Time</label><input class="finp" id="m_ET" type="text" placeholder="0.001 = 1/1000s" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">F-Number</label><input class="finp" id="m_FNum" type="number" step="0.1" min="0.7" placeholder="f/2.8" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">ISO</label><input class="finp" id="m_ISO" type="number" placeholder="100" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Focal Length</label><input class="finp" id="m_FL" type="number" step="0.1" placeholder="mm" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">FL 35mm equiv</label><input class="finp" id="m_FL35" type="number" placeholder="mm" oninput="markDirty()"></div>
+          <div class="frow"><label class="flbl">Exp Bias</label><input class="finp" id="m_EBias" type="number" step="0.1" placeholder="EV" oninput="markDirty()"></div>
+        </div>
+
+        <div class="sec-h" onclick="toggleSec(this)">Capture Settings</div>
+        <div class="sec-body">
+          <div class="frow"><label class="flbl">Flash</label>
+            <select class="finp" id="m_Flash" onchange="markDirty()">
+              <option value="0">No Flash</option>
+              <option value="1">Flash Fired</option>
+              <option value="24">No Flash, Auto</option>
+              <option value="16">No Flash, Compulsory</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">White Balance</label>
+            <select class="finp" id="m_WB" onchange="markDirty()">
+              <option value="0">Auto</option>
+              <option value="1">Manual</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Color Space</label>
+            <select class="finp" id="m_CS" onchange="markDirty()">
+              <option value="1">sRGB</option>
+              <option value="2">Adobe RGB</option>
+              <option value="65535">Uncalibrated</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Scene Type</label>
+            <select class="finp" id="m_Scene" onchange="markDirty()">
+              <option value="0">Standard</option>
+              <option value="1">Landscape</option>
+              <option value="2">Portrait</option>
+              <option value="3">Night Scene</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Exposure Mode</label>
+            <select class="finp" id="m_ExpMode" onchange="markDirty()">
+              <option value="0">Auto</option>
+              <option value="1">Manual</option>
+              <option value="2">Auto Bracket</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flbl">Metering</label>
+            <select class="finp" id="m_MeterMode" onchange="markDirty()">
+              <option value="0">Unknown</option>
+              <option value="1">Average</option>
+              <option value="2">Center Weighted</option>
+              <option value="3">Spot</option>
+              <option value="5">Pattern</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="applyCameraToSelected()">Apply</button>
+          <button class="btn success sm" onclick="downloadSelected()">Save &amp; Download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAW TAB -->
+    <div class="ep-panel" id="ep-raw">
+      <div class="no-file-ph" id="nf-raw">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+        <div class="nf-t">No EXIF data</div>
+        <div class="nf-s">Raw EXIF table is only available for JPG files. Other formats use sidecar JSON.</div>
+      </div>
+      <div id="raw-wrap" style="display:none">
+        <div class="raw-toolbar">
+          <span class="raw-count" id="raw-count">0 properties</span>
+          <input class="raw-filter" id="raw-filter" type="text" placeholder="Filter..." oninput="filterRaw()">
+          <button class="btn xs" onclick="copyExifJson()">Copy JSON</button>
+        </div>
+        <div class="raw-outer">
+          <table class="raw-tbl">
+            <thead><tr><th>IFD</th><th>Tag</th><th>Value</th></tr></thead>
+            <tbody id="raw-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <span class="dev-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Developed by <strong style="color:var(--accent);margin-left:3px">Mukesh Kr</strong>
+  </span>
+  <span class="dev-by">|</span>
+  <a href="tel:+919797366099" title="Call">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +91 97973 66099
+  </a>
+  <a href="mailto:itsmukeshweb@gmail.com" title="Email">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    itsmukeshweb@gmail.com
+  </a>
+  <span class="ft-spacer"></span>
+  <span class="ft-stat">100% client-side &middot; No uploads &middot; Privacy first</span>
+  <span class="ft-stat" style="color:var(--text2)">Shortcuts: <kbd>&larr;&rarr;</kbd> nav <kbd>S</kbd> save <kbd>Del</kbd> remove</span>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-overlay">
+  <div class="prog-box">
+    <div class="prog-title" id="prog-title">Processing...</div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-sub" id="prog-sub">Please wait</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// =========================================================
+//  STATE
+// =========================================================
+const FILES = [];          // {file,name,ext,dataUrl,exifObj,thumb,lat,lng,modified,status,width,height,kw[]}
+let SEL = -1;
+let MAP = null;
+const MARKERS = new Map();
+let LAYERS = {};
+let GEOCODE_TIMER = null;
+let LAST_ADDRESS = null;   // last reverse-geocoded full place obj
+let SLUG_MANUAL = false;
+
+// Piexif XP tag IDs (Windows-only EXIF tags - widely indexed)
+const XP_TITLE    = 40091;
+const XP_COMMENT  = 40092;
+const XP_AUTHOR   = 40093;
+const XP_KEYWORDS = 40094;
+const XP_SUBJECT  = 40095;
+
+// =========================================================
+//  THEME
+// =========================================================
+function applyThemeIcon(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const icon = document.getElementById('t-icon');
+  document.getElementById('t-label').textContent = isDark ? 'Light' : 'Dark';
+  icon.innerHTML = isDark
+    ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+}
+function toggleTheme(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('seohub_theme_v1', next);
+  applyThemeIcon();
+}
+applyThemeIcon();
+
+// =========================================================
+//  MAP
+// =========================================================
+function initMap(){
+  if(MAP) return;
+  MAP = L.map('map',{zoomControl:true}).setView([20,0],2);
+  LAYERS = {
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'(c) OpenStreetMap',maxZoom:19}),
+    sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'(c) Esri',maxZoom:19}),
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'(c) CARTO',maxZoom:19}),
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{attribution:'(c) OpenTopoMap',maxZoom:17})
+  };
+  LAYERS.osm.addTo(MAP);
+  MAP.on('click', e => {
+    if(SEL < 0){ toast('Select a file first', 'info'); return; }
+    placePin(SEL, e.latlng.lat, e.latlng.lng, true);
+    reverseGeocode(e.latlng.lat, e.latlng.lng);
+  });
+  MAP.on('mousemove', e => {
+    document.getElementById('ms-coords').textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+  });
+  MAP.on('zoomend', () => {
+    document.getElementById('ms-zoom').textContent = 'z' + MAP.getZoom();
+  });
+}
+function setLayer(name, btn){
+  if(!MAP) return;
+  Object.values(LAYERS).forEach(l => MAP.hasLayer(l) && MAP.removeLayer(l));
+  LAYERS[name].addTo(MAP);
+  document.querySelectorAll('.lpill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// =========================================================
+//  FILE HANDLING (all image + video formats)
+// =========================================================
+//  kind: 'jpg'   - full embedded EXIF read/write via piexif
+//        'image' - PNG/WebP/GIF/BMP/TIFF/HEIC/etc - sidecar export
+//        'video' - MP4/MOV/AVI/WebM/MKV/etc - sidecar + ffmpeg helper
+//        null    - unsupported, rejected
+function getKind(file){
+  if(!file) return null;
+  const t = (file.type || '').toLowerCase();
+  const ext = (file.name || '').split('.').pop().toLowerCase();
+  if(t === 'image/jpeg' || t === 'image/jpg' || ext === 'jpg' || ext === 'jpeg') return 'jpg';
+  if(t.startsWith('image/')) return 'image';
+  if(t.startsWith('video/')) return 'video';
+  // Empty MIME - fall back on extension
+  const imgExt = ['png','webp','gif','bmp','tif','tiff','heic','heif','avif','svg','ico'];
+  const vidExt = ['mp4','mov','avi','webm','mkv','m4v','3gp','wmv','flv','mpg','mpeg','ts','mts'];
+  if(imgExt.includes(ext)) return 'image';
+  if(vidExt.includes(ext)) return 'video';
+  return null;
+}
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-mini').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+function handleFiles(fileList){
+  const arr = Array.from(fileList);
+  if(!arr.length) return;
+  const ok = arr.filter(f => getKind(f));
+  const skipped = arr.length - ok.length;
+  if(skipped > 0){
+    const names = arr.filter(f => !getKind(f)).map(f => f.name).slice(0,3).join(', ');
+    toast(`Skipped ${skipped} unsupported file${skipped>1?'s':''}: ${names}${skipped>3?'...':''}`, 'warn');
+  }
+  if(!ok.length) return;
+  let added = 0;
+  ok.forEach(file => {
+    if(FILES.some(f => f && f.name === file.name && f.file.size === file.size)) return;
+    const idx = FILES.length;
+    const ext = file.name.split('.').pop().toLowerCase();
+    const kind = getKind(file);
+    const obj = {
+      file, name:file.name, ext, kind,
+      dataUrl:null, blobUrl:null, exifObj:null, thumb:null,
+      lat:null, lng:null, modified:false, status:'loading',
+      width:0, height:0, duration:0, kw:[],
+      seo:{ title:'', alt:'', caption:'', subject:'', comment:'',
+            author:'', copyright:'', credit:'', slug:'' },
+      address:null
+    };
+    FILES.push(obj);
+    renderFileItem(idx);
+    added++;
+
+    if(kind === 'video'){
+      // Videos: use blob URL (avoid huge base64 in memory)
+      obj.blobUrl = URL.createObjectURL(file);
+      obj.exifObj = { '0th':{}, Exif:{}, GPS:{}, '1st':{} };
+      obj.status = 'ready';
+      // Generate thumbnail from first frame
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.muted = true;
+      v.src = obj.blobUrl;
+      v.onloadedmetadata = () => {
+        obj.width = v.videoWidth;
+        obj.height = v.videoHeight;
+        obj.duration = v.duration;
+        v.currentTime = Math.min(0.5, v.duration * 0.1);
+      };
+      v.onseeked = () => {
+        try{
+          const sz = 80, c = document.createElement('canvas');
+          c.width = sz; c.height = sz;
+          const ctx = c.getContext('2d');
+          const r = Math.min(sz/v.videoWidth, sz/v.videoHeight);
+          const w = v.videoWidth*r, h = v.videoHeight*r;
+          ctx.drawImage(v, (sz-w)/2, (sz-h)/2, w, h);
+          obj.thumb = c.toDataURL('image/jpeg',.7);
+        } catch(_){}
+        updateFileItem(idx);
+        if(SEL === idx) loadIntoEditor(idx);
+      };
+      updateFileItem(idx);
+      updateStats();
+      if(SEL < 0) selectFile(idx);
+      return;
+    }
+
+    // Images (JPG and others)
+    const reader = new FileReader();
+    reader.onload = ev => {
+      obj.dataUrl = ev.target.result;
+      if(kind === 'jpg'){
+        try{
+          obj.exifObj = piexif.load(obj.dataUrl);
+          const gps = obj.exifObj.GPS || {};
+          const lat = gpsToDecimal(gps[piexif.GPSIFD.GPSLatitude], gps[piexif.GPSIFD.GPSLatitudeRef]);
+          const lng = gpsToDecimal(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]);
+          if(lat !== null && lng !== null){
+            obj.lat = lat; obj.lng = lng; obj.status = 'has-gps';
+            if(MAP) placePin(idx, lat, lng, false);
+          } else {
+            obj.status = 'ready';
+          }
+          const z = obj.exifObj['0th'] || {};
+          obj.seo.title = xpRead(z[XP_TITLE]) || '';
+          obj.seo.alt = (z[piexif.ImageIFD.ImageDescription] || '') + '';
+          obj.seo.author = (z[piexif.ImageIFD.Artist] || '') + '';
+          obj.seo.copyright = (z[piexif.ImageIFD.Copyright] || '') + '';
+          obj.seo.subject = xpRead(z[XP_SUBJECT]) || '';
+          obj.seo.comment = xpRead(z[XP_COMMENT]) || '';
+          const xpkw = xpRead(z[XP_KEYWORDS]);
+          if(xpkw) obj.kw = xpkw.split(';').map(s=>s.trim()).filter(Boolean);
+        } catch(_){
+          obj.exifObj = { '0th':{}, Exif:{}, GPS:{}, '1st':{} };
+          obj.status = 'no-exif';
+        }
+      } else {
+        // Non-JPG image: no EXIF parsing, sidecar storage only
+        obj.exifObj = { '0th':{}, Exif:{}, GPS:{}, '1st':{} };
+        obj.status = 'ready';
+      }
+      // Dimensions + thumb
+      const img = new Image();
+      img.onload = () => {
+        obj.width = img.width; obj.height = img.height;
+        const sz = 80, c = document.createElement('canvas');
+        c.width = sz; c.height = sz;
+        const ctx = c.getContext('2d');
+        const r = Math.min(sz/img.width, sz/img.height);
+        const w = img.width*r, h = img.height*r;
+        ctx.drawImage(img, (sz-w)/2, (sz-h)/2, w, h);
+        try { obj.thumb = c.toDataURL('image/jpeg',.78); } catch(_) {}
+        updateFileItem(idx);
+        if(SEL === idx) loadIntoEditor(idx);
+      };
+      img.onerror = () => { updateFileItem(idx); if(SEL === idx) loadIntoEditor(idx); };
+      img.src = obj.dataUrl;
+      updateFileItem(idx);
+      updateStats();
+      if(SEL < 0) selectFile(idx);
+    };
+    reader.readAsDataURL(file);
+  });
+  if(added){
+    document.getElementById('flist-empty').style.display = 'none';
+    document.getElementById('queue-footer').classList.add('visible');
+    initMap();
+    toast(`Added ${added} file${added>1?'s':''}`);
+  }
+  updateStats();
+}
+
+function renderFileItem(idx){
+  const f = FILES[idx]; if(!f) return;
+  const div = document.createElement('div');
+  div.className = 'file-item';
+  div.id = `fi-${idx}`;
+  div.onclick = () => selectFile(idx);
+  const label = f.kind === 'video' ? 'VID' : f.ext.toUpperCase().slice(0,4);
+  div.innerHTML = `
+    <div class="fi-thumb" id="ft-${idx}">${label}</div>
+    <div class="fi-info">
+      <div class="fi-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+      <div class="fi-meta">${formatBytes(f.file.size)} <span id="fd-${idx}"></span></div>
+    </div>
+    <div class="fi-badge" id="fb-${idx}"></div>
+    <button class="fi-del" onclick="removeFile(event,${idx})" title="Remove">&times;</button>
+  `;
+  document.getElementById('file-list').appendChild(div);
+}
+function updateFileItem(idx){
+  const f = FILES[idx]; if(!f) return;
+  const badge = document.getElementById(`fb-${idx}`);
+  const thumb = document.getElementById(`ft-${idx}`);
+  const dim = document.getElementById(`fd-${idx}`);
+  if(badge){
+    badge.className = 'fi-badge';
+    if(f.modified) badge.classList.add('modified');
+    else if(f.status === 'done') badge.classList.add('done');
+    else if(f.lat !== null) badge.classList.add('has-gps');
+  }
+  if(thumb && f.thumb) thumb.innerHTML = `<img src="${f.thumb}" alt="">`;
+  if(dim && f.width){
+    const dur = f.duration ? ` · ${formatDuration(f.duration)}` : '';
+    dim.textContent = `· ${f.width}x${f.height}${dur}`;
+  }
+}
+function formatDuration(s){
+  if(!s || isNaN(s)) return '';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+function selectFile(idx){
+  if(idx < 0 || !FILES[idx]) return;
+  if(SEL >= 0) document.getElementById(`fi-${SEL}`)?.classList.remove('active');
+  SEL = idx;
+  document.getElementById(`fi-${idx}`)?.classList.add('active');
+  loadIntoEditor(idx);
+  // Re-render markers to update selected highlight
+  MARKERS.forEach((m, i) => {
+    if(MAP) MAP.removeLayer(m);
+  });
+  MARKERS.clear();
+  FILES.forEach((f, i) => { if(f && f.lat !== null) placePin(i, f.lat, f.lng, false); });
+  const f = FILES[idx];
+  if(MAP && f.lat !== null) MAP.setView([f.lat, f.lng], MAP.getZoom() < 8 ? 11 : MAP.getZoom());
+}
+function removeFile(e, idx){
+  e.stopPropagation();
+  const f = FILES[idx];
+  if(f && f.blobUrl) try { URL.revokeObjectURL(f.blobUrl); } catch(_){}
+  FILES[idx] = null;
+  document.getElementById(`fi-${idx}`)?.remove();
+  const m = MARKERS.get(idx);
+  if(m && MAP) MAP.removeLayer(m);
+  MARKERS.delete(idx);
+  if(SEL === idx){ SEL = -1; showNoFile(true); }
+  if(!FILES.some(Boolean)){
+    document.getElementById('file-list').innerHTML = `
+      <div class="flist-empty" id="flist-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        <div class="et">No files yet</div>
+        <div class="es">Drop or click above to add</div>
+      </div>`;
+    document.getElementById('queue-footer').classList.remove('visible');
+  }
+  updateStats();
+}
+function clearAllFiles(){
+  if(!FILES.some(Boolean)) return;
+  if(!confirm('Remove all files from queue?')) return;
+  FILES.forEach(f => { if(f && f.blobUrl) try { URL.revokeObjectURL(f.blobUrl); } catch(_){} });
+  FILES.length = 0; SEL = -1;
+  document.getElementById('file-list').innerHTML = `
+    <div class="flist-empty" id="flist-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <div class="et">No files yet</div>
+      <div class="es">Drop or click above to add</div>
+    </div>`;
+  MARKERS.forEach(m => MAP && MAP.removeLayer(m));
+  MARKERS.clear();
+  document.getElementById('queue-footer').classList.remove('visible');
+  showNoFile(true);
+  updateStats();
+}
+
+// =========================================================
+//  EDITOR LOAD
+// =========================================================
+function showNoFile(yes){
+  ['gps','seo','meta','camera','raw'].forEach(t => {
+    document.getElementById(`nf-${t}`).style.display = yes ? '' : 'none';
+  });
+  document.getElementById('gps-editor').style.display = yes ? 'none' : '';
+  document.getElementById('seo-editor').style.display = yes ? 'none' : '';
+  document.getElementById('meta-editor').style.display = yes ? 'none' : '';
+  document.getElementById('camera-editor').style.display = yes ? 'none' : '';
+  document.getElementById('raw-wrap').style.display = yes ? 'none' : 'block';
+  if(yes){
+    // Reset raw placeholder to default copy
+    const rawPh = document.getElementById('nf-raw');
+    rawPh.querySelector('.nf-t').textContent = 'No EXIF data';
+    rawPh.querySelector('.nf-s').textContent = 'Raw EXIF table is only available for JPG files. Other formats use sidecar JSON.';
+  }
+}
+function loadIntoEditor(idx){
+  const f = FILES[idx]; if(!f) return;
+  showNoFile(false);
+  // Preview
+  const pb = document.getElementById('preview-box');
+  const dim = f.width ? `${f.width}x${f.height}` : '';
+  const sz = formatBytes(f.file.size);
+  const dur = f.duration ? ` · ${formatDuration(f.duration)}` : '';
+  let mediaEl;
+  if(f.kind === 'video'){
+    mediaEl = `<video class="prev-img" src="${f.blobUrl}" controls muted playsinline preload="metadata"></video>`;
+  } else {
+    mediaEl = `<img class="prev-img" src="${f.dataUrl || ''}" alt="${escapeHtml(f.name)}">`;
+  }
+  const kindBadge = f.kind === 'video'
+    ? '<span class="badge p">VIDEO</span>'
+    : f.kind === 'jpg' ? '<span class="badge b">JPG · EXIF</span>' : `<span class="badge b">${f.ext.toUpperCase()}</span>`;
+  pb.innerHTML = `
+    ${mediaEl}
+    <div class="prev-badges">
+      ${kindBadge}
+      ${f.lat !== null ? '<span class="badge g">GPS</span>' : ''}
+      ${f.modified ? '<span class="badge a">EDITED</span>' : ''}
+    </div>
+    <div class="prev-info"><span>${escapeHtml(f.name)}</span><span>${dim}${dur} · ${sz}</span></div>
+  `;
+  // Format-specific notice
+  renderFormatNotice(f);
+  // GPS fields
+  if(f.exifObj) populateGps(f.exifObj);
+  else clearGpsFields();
+  if(f.lat !== null){
+    sv('gpsLat', f.lat.toFixed(6));
+    sv('gpsLng', f.lng.toFixed(6));
+    updateCoordDisplay(f.lat, f.lng);
+  }
+  // Meta + camera
+  if(f.exifObj){
+    populateMeta(f.exifObj);
+    populateCamera(f.exifObj);
+  }
+  // SEO
+  loadSeoIntoUI(f);
+  computeSeoScore();
+  // Raw
+  if(f.kind === 'jpg' && f.exifObj){
+    renderRaw(f.exifObj, f.name);
+  } else {
+    document.getElementById('raw-wrap').style.display = 'none';
+    document.getElementById('nf-raw').style.display = '';
+    document.getElementById('nf-raw').querySelector('.nf-t').textContent = f.kind === 'video' ? 'Video has no EXIF' : 'Format has no embedded EXIF';
+    document.getElementById('nf-raw').querySelector('.nf-s').textContent = 'Raw EXIF table is only available for JPG files. Sidecar JSON export is available from this tab.';
+  }
+  // Suggestions
+  buildSuggestions();
+  // Show/hide video helper buttons
+  document.getElementById('vid-extra-btns').style.display = f.kind === 'video' ? 'flex' : 'none';
+  if(f.kind === 'video') updateFfmpegCmd(f);
+}
+
+function renderFormatNotice(f){
+  const wrap = document.getElementById('format-notice');
+  if(!wrap) return;
+  if(f.kind === 'jpg'){
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  if(f.kind === 'video'){
+    wrap.innerHTML = `<strong>Video file</strong> &mdash; browsers cannot embed GPS into video. Set coordinates and metadata, then export as <strong>GPX + JSON sidecar</strong> beside the video, or copy the <strong>ffmpeg</strong> command below to bake them in offline.`;
+    wrap.className = 'fmt-notice video';
+  } else {
+    wrap.innerHTML = `<strong>${f.ext.toUpperCase()}</strong> &mdash; this format has no writable EXIF in browsers. The original file is copied as-is and a matching <strong>.gpx</strong> &amp; <strong>.json</strong> sidecar carry your geotag and SEO. For embedded EXIF, save your image as JPG first.`;
+    wrap.className = 'fmt-notice image';
+  }
+}
+
+// =========================================================
+//  GPS FIELD POPULATION
+// =========================================================
+function sv(id, val){ const el = document.getElementById(id); if(el && val !== undefined && val !== null) el.value = val; }
+function gv(id){ return document.getElementById(id)?.value.trim() || ''; }
+
+function populateGps(exif){
+  const gps = exif.GPS || {};
+  const lat = gpsToDecimal(gps[piexif.GPSIFD.GPSLatitude], gps[piexif.GPSIFD.GPSLatitudeRef]);
+  const lng = gpsToDecimal(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]);
+  if(lat !== null && lng !== null){
+    sv('gpsLat', lat.toFixed(6)); sv('gpsLng', lng.toFixed(6));
+    updateCoordDisplay(lat, lng);
+    reverseGeocode(lat, lng);
+  } else clearGpsFields();
+  const alt = gps[piexif.GPSIFD.GPSAltitude];
+  if(alt) sv('gpsAlt', (alt[0]/alt[1]).toFixed(1)); else sv('gpsAlt','');
+  sv('gpsAltRef', gps[piexif.GPSIFD.GPSAltitudeRef] ?? 0);
+  const dir = gps[piexif.GPSIFD.GPSImgDirection];
+  if(dir) sv('gpsDir', (dir[0]/dir[1]).toFixed(1)); else sv('gpsDir','');
+  sv('gpsDirRef', gps[piexif.GPSIFD.GPSImgDirectionRef] || 'T');
+  const spd = gps[piexif.GPSIFD.GPSSpeed];
+  if(spd) sv('gpsSpeed', (spd[0]/spd[1]).toFixed(1)); else sv('gpsSpeed','');
+  const date = gps[piexif.GPSIFD.GPSDateStamp];
+  if(date) sv('gpsDate', date.replace(/:/g,'-')); else sv('gpsDate','');
+  const time = gps[piexif.GPSIFD.GPSTimeStamp];
+  if(time && time.length === 3){
+    const h = String(Math.floor(time[0][0]/time[0][1])).padStart(2,'0');
+    const m = String(Math.floor(time[1][0]/time[1][1])).padStart(2,'0');
+    const s = String(Math.floor(time[2][0]/time[2][1])).padStart(2,'0');
+    sv('gpsTime', `${h}:${m}:${s}`);
+  } else sv('gpsTime','');
+  const dop = gps[piexif.GPSIFD.GPSDOP];
+  if(dop) sv('gpsDop', (dop[0]/dop[1]).toFixed(2)); else sv('gpsDop','');
+  sv('gpsMeasure', gps[piexif.GPSIFD.GPSMeasureMode] || '');
+  sv('gpsProcMethod', '');
+}
+function clearGpsFields(){
+  ['gpsLat','gpsLng','gpsAlt','gpsDir','gpsSpeed','gpsDate','gpsTime','gpsDop','gpsProcMethod'].forEach(id => sv(id,''));
+  sv('gpsAltRef','0'); sv('gpsDirRef','T'); sv('gpsMeasure','');
+  document.getElementById('cc-coords').textContent = 'No GPS data';
+  document.getElementById('cc-alt').textContent = 'Alt: -';
+  document.getElementById('cc-dop').textContent = 'DOP: -';
+  document.getElementById('cc-addr').classList.remove('visible');
+}
+function populateMeta(exif){
+  const z = exif['0th'] || {}, e = exif.Exif || {};
+  sv('m_Desc', z[piexif.ImageIFD.ImageDescription] || '');
+  sv('m_Artist', z[piexif.ImageIFD.Artist] || '');
+  sv('m_Copyright', z[piexif.ImageIFD.Copyright] || '');
+  sv('m_Software', z[piexif.ImageIFD.Software] || '');
+  sv('m_Ori', z[piexif.ImageIFD.Orientation] || 1);
+  const xr = z[piexif.ImageIFD.XResolution]; if(xr) sv('m_XRes', Math.round(xr[0]/xr[1]));
+  const yr = z[piexif.ImageIFD.YResolution]; if(yr) sv('m_YRes', Math.round(yr[0]/yr[1]));
+  const dto = e[piexif.ExifIFD.DateTimeOriginal]; if(dto) sv('m_DTO', exifDateToInput(dto));
+  const dtd = e[piexif.ExifIFD.DateTimeDigitized]; if(dtd) sv('m_DTD', exifDateToInput(dtd));
+  const dt = z[piexif.ImageIFD.DateTime]; if(dt) sv('m_DT', exifDateToInput(dt));
+}
+function populateCamera(exif){
+  const z = exif['0th'] || {}, e = exif.Exif || {};
+  sv('m_Make', z[piexif.ImageIFD.Make] || '');
+  sv('m_Model', z[piexif.ImageIFD.Model] || '');
+  sv('m_LensMake', e[piexif.ExifIFD.LensMake] || '');
+  sv('m_LensModel', e[piexif.ExifIFD.LensModel] || '');
+  sv('m_Serial', e[piexif.ExifIFD.BodySerialNumber] || '');
+  sv('m_Flash', e[piexif.ExifIFD.Flash] ?? 0);
+  sv('m_WB', e[piexif.ExifIFD.WhiteBalance] ?? 0);
+  sv('m_CS', e[piexif.ExifIFD.ColorSpace] ?? 1);
+  sv('m_Scene', e[piexif.ExifIFD.SceneCaptureType] ?? 0);
+  sv('m_ExpMode', e[piexif.ExifIFD.ExposureMode] ?? 0);
+  sv('m_MeterMode', e[piexif.ExifIFD.MeteringMode] ?? 0);
+  const iso = e[piexif.ExifIFD.ISOSpeedRatings]; if(iso) sv('m_ISO', Array.isArray(iso) ? iso[0] : iso);
+  const et = e[piexif.ExifIFD.ExposureTime]; if(et) sv('m_ET', (et[0]/et[1]).toFixed(6));
+  const fn = e[piexif.ExifIFD.FNumber]; if(fn) sv('m_FNum', (fn[0]/fn[1]).toFixed(1));
+  const fl = e[piexif.ExifIFD.FocalLength]; if(fl) sv('m_FL', (fl[0]/fl[1]).toFixed(1));
+  sv('m_FL35', e[piexif.ExifIFD.FocalLengthIn35mmFilm] || '');
+  const eb = e[piexif.ExifIFD.ExposureBiasValue]; if(eb) sv('m_EBias', (eb[0]/eb[1]).toFixed(2));
+}
+
+// =========================================================
+//  MAP INTERACTIONS
+// =========================================================
+function placePin(idx, lat, lng, updateFields){
+  if(!MAP) return;
+  const existing = MARKERS.get(idx);
+  if(existing) MAP.removeLayer(existing);
+  const isSel = idx === SEL;
+  const sz = isSel ? 26 : 17;
+  const color = isSel ? '#2563eb' : '#64748b';
+  const marker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      className: 'gt-pin',
+      html:`<div style="width:${sz}px;height:${sz}px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45)"><div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:#fff;border-radius:50%;transform:translate(-50%,-50%) rotate(45deg)"></div></div>`,
+      iconSize:[sz,sz], iconAnchor:[sz/2, sz]
+    })
+  }).addTo(MAP);
+  const f = FILES[idx];
+  if(f) marker.bindPopup(`<b style="font-size:12px">${escapeHtml(f.name)}</b><br><code style="font-size:10px">${lat.toFixed(5)}, ${lng.toFixed(5)}</code>`,{maxWidth:240});
+  marker.on('click', () => selectFile(idx));
+  MARKERS.set(idx, marker);
+
+  if(updateFields){
+    sv('gpsLat', lat.toFixed(6)); sv('gpsLng', lng.toFixed(6));
+    updateCoordDisplay(lat, lng);
+    if(f){ f.lat = lat; f.lng = lng; f.modified = true; updateFileItem(idx); }
+    markDirty();
+    computeSeoScore();
+  } else if(f){ f.lat = lat; f.lng = lng; }
+  document.getElementById('ms-coords').textContent = `${Math.abs(lat).toFixed(5)} ${lat>=0?'N':'S'}, ${Math.abs(lng).toFixed(5)} ${lng>=0?'E':'W'}`;
+}
+function updateCoordDisplay(lat, lng){
+  const f = SEL >= 0 ? FILES[SEL] : null;
+  document.getElementById('cc-coords').textContent = `${Math.abs(lat).toFixed(6)} ${lat>=0?'N':'S'}, ${Math.abs(lng).toFixed(6)} ${lng>=0?'E':'W'}`;
+  const alt = gv('gpsAlt');
+  document.getElementById('cc-alt').textContent = alt ? `Alt: ${parseFloat(alt).toFixed(1)} m` : 'Alt: -';
+  const dop = gv('gpsDop');
+  document.getElementById('cc-dop').textContent = dop ? `DOP: ${dop}` : 'DOP: -';
+  document.getElementById('cc-dim').textContent = f && f.width ? `${f.width}x${f.height}` : '';
+}
+function onCoordsChange(){
+  const lat = parseFloat(gv('gpsLat')), lng = parseFloat(gv('gpsLng'));
+  if(!isNaN(lat) && !isNaN(lng)){
+    updateCoordDisplay(lat, lng);
+    if(MAP && SEL >= 0){
+      placePin(SEL, lat, lng, false);
+      const f = FILES[SEL]; if(f){ f.lat = lat; f.lng = lng; }
+      MAP.setView([lat,lng], Math.max(MAP.getZoom(), 9));
+    }
+    clearTimeout(GEOCODE_TIMER);
+    GEOCODE_TIMER = setTimeout(() => reverseGeocode(lat,lng), 700);
+    markDirty();
+    computeSeoScore();
+  }
+}
+async function reverseGeocode(lat, lng){
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+    const data = await res.json();
+    if(data && data.display_name){
+      const short = data.display_name.split(',').slice(0,3).join(', ');
+      document.getElementById('cc-addr-text').textContent = short;
+      document.getElementById('cc-addr').classList.add('visible');
+      document.getElementById('ms-addr').textContent = data.display_name;
+      LAST_ADDRESS = data;
+      if(SEL >= 0 && FILES[SEL]) FILES[SEL].address = data;
+      buildSuggestions();
+    }
+  } catch(_){}
+}
+async function doSearch(){
+  const q = document.getElementById('search-input').value.trim();
+  if(!q) return;
+  const cm = q.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+  if(cm){
+    const lat = parseFloat(cm[1]), lng = parseFloat(cm[2]);
+    if(!isNaN(lat) && !isNaN(lng) && lat>=-90&&lat<=90&&lng>=-180&&lng<=180){
+      applyCoords(lat,lng); reverseGeocode(lat,lng); return;
+    }
+  }
+  try{
+    toast('Searching...', 'info');
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+    const data = await res.json();
+    if(data.length){
+      const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+      applyCoords(lat,lng); reverseGeocode(lat,lng);
+      toast(`Found: ${data[0].display_name.split(',')[0]}`);
+    } else toast('Location not found','err');
+  } catch(_){ toast('Search failed','err'); }
+}
+function applyCoords(lat,lng){
+  sv('gpsLat',lat.toFixed(6)); sv('gpsLng',lng.toFixed(6));
+  updateCoordDisplay(lat,lng);
+  if(SEL >= 0 && MAP) placePin(SEL,lat,lng,true);
+  if(MAP) MAP.setView([lat,lng], 13);
+  computeSeoScore();
+}
+function useMyLoc(){
+  if(!navigator.geolocation){ toast('Geolocation not supported','err'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude:lat, longitude:lng, altitude:alt} = pos.coords;
+    applyCoords(lat,lng);
+    if(alt) sv('gpsAlt', alt.toFixed(1));
+    reverseGeocode(lat,lng);
+    toast('Using your current location');
+  }, () => toast('Location access denied','err'));
+}
+function setPreset(lat,lng,name){
+  applyCoords(lat,lng); reverseGeocode(lat,lng);
+  toast(`Set to ${name}`);
+}
+function setGpsNow(){
+  const now = new Date();
+  sv('gpsDate', now.toISOString().split('T')[0]);
+  sv('gpsTime', now.toISOString().substr(11,8));
+  markDirty(); toast('Timestamp set to now');
+}
+
+// =========================================================
+//  SEO MODULE
+// =========================================================
+function loadSeoIntoUI(f){
+  sv('s_title', f.seo.title);
+  sv('s_alt', f.seo.alt);
+  sv('s_caption', f.seo.caption);
+  sv('s_subject', f.seo.subject);
+  sv('s_comment', f.seo.comment);
+  sv('s_author', f.seo.author);
+  sv('s_copyright', f.seo.copyright);
+  sv('s_credit', f.seo.credit);
+  sv('s_slug', f.seo.slug);
+  renderKeywords(f.kw);
+  updateSlugPreview();
+  updateCounters();
+}
+function updateCounters(){
+  const t = gv('s_title'), a = gv('s_alt');
+  const tc = document.getElementById('s_title_count'); if(tc) tc.textContent = t.length;
+  const ac = document.getElementById('s_alt_count'); if(ac) ac.textContent = a.length;
+  const kc = document.getElementById('kw-count'); if(kc) kc.textContent = (FILES[SEL]?.kw || []).length;
+}
+function onSeoChange(){
+  if(SEL < 0 || !FILES[SEL]) return;
+  const f = FILES[SEL];
+  f.seo.title = gv('s_title');
+  f.seo.alt = gv('s_alt');
+  f.seo.caption = gv('s_caption');
+  f.seo.subject = gv('s_subject');
+  f.seo.comment = gv('s_comment');
+  f.seo.author = gv('s_author');
+  f.seo.copyright = gv('s_copyright');
+  f.seo.credit = gv('s_credit');
+  if(!SLUG_MANUAL && f.seo.title){
+    f.seo.slug = slugify(f.seo.title);
+    sv('s_slug', f.seo.slug);
+  }
+  // Mirror to meta tab
+  sv('m_Desc', f.seo.alt);
+  sv('m_Artist', f.seo.author);
+  sv('m_Copyright', f.seo.copyright);
+  updateCounters();
+  updateSlugPreview();
+  computeSeoScore();
+  markDirty();
+  buildSuggestions();
+}
+function syncSeoFromMeta(){
+  if(SEL < 0 || !FILES[SEL]) return;
+  const f = FILES[SEL];
+  f.seo.alt = gv('m_Desc');
+  f.seo.author = gv('m_Artist');
+  f.seo.copyright = gv('m_Copyright');
+  sv('s_alt', f.seo.alt);
+  sv('s_author', f.seo.author);
+  sv('s_copyright', f.seo.copyright);
+  updateCounters(); computeSeoScore();
+}
+function onSlugManual(){
+  SLUG_MANUAL = true;
+  if(SEL < 0 || !FILES[SEL]) return;
+  FILES[SEL].seo.slug = slugify(gv('s_slug'));
+  sv('s_slug', FILES[SEL].seo.slug);
+  updateSlugPreview(); markDirty();
+}
+function autoGenSlug(){
+  SLUG_MANUAL = false;
+  if(SEL < 0) return;
+  const t = gv('s_title') || FILES[SEL].name.replace(/\.[^.]+$/,'');
+  FILES[SEL].seo.slug = slugify(t);
+  sv('s_slug', FILES[SEL].seo.slug);
+  updateSlugPreview(); markDirty();
+  toast('Slug regenerated from title');
+}
+function autoGenSlugLoc(){
+  SLUG_MANUAL = false;
+  if(SEL < 0) return;
+  const t = gv('s_title') || FILES[SEL].name.replace(/\.[^.]+$/,'');
+  let loc = '';
+  if(LAST_ADDRESS && LAST_ADDRESS.address){
+    const a = LAST_ADDRESS.address;
+    loc = a.city || a.town || a.village || a.county || a.state || '';
+  }
+  const slug = slugify(loc ? `${t} ${loc}` : t);
+  FILES[SEL].seo.slug = slug;
+  sv('s_slug', slug);
+  updateSlugPreview(); markDirty();
+  toast('Slug includes location');
+}
+function updateSlugPreview(){
+  if(SEL < 0 || !FILES[SEL]){ document.getElementById('slug-out').textContent = '-'; return; }
+  const slug = FILES[SEL].seo.slug || slugify(FILES[SEL].name.replace(/\.[^.]+$/,''));
+  document.getElementById('slug-out').textContent = `${slug || 'untitled'}.${FILES[SEL].ext}`;
+}
+function slugify(s){
+  return (s || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^\w\s-]/g,'')
+    .trim().replace(/\s+/g,'-')
+    .replace(/-+/g,'-')
+    .substring(0, 80);
+}
+
+// ----- Keywords -----
+function renderKeywords(arr){
+  const wrap = document.getElementById('kw-wrap');
+  // remove existing chips
+  wrap.querySelectorAll('.kw-chip').forEach(c => c.remove());
+  const inp = document.getElementById('kw-input');
+  arr.forEach((kw, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'kw-chip';
+    chip.innerHTML = `${escapeHtml(kw)}<button class="kw-chip-del" onclick="removeKw(${i})" title="Remove">&times;</button>`;
+    wrap.insertBefore(chip, inp);
+  });
+  updateCounters();
+}
+function onKwKey(e){
+  const inp = e.target;
+  if(e.key === 'Enter' || e.key === ',' || e.key === 'Tab'){
+    e.preventDefault();
+    const v = inp.value.trim().replace(/,$/,'');
+    if(v) addKw(v);
+    inp.value = '';
+  } else if(e.key === 'Backspace' && !inp.value){
+    if(SEL < 0 || !FILES[SEL]) return;
+    FILES[SEL].kw.pop();
+    renderKeywords(FILES[SEL].kw);
+    markDirty(); computeSeoScore(); buildSuggestions();
+  }
+}
+function addKw(kw){
+  if(SEL < 0 || !FILES[SEL]) return;
+  kw = kw.trim();
+  if(!kw) return;
+  const f = FILES[SEL];
+  // split if user pastes a comma-separated list
+  const parts = kw.split(',').map(s => s.trim()).filter(Boolean);
+  let added = 0;
+  parts.forEach(p => {
+    if(!f.kw.some(k => k.toLowerCase() === p.toLowerCase())){
+      f.kw.push(p);
+      added++;
+    }
+  });
+  if(added){
+    renderKeywords(f.kw);
+    markDirty(); computeSeoScore(); buildSuggestions();
+  }
+}
+function removeKw(i){
+  if(SEL < 0 || !FILES[SEL]) return;
+  FILES[SEL].kw.splice(i,1);
+  renderKeywords(FILES[SEL].kw);
+  markDirty(); computeSeoScore(); buildSuggestions();
+}
+function regenerateSuggestions(){
+  buildSuggestions(true);
+  toast('Suggestions refreshed');
+}
+function buildSuggestions(force){
+  const row = document.getElementById('kw-sugg-row');
+  if(!row) return;
+  if(SEL < 0 || !FILES[SEL]){
+    row.innerHTML = '<div class="kw-suggest-empty">Select a file to see suggestions.</div>';
+    return;
+  }
+  const f = FILES[SEL];
+  const sugg = new Set();
+  // Location-based
+  if(f.address && f.address.address){
+    const a = f.address.address;
+    ['city','town','village','suburb','county','state','country','tourism','attraction','historic','natural','road'].forEach(k => {
+      if(a[k]) sugg.add(a[k]);
+    });
+  }
+  // Title-based
+  const t = (f.seo.title || '').trim();
+  if(t){
+    t.split(/[\s,;]+/).filter(w => w.length > 3).forEach(w => sugg.add(w));
+  }
+  // Camera-based
+  const make = gv('m_Make'), model = gv('m_Model');
+  if(make) sugg.add(make);
+  if(model) sugg.add(model);
+  // Time-based
+  if(f.exifObj){
+    const dto = f.exifObj.Exif?.[piexif.ExifIFD.DateTimeOriginal];
+    if(dto){
+      const d = parseExifDate(dto);
+      if(d){
+        const m = d.getMonth();
+        const season = m < 2 || m === 11 ? 'winter' : m < 5 ? 'spring' : m < 8 ? 'summer' : 'autumn';
+        sugg.add(season);
+        sugg.add(`${d.getFullYear()}`);
+        const h = d.getHours();
+        if(h < 6 || h >= 20) sugg.add('night');
+        else if(h < 10) sugg.add('morning');
+        else if(h >= 17) sugg.add('sunset');
+        else sugg.add('daytime');
+      }
+    }
+  }
+  // Generic photo niches based on aspect ratio
+  if(f.width && f.height){
+    const r = f.width / f.height;
+    if(r > 1.6) sugg.add('landscape');
+    else if(r < 0.7) sugg.add('portrait');
+    else sugg.add('square');
+  }
+  // Always-useful generic SEO keywords
+  ['photography','travel','high-resolution','stock-photo'].forEach(k => sugg.add(k));
+
+  // Filter dupes vs current kw
+  const currentLower = new Set(f.kw.map(k => k.toLowerCase()));
+  const list = [...sugg]
+    .filter(s => s && s.length > 1)
+    .map(s => s.toString().toLowerCase().trim())
+    .filter(s => !currentLower.has(s))
+    .slice(0, 24);
+
+  if(!list.length){
+    row.innerHTML = '<div class="kw-suggest-empty">No new suggestions. Add GPS or fill in title for more.</div>';
+    return;
+  }
+  row.innerHTML = list.map(k =>
+    `<span class="kw-sugg" onclick="acceptSuggestion(this,'${escapeAttr(k)}')">${escapeHtml(k)}</span>`
+  ).join('');
+}
+function acceptSuggestion(el, kw){
+  if(el.classList.contains('added')) return;
+  addKw(kw);
+  el.classList.add('added');
+}
+
+// ----- SEO Score -----
+function computeSeoScore(){
+  if(SEL < 0 || !FILES[SEL]){
+    setScore(0, 'Not analyzed', 'Select a file to analyze.', []);
+    return;
+  }
+  const f = FILES[SEL];
+  const checks = [];
+  function add(label, status){ checks.push({label, status}); }
+
+  // 1. GPS
+  add(f.lat !== null ? 'GPS coordinates set' : 'GPS coordinates missing', f.lat !== null ? 'ok' : 'no');
+  // 2. Title
+  const t = f.seo.title.trim();
+  add(t ? `Title set (${t.length} chars)` : 'Title missing',
+    t ? (t.length >= 10 && t.length <= 70 ? 'ok' : 'warn') : 'no');
+  // 3. Alt text
+  const a = f.seo.alt.trim();
+  add(a ? `Alt text set (${a.length} chars)` : 'Alt text missing',
+    a ? (a.length >= 25 && a.length <= 150 ? 'ok' : 'warn') : 'no');
+  // 4. Keywords
+  const kc = f.kw.length;
+  add(kc ? `${kc} keyword${kc>1?'s':''}` : 'No keywords',
+    kc >= 3 && kc <= 15 ? 'ok' : (kc > 0 ? 'warn' : 'no'));
+  // 5. Author
+  add(f.seo.author ? 'Author set' : 'Author missing', f.seo.author ? 'ok' : 'no');
+  // 6. Copyright
+  add(f.seo.copyright ? 'Copyright set' : 'Copyright missing', f.seo.copyright ? 'ok' : 'no');
+  // 7. SEO filename
+  const slugBad = !f.seo.slug || /[^\w-]/.test(f.seo.slug) || /^IMG_|^DSC_|^DSCN/.test(f.name);
+  add(slugBad ? 'Filename not SEO-friendly' : 'SEO-friendly slug', slugBad ? 'warn' : 'ok');
+  // 8. File size
+  const sizeKb = f.file.size / 1024;
+  add(sizeKb < 500 ? `File size OK (${sizeKb.toFixed(0)} KB)` :
+      sizeKb < 1500 ? `File size large (${sizeKb.toFixed(0)} KB)` :
+      `File too heavy (${sizeKb.toFixed(0)} KB) - compress for web`,
+    sizeKb < 500 ? 'ok' : sizeKb < 1500 ? 'warn' : 'no');
+  // 9. Caption
+  add(f.seo.caption ? 'Caption set' : 'Caption missing', f.seo.caption ? 'ok' : 'no');
+  // 10. Reasonable dimensions
+  if(f.width){
+    const okDim = f.width >= 800 && f.width <= 4000;
+    add(okDim ? `Dimensions OK (${f.width}x${f.height})` : `Dimensions ${f.width}x${f.height}`, okDim ? 'ok' : 'warn');
+  }
+
+  const okCount = checks.filter(c => c.status === 'ok').length;
+  const warnCount = checks.filter(c => c.status === 'warn').length;
+  const score = Math.round((okCount + warnCount * 0.5) / checks.length * 100);
+  let grade, summary;
+  if(score >= 85){ grade = 'Excellent'; summary = 'Image is well optimized for search.'; }
+  else if(score >= 65){ grade = 'Good'; summary = 'A few tweaks will boost discoverability.'; }
+  else if(score >= 40){ grade = 'Needs work'; summary = 'Add missing fields to climb the ranking.'; }
+  else { grade = 'Poor'; summary = 'Add GPS, title, alt text and keywords first.'; }
+  setScore(score, grade, summary, checks);
+}
+function setScore(pct, grade, summary, checks){
+  const ring = document.getElementById('seo-ring-fg');
+  const C = 2 * Math.PI * 26;
+  if(ring){
+    ring.setAttribute('stroke-dasharray', C);
+    ring.setAttribute('stroke-dashoffset', C * (1 - pct/100));
+    let color = '#16a34a';
+    if(pct < 40) color = '#dc2626';
+    else if(pct < 65) color = '#d97706';
+    else if(pct < 85) color = '#0d9488';
+    ring.style.stroke = color;
+  }
+  document.getElementById('seo-pct').textContent = pct;
+  document.getElementById('seo-grade').textContent = grade;
+  document.getElementById('seo-summary').textContent = summary;
+  const cwrap = document.getElementById('seo-checks');
+  cwrap.innerHTML = checks.map(c => `
+    <div class="seo-check ${c.status}">
+      <span class="chk">${c.status === 'ok' ? '&#10003;' : c.status === 'warn' ? '!' : '&times;'}</span>
+      <span class="seo-check-label">${escapeHtml(c.label)}</span>
+    </div>`).join('');
+}
+
+// =========================================================
+//  APPLY / BUILD EXIF
+// =========================================================
+function applyGpsToSelected(){
+  if(SEL < 0){ toast('No file selected','err'); return; }
+  buildExifIntoFile(SEL, {gps:true});
+  toast(`GPS applied to ${FILES[SEL].name}`);
+  computeSeoScore();
+  if(FILES[SEL].exifObj) renderRaw(FILES[SEL].exifObj, FILES[SEL].name);
+}
+function applyGpsToAll(){
+  const lat = parseFloat(gv('gpsLat')), lng = parseFloat(gv('gpsLng'));
+  if(isNaN(lat) || isNaN(lng)){ toast('Set coordinates first','err'); return; }
+  let count = 0;
+  FILES.forEach((f, idx) => {
+    if(!f) return;
+    f.lat = lat; f.lng = lng; f.modified = true;
+    buildExifIntoFile(idx, {gps:true});
+    placePin(idx, lat, lng, false);
+    updateFileItem(idx);
+    count++;
+  });
+  toast(`GPS applied to ${count} file${count>1?'s':''}`);
+  updateStats();
+}
+function applySeoToSelected(){
+  if(SEL < 0){ toast('No file selected','err'); return; }
+  buildExifIntoFile(SEL, {seo:true});
+  toast(`SEO applied to ${FILES[SEL].name}`);
+  if(FILES[SEL].exifObj) renderRaw(FILES[SEL].exifObj, FILES[SEL].name);
+}
+function applySeoToAll(){
+  if(SEL < 0){ toast('Select a source file first','err'); return; }
+  const src = FILES[SEL];
+  if(!src){ return; }
+  if(!confirm(`Copy SEO (title, alt, keywords, author, copyright, caption) from "${src.name}" to all ${FILES.filter(Boolean).length} files?`)) return;
+  let count = 0;
+  FILES.forEach((f, idx) => {
+    if(!f || idx === SEL) { if(f === src) count++; return; }
+    f.seo = {...src.seo, slug: slugify(src.seo.title || f.name.replace(/\.[^.]+$/,''))};
+    f.kw = [...src.kw];
+    f.modified = true;
+    buildExifIntoFile(idx, {seo:true});
+    updateFileItem(idx);
+    count++;
+  });
+  toast(`SEO applied to ${count} file${count>1?'s':''}`);
+}
+function applyCameraToSelected(){
+  if(SEL < 0){ toast('No file selected','err'); return; }
+  buildExifIntoFile(SEL, {camera:true});
+  toast('Camera metadata applied');
+  if(FILES[SEL].exifObj) renderRaw(FILES[SEL].exifObj, FILES[SEL].name);
+}
+
+function buildExifIntoFile(idx, opts){
+  const f = FILES[idx]; if(!f || !f.exifObj) return;
+  opts = opts || {gps:true, meta:true, camera:true, seo:true};
+  // If no opts specified, do all
+  if(!opts.gps && !opts.meta && !opts.camera && !opts.seo){
+    opts = {gps:true, meta:true, camera:true, seo:true};
+  }
+  const gps = f.exifObj.GPS = f.exifObj.GPS || {};
+  const z = f.exifObj['0th'] = f.exifObj['0th'] || {};
+  const e = f.exifObj.Exif = f.exifObj.Exif || {};
+
+  if(opts.gps){
+    const lat = parseFloat(gv('gpsLat')), lng = parseFloat(gv('gpsLng'));
+    if(!isNaN(lat) && !isNaN(lng)){
+      gps[piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? 'N' : 'S';
+      gps[piexif.GPSIFD.GPSLatitude] = decimalToGps(Math.abs(lat));
+      gps[piexif.GPSIFD.GPSLongitudeRef] = lng >= 0 ? 'E' : 'W';
+      gps[piexif.GPSIFD.GPSLongitude] = decimalToGps(Math.abs(lng));
+      f.lat = lat; f.lng = lng;
+    }
+    const alt = gv('gpsAlt');
+    if(alt){ gps[piexif.GPSIFD.GPSAltitude] = [Math.round(parseFloat(alt)*100), 100]; gps[piexif.GPSIFD.GPSAltitudeRef] = parseInt(gv('gpsAltRef')||'0'); }
+    const dir = gv('gpsDir');
+    if(dir){ gps[piexif.GPSIFD.GPSImgDirection] = [Math.round(parseFloat(dir)*100), 100]; gps[piexif.GPSIFD.GPSImgDirectionRef] = gv('gpsDirRef')||'T'; }
+    const spd = gv('gpsSpeed'); if(spd) gps[piexif.GPSIFD.GPSSpeed] = [Math.round(parseFloat(spd)*10), 10];
+    const gd = gv('gpsDate'); if(gd) gps[piexif.GPSIFD.GPSDateStamp] = gd.replace(/-/g,':');
+    const gt = gv('gpsTime');
+    if(gt){
+      const p = gt.split(':');
+      gps[piexif.GPSIFD.GPSTimeStamp] = [[parseInt(p[0]),1],[parseInt(p[1]||0),1],[parseInt(p[2]||0),1]];
+    }
+    const mm = gv('gpsMeasure'); if(mm) gps[piexif.GPSIFD.GPSMeasureMode] = mm;
+    const dop = gv('gpsDop'); if(dop) gps[piexif.GPSIFD.GPSDOP] = [Math.round(parseFloat(dop)*100), 100];
+    const pm = gv('gpsProcMethod'); if(pm) gps[piexif.GPSIFD.GPSProcessingMethod] = pm;
+  }
+
+  if(opts.seo || opts.meta){
+    // SEO writes to ImageDescription, Artist, Copyright + XP tags
+    if(opts.seo){
+      if(f.seo.alt) z[piexif.ImageIFD.ImageDescription] = f.seo.alt;
+      if(f.seo.author) z[piexif.ImageIFD.Artist] = f.seo.author;
+      if(f.seo.copyright) z[piexif.ImageIFD.Copyright] = f.seo.copyright;
+      if(f.seo.title) z[XP_TITLE] = xpEncode(f.seo.title);
+      if(f.seo.subject) z[XP_SUBJECT] = xpEncode(f.seo.subject);
+      if(f.seo.author) z[XP_AUTHOR] = xpEncode(f.seo.author);
+      if(f.seo.comment) z[XP_COMMENT] = xpEncode(f.seo.comment);
+      if(f.kw.length) z[XP_KEYWORDS] = xpEncode(f.kw.join(';'));
+      // Caption + credit go into UserComment as a structured blob
+      const userComment = [];
+      if(f.seo.caption) userComment.push(`Caption: ${f.seo.caption}`);
+      if(f.seo.credit) userComment.push(`Credit: ${f.seo.credit}`);
+      if(userComment.length){
+        const txt = userComment.join(' | ');
+        e[piexif.ExifIFD.UserComment] = 'ASCII\0\0\0' + txt;
+      }
+      // Always stamp software tag
+      z[piexif.ImageIFD.Software] = z[piexif.ImageIFD.Software] || 'GeoTag Pro by Mukesh Kr';
+    }
+    if(opts.meta){
+      const nd = gv('m_Desc'); if(nd) z[piexif.ImageIFD.ImageDescription] = nd;
+      const na = gv('m_Artist'); if(na) z[piexif.ImageIFD.Artist] = na;
+      const nc = gv('m_Copyright'); if(nc) z[piexif.ImageIFD.Copyright] = nc;
+      const ns = gv('m_Software'); if(ns) z[piexif.ImageIFD.Software] = ns;
+      const ori = gv('m_Ori'); if(ori) z[piexif.ImageIFD.Orientation] = parseInt(ori);
+      const xr = gv('m_XRes'); if(xr) z[piexif.ImageIFD.XResolution] = [parseInt(xr),1];
+      const yr = gv('m_YRes'); if(yr) z[piexif.ImageIFD.YResolution] = [parseInt(yr),1];
+      const dto = gv('m_DTO'); if(dto) e[piexif.ExifIFD.DateTimeOriginal] = inputToExifDate(dto);
+      const dtd = gv('m_DTD'); if(dtd) e[piexif.ExifIFD.DateTimeDigitized] = inputToExifDate(dtd);
+      const dt = gv('m_DT'); if(dt) z[piexif.ImageIFD.DateTime] = inputToExifDate(dt);
+    }
+  }
+
+  if(opts.camera){
+    const nmk = gv('m_Make'); if(nmk) z[piexif.ImageIFD.Make] = nmk;
+    const nmd = gv('m_Model'); if(nmd) z[piexif.ImageIFD.Model] = nmd;
+    const lm = gv('m_LensMake'); if(lm) e[piexif.ExifIFD.LensMake] = lm;
+    const lo = gv('m_LensModel'); if(lo) e[piexif.ExifIFD.LensModel] = lo;
+    const bs = gv('m_Serial'); if(bs) e[piexif.ExifIFD.BodySerialNumber] = bs;
+    const fl_v = gv('m_Flash'); if(fl_v !== '') e[piexif.ExifIFD.Flash] = parseInt(fl_v);
+    const wb = gv('m_WB'); if(wb !== '') e[piexif.ExifIFD.WhiteBalance] = parseInt(wb);
+    const cs = gv('m_CS'); if(cs !== '') e[piexif.ExifIFD.ColorSpace] = parseInt(cs);
+    const sc = gv('m_Scene'); if(sc !== '') e[piexif.ExifIFD.SceneCaptureType] = parseInt(sc);
+    const em = gv('m_ExpMode'); if(em !== '') e[piexif.ExifIFD.ExposureMode] = parseInt(em);
+    const mm = gv('m_MeterMode'); if(mm !== '') e[piexif.ExifIFD.MeteringMode] = parseInt(mm);
+    const iso = gv('m_ISO'); if(iso) e[piexif.ExifIFD.ISOSpeedRatings] = parseInt(iso);
+    const et = gv('m_ET');
+    if(et){ const v = parseFloat(et); e[piexif.ExifIFD.ExposureTime] = [Math.round(v*1000000), 1000000]; }
+    const fn2 = gv('m_FNum'); if(fn2) e[piexif.ExifIFD.FNumber] = [Math.round(parseFloat(fn2)*10), 10];
+    const fl = gv('m_FL'); if(fl) e[piexif.ExifIFD.FocalLength] = [Math.round(parseFloat(fl)*10), 10];
+    const fl35 = gv('m_FL35'); if(fl35) e[piexif.ExifIFD.FocalLengthIn35mmFilm] = parseInt(fl35);
+    const eb = gv('m_EBias'); if(eb) e[piexif.ExifIFD.ExposureBiasValue] = [Math.round(parseFloat(eb)*100), 100];
+  }
+
+  f.modified = true;
+  f.status = 'modified';
+  updateFileItem(idx);
+}
+
+// =========================================================
+//  DOWNLOAD
+// =========================================================
+function downloadSelected(){
+  if(SEL < 0){ toast('No file selected','err'); return; }
+  downloadOne(SEL);
+}
+function downloadOne(idx){
+  const f = FILES[idx]; if(!f) return;
+  buildExifIntoFile(idx);
+  const slug = (f.seo.slug || slugify(f.name.replace(/\.[^.]+$/,'')) || 'media').slice(0,80);
+
+  if(f.kind === 'jpg'){
+    try {
+      const exifStr = piexif.dump(f.exifObj);
+      const modified = piexif.insert(exifStr, f.dataUrl);
+      const fname = `${slug}.${f.ext}`;
+      triggerDownload(modified, fname);
+      f.status = 'done'; f.modified = false; updateFileItem(idx);
+      toast(`Downloaded: ${fname}`);
+    } catch(err){
+      toast('Export failed: ' + err.message, 'err');
+    }
+    return;
+  }
+
+  // Non-JPG: copy original + sidecar(s)
+  const triggered = [];
+  // 1. original (renamed to slug)
+  const origUrl = URL.createObjectURL(f.file);
+  triggerDownload(origUrl, `${slug}.${f.ext}`);
+  setTimeout(() => URL.revokeObjectURL(origUrl), 4000);
+  triggered.push(`${slug}.${f.ext}`);
+  // 2. GPX sidecar (if GPS)
+  if(f.lat !== null){
+    const gpxBlob = new Blob([buildGpxString(f)], {type:'application/gpx+xml'});
+    const url = URL.createObjectURL(gpxBlob);
+    setTimeout(() => triggerDownload(url, `${slug}.gpx`), 250);
+    setTimeout(() => URL.revokeObjectURL(url), 4500);
+    triggered.push(`${slug}.gpx`);
+  }
+  // 3. JSON sidecar with full SEO + meta
+  const jsonBlob = new Blob([buildJsonSidecar(f)], {type:'application/json'});
+  const jurl = URL.createObjectURL(jsonBlob);
+  setTimeout(() => triggerDownload(jurl, `${slug}.json`), 500);
+  setTimeout(() => URL.revokeObjectURL(jurl), 4500);
+  triggered.push(`${slug}.json`);
+
+  f.status = 'done'; f.modified = false; updateFileItem(idx);
+  toast(`Exported ${triggered.length} files for ${f.name}`);
+}
+
+function triggerDownload(href, name){
+  const a = document.createElement('a');
+  a.href = href; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function downloadAll(){
+  const valid = FILES.filter(Boolean);
+  if(!valid.length){ toast('Queue is empty','err'); return; }
+  if(typeof JSZip === 'undefined'){
+    toast('ZIP lib not loaded - downloading sequentially', 'info');
+    for(let i = 0; i < FILES.length; i++){
+      if(!FILES[i]) continue;
+      await new Promise(r => setTimeout(r, 400));
+      downloadOne(i);
+    }
+    return;
+  }
+  showProgress('Building ZIP...', 0);
+  const zip = new JSZip();
+  const total = valid.length;
+  let done = 0;
+  for(let i = 0; i < FILES.length; i++){
+    const f = FILES[i]; if(!f) continue;
+    updateProgress(Math.round(done/total*90), `Processing ${f.name}...`);
+    const slug = (f.seo.slug || slugify(f.name.replace(/\.[^.]+$/,'')) || `media-${i+1}`).slice(0,80);
+    try {
+      buildExifIntoFile(i);
+      if(f.kind === 'jpg'){
+        const exifStr = piexif.dump(f.exifObj);
+        const modified = piexif.insert(exifStr, f.dataUrl);
+        const b64 = modified.split(',')[1];
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for(let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
+        zip.file(`${slug}.${f.ext}`, arr);
+      } else {
+        // Non-JPG: copy original + sidecars
+        const buf = await f.file.arrayBuffer();
+        zip.file(`${slug}.${f.ext}`, buf);
+        if(f.lat !== null) zip.file(`${slug}.gpx`, buildGpxString(f));
+        zip.file(`${slug}.json`, buildJsonSidecar(f));
+      }
+    } catch(err){
+      console.warn('Skipped', f.name, err);
+    }
+    done++;
+  }
+  updateProgress(95, 'Compressing...');
+  try {
+    const blob = await zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}});
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,10);
+    triggerDownload(url, `geotag-pro-export-${stamp}.zip`);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    FILES.forEach((f, i) => { if(f){ f.status = 'done'; f.modified = false; updateFileItem(i); } });
+    hideProgress();
+    toast('ZIP downloaded');
+  } catch(err){
+    hideProgress();
+    toast('ZIP failed: ' + err.message, 'err');
+  }
+}
+
+// =========================================================
+//  SIDECAR HELPERS (GPX + JSON + ffmpeg)
+// =========================================================
+function buildGpxString(f){
+  const now = new Date().toISOString();
+  const alt = gv('gpsAlt') || '0';
+  const name = (f.seo.title || f.name).replace(/[<>&]/g,'');
+  const desc = (f.seo.alt || f.seo.caption || 'GPS exported from GeoTag Pro').replace(/[<>&]/g,'');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GeoTag Pro by Mukesh Kr" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata><time>${now}</time><name>${name}</name></metadata>
+  <wpt lat="${f.lat.toFixed(7)}" lon="${f.lng.toFixed(7)}">
+    <ele>${alt}</ele>
+    <time>${now}</time>
+    <name>${name}</name>
+    <desc>${desc}</desc>
+  </wpt>
+</gpx>`;
+}
+function buildJsonSidecar(f){
+  return JSON.stringify({
+    file: f.name,
+    kind: f.kind,
+    exportedAt: new Date().toISOString(),
+    exportedBy: 'GeoTag Pro by Mukesh Kr',
+    dimensions: f.width ? { width:f.width, height:f.height } : null,
+    duration: f.duration || null,
+    fileSize: f.file.size,
+    gps: f.lat !== null ? {
+      latitude: f.lat,
+      longitude: f.lng,
+      altitude: gv('gpsAlt') ? parseFloat(gv('gpsAlt')) : null,
+      direction: gv('gpsDir') ? parseFloat(gv('gpsDir')) : null,
+      speed_kmh: gv('gpsSpeed') ? parseFloat(gv('gpsSpeed')) : null,
+      timestamp_utc: gv('gpsDate') && gv('gpsTime') ? `${gv('gpsDate')}T${gv('gpsTime')}Z` : null
+    } : null,
+    address: f.address?.display_name || null,
+    seo: {
+      title: f.seo.title,
+      altText: f.seo.alt,
+      caption: f.seo.caption,
+      subject: f.seo.subject,
+      comment: f.seo.comment,
+      author: f.seo.author,
+      copyright: f.seo.copyright,
+      credit: f.seo.credit,
+      filename: `${f.seo.slug || slugify(f.name.replace(/\.[^.]+$/,''))}.${f.ext}`,
+      keywords: f.kw
+    },
+    camera: {
+      make: gv('m_Make'),
+      model: gv('m_Model'),
+      lensMake: gv('m_LensMake'),
+      lensModel: gv('m_LensModel'),
+      iso: gv('m_ISO'),
+      fNumber: gv('m_FNum'),
+      exposureTime: gv('m_ET'),
+      focalLength: gv('m_FL')
+    },
+    note: f.kind === 'jpg' ? 'EXIF was embedded directly into the JPG.' :
+          'This sidecar accompanies the original file because the format does not support browser-writable EXIF.'
+  }, null, 2);
+}
+function exportGpx(){
+  if(SEL < 0 || !FILES[SEL]) return;
+  const f = FILES[SEL];
+  if(f.lat === null){
+    const lat = parseFloat(gv('gpsLat')), lng = parseFloat(gv('gpsLng'));
+    if(isNaN(lat) || isNaN(lng)){ toast('Set GPS coordinates first','err'); return; }
+    f.lat = lat; f.lng = lng;
+  }
+  const slug = f.seo.slug || slugify(f.name.replace(/\.[^.]+$/,'')) || 'media';
+  const blob = new Blob([buildGpxString(f)], {type:'application/gpx+xml'});
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, `${slug}.gpx`);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(`GPX exported`);
+}
+function updateFfmpegCmd(f){
+  const lat = f.lat !== null ? f.lat : parseFloat(gv('gpsLat'));
+  const lng = f.lng !== null ? f.lng : parseFloat(gv('gpsLng'));
+  const box = document.getElementById('ffmpeg-box');
+  if(!box) return;
+  if(isNaN(lat) || isNaN(lng)){
+    box.textContent = '# Set coordinates above to generate the ffmpeg command';
+    return;
+  }
+  const slug = f.seo.slug || slugify(f.name.replace(/\.[^.]+$/,'')) || 'media';
+  const isoLat = `${lat>=0?'+':''}${lat.toFixed(4)}`;
+  const isoLng = `${lng>=0?'+':''}${lng.toFixed(4)}`;
+  box.textContent = `ffmpeg -i "${f.name}" -metadata location="${isoLat}${isoLng}/" -metadata location-eng="${isoLat}${isoLng}/" -c copy "${slug}.${f.ext}"`;
+}
+let _ffmpegVisible = false;
+function toggleFfmpeg(){
+  _ffmpegVisible = !_ffmpegVisible;
+  const box = document.getElementById('ffmpeg-box');
+  box.classList.toggle('visible', _ffmpegVisible);
+  if(SEL >= 0 && FILES[SEL]) updateFfmpegCmd(FILES[SEL]);
+  if(_ffmpegVisible){
+    navigator.clipboard?.writeText(box.textContent)
+      .then(() => toast('FFmpeg command copied'))
+      .catch(() => {});
+  }
+}
+
+// =========================================================
+//  RAW EXIF TABLE
+// =========================================================
+let RAW_DATA = [];
+function renderRaw(exifObj, name){
+  if(!exifObj) return;
+  RAW_DATA = [];
+  const ifdNames = {'0th':'0th IFD','Exif':'Exif IFD','GPS':'GPS IFD','1st':'Thumbnail'};
+  const tagNames = {};
+  for(const [k,v] of Object.entries(piexif.ImageIFD)) tagNames[`0th_${v}`] = k;
+  for(const [k,v] of Object.entries(piexif.ExifIFD)) tagNames[`Exif_${v}`] = k;
+  for(const [k,v] of Object.entries(piexif.GPSIFD)) tagNames[`GPS_${v}`] = k;
+  // XP tags
+  const xpTagNames = {[XP_TITLE]:'XPTitle',[XP_COMMENT]:'XPComment',[XP_AUTHOR]:'XPAuthor',[XP_KEYWORDS]:'XPKeywords',[XP_SUBJECT]:'XPSubject'};
+  for(const [ifd, tags] of Object.entries(exifObj)){
+    if(!tags || typeof tags !== 'object') continue;
+    for(const [tag, val] of Object.entries(tags)){
+      if(val === undefined || val === null || val === '') continue;
+      const tagName = tagNames[`${ifd}_${tag}`] || xpTagNames[tag] || `Tag ${tag}`;
+      RAW_DATA.push({ifd: ifdNames[ifd]||ifd, tag: tagName, val: fmtExifVal(val, parseInt(tag))});
+    }
+  }
+  document.getElementById('raw-count').textContent = `${RAW_DATA.length} properties · ${name || ''}`;
+  document.getElementById('raw-wrap').style.display = 'flex';
+  document.getElementById('raw-wrap').style.flexDirection = 'column';
+  document.getElementById('raw-wrap').style.flex = '1';
+  document.getElementById('nf-raw').style.display = 'none';
+  filterRaw();
+}
+function filterRaw(){
+  const q = (document.getElementById('raw-filter')?.value || '').toLowerCase();
+  const tbody = document.getElementById('raw-body');
+  const rows = q ? RAW_DATA.filter(r =>
+    r.ifd.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q) || r.val.toString().toLowerCase().includes(q)
+  ) : RAW_DATA;
+  tbody.innerHTML = rows.map(r => `<tr><td class="ti">${r.ifd}</td><td class="tk">${escapeHtml(r.tag)}</td><td class="tv">${escapeHtml(r.val)}</td></tr>`).join('');
+}
+function fmtExifVal(val, tagId){
+  // XP tags as UCS2 byte arrays
+  if([XP_TITLE,XP_COMMENT,XP_AUTHOR,XP_KEYWORDS,XP_SUBJECT].includes(tagId) && Array.isArray(val)){
+    return xpDecode(val);
+  }
+  if(Array.isArray(val)){
+    if(val.length === 2 && typeof val[0] === 'number' && typeof val[1] === 'number'){
+      return `${(val[0]/val[1]).toFixed(4)} (${val[0]}/${val[1]})`;
+    }
+    if(val.length > 0 && Array.isArray(val[0])){
+      return val.map(v => Array.isArray(v) ? (v[0]/v[1]).toFixed(4) : v).join(', ');
+    }
+    return val.slice(0,12).join(', ') + (val.length > 12 ? '...' : '');
+  }
+  if(typeof val === 'string') return val.length > 90 ? val.slice(0,90)+'...' : val;
+  return String(val);
+}
+function copyExifJson(){
+  if(SEL < 0 || !FILES[SEL]?.exifObj){ toast('No EXIF data','err'); return; }
+  const json = JSON.stringify(FILES[SEL].exifObj, (k,v) => typeof v === 'number' ? v : v, 2);
+  navigator.clipboard?.writeText(json)
+    .then(() => toast('EXIF JSON copied'))
+    .catch(() => toast('Copy failed','err'));
+}
+function clearGps(){
+  if(SEL < 0) return;
+  const f = FILES[SEL];
+  if(f?.exifObj) f.exifObj.GPS = {};
+  clearGpsFields();
+  const m = MARKERS.get(SEL); if(m && MAP) MAP.removeLayer(m); MARKERS.delete(SEL);
+  if(f){ f.lat = null; f.lng = null; f.modified = true; updateFileItem(SEL); }
+  if(f?.exifObj) renderRaw(f.exifObj, f.name);
+  computeSeoScore();
+  toast('GPS cleared');
+}
+function clearAllMeta(){
+  if(SEL < 0) return;
+  if(!confirm('Strip ALL EXIF (GPS, dates, camera, SEO)? This cannot be undone for this file in queue.')) return;
+  const f = FILES[SEL];
+  if(f?.exifObj){ f.exifObj = {'0th':{}, Exif:{}, GPS:{}, '1st':{}}; renderRaw(f.exifObj, f.name); }
+  if(f){ f.lat = null; f.lng = null; f.modified = true; f.kw = []; f.seo = {title:'',alt:'',caption:'',subject:'',comment:'',author:'',copyright:'',credit:'',slug:''}; }
+  loadIntoEditor(SEL);
+  toast('All EXIF stripped');
+}
+
+function setAllDatesNow(){
+  const now = new Date();
+  const v = now.toISOString().slice(0,19);
+  sv('m_DTO', v); sv('m_DTD', v); sv('m_DT', v);
+  markDirty();
+  toast('All dates set to now');
+}
+function copyDtoToOthers(){
+  const v = gv('m_DTO');
+  if(!v){ toast('Set Date Original first','err'); return; }
+  sv('m_DTD', v); sv('m_DT', v);
+  markDirty();
+  toast('Copied DTO to other dates');
+}
+
+// =========================================================
+//  UI HELPERS
+// =========================================================
+function switchTab(name, btn){
+  document.querySelectorAll('.eptab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.ep-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`ep-${name}`).classList.add('active');
+}
+function toggleSec(el){
+  el.classList.toggle('closed');
+  const body = el.nextElementSibling;
+  if(body) body.classList.toggle('closed');
+}
+function markDirty(){
+  if(SEL >= 0 && FILES[SEL]){ FILES[SEL].modified = true; updateFileItem(SEL); updateStats(); }
+}
+function updateStats(){
+  document.getElementById('h-count').textContent = FILES.filter(Boolean).length;
+  document.getElementById('h-geo').textContent = FILES.filter(f => f && f.lat !== null).length;
+  document.getElementById('h-mod').textContent = FILES.filter(f => f && f.modified).length;
+}
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || 'success');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.className = '', 3500);
+}
+function showProgress(title, pct){
+  document.getElementById('prog-title').textContent = title;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-sub').textContent = '';
+  document.getElementById('progress-overlay').classList.add('visible');
+}
+function updateProgress(pct, sub){
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-sub').textContent = sub;
+}
+function hideProgress(){ document.getElementById('progress-overlay').classList.remove('visible'); }
+
+// =========================================================
+//  UTILITIES
+// =========================================================
+function gpsToDecimal(arr, ref){
+  if(!arr || arr.length < 3) return null;
+  const d = arr[0][0]/arr[0][1], m = arr[1][0]/arr[1][1], s = arr[2][0]/arr[2][1];
+  let dec = d + m/60 + s/3600;
+  if(ref === 'S' || ref === 'W') dec = -dec;
+  return dec;
+}
+function decimalToGps(val){
+  const d = Math.floor(val);
+  const m = Math.floor((val-d)*60);
+  const s = Math.round(((val-d)*60 - m) * 60 * 1000);
+  return [[d,1],[m,1],[s,1000]];
+}
+function exifDateToInput(str){
+  if(!str) return '';
+  return str.replace(/^(\d{4}):(\d{2}):(\d{2}) /, '$1-$2-$3T');
+}
+function inputToExifDate(str){
+  if(!str) return '';
+  return str.replace(/^(\d{4})-(\d{2})-(\d{2})T/, '$1:$2:$3 ').padEnd(19,':00').slice(0,19);
+}
+function parseExifDate(str){
+  if(!str) return null;
+  const s = str.replace(/^(\d{4}):(\d{2}):(\d{2}) /, '$1-$2-$3T');
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function formatBytes(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1048576) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1048576).toFixed(2)+' MB';
+}
+function escapeHtml(s){
+  return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function escapeAttr(s){
+  return (s+'').replace(/'/g, "\\'");
+}
+// Windows XP tag UCS2 encode/decode
+function xpEncode(str){
+  const arr = [];
+  for(let i = 0; i < str.length; i++){
+    const c = str.charCodeAt(i);
+    arr.push(c & 0xFF, (c >> 8) & 0xFF);
+  }
+  arr.push(0, 0);
+  return arr;
+}
+function xpDecode(arr){
+  if(!Array.isArray(arr) || !arr.length) return '';
+  let s = '';
+  for(let i = 0; i < arr.length - 1; i += 2){
+    const c = arr[i] | (arr[i+1] << 8);
+    if(c === 0) break;
+    s += String.fromCharCode(c);
+  }
+  return s;
+}
+function xpRead(val){
+  if(!val) return '';
+  if(typeof val === 'string') return val;
+  if(Array.isArray(val)) return xpDecode(val);
+  return '';
+}
+
+// =========================================================
+//  KEYBOARD SHORTCUTS
+// =========================================================
+document.addEventListener('keydown', e => {
+  if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  const validIdx = FILES.map((f,i) => f ? i : -1).filter(i => i >= 0);
+  if(!validIdx.length) return;
+  const cur = validIdx.indexOf(SEL);
+  if(e.key === 'ArrowDown' || e.key === 'ArrowRight'){
+    e.preventDefault();
+    selectFile(validIdx[(cur+1) % validIdx.length]);
+  } else if(e.key === 'ArrowUp' || e.key === 'ArrowLeft'){
+    e.preventDefault();
+    selectFile(validIdx[(cur-1+validIdx.length) % validIdx.length]);
+  } else if(e.key === 's' || e.key === 'S'){
+    if(SEL >= 0){ e.preventDefault(); downloadSelected(); }
+  } else if(e.key === 'Delete' || e.key === 'Backspace'){
+    if(SEL >= 0){ e.preventDefault(); removeFile({stopPropagation(){}}, SEL); }
+  }
+});
+
+// =========================================================
+//  AI AUTO-FILL (shares localStorage with AI SEO Scanner)
+// =========================================================
+const AI_STORAGE_KEY = 'ai_seo_scanner_v1';
+const AI_OPTS = {
+  provider: 'heuristic',
+  geminiKey: '', geminiModel: 'gemini-2.5-flash',
+  openaiKey: '', openaiModel: 'gpt-4o-mini',
+  claudeKey: '', claudeModel: 'claude-haiku-4-5-20251001',
+  keyword: '', brand: '', location: '', language: 'English', tone: 'Professional',
+  audience: '', titleLen: 'medium', altStyle: 'descriptive', keywordCount: 8,
+  slugStyle: 'title', parallel: 3, customPrompt: '',
+  overwriteMode: 'empty'
+};
+const AI_PROV_LABELS = { heuristic:'Heuristic', gemini:'Gemini', openai:'OpenAI', claude:'Claude' };
+
+function aiLoadOpts(){
+  try{
+    const raw = localStorage.getItem(AI_STORAGE_KEY);
+    if(raw) Object.assign(AI_OPTS, JSON.parse(raw));
+  } catch(_){}
+}
+function aiSaveOpts(){
+  try{ localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(AI_OPTS)); } catch(_){}
+}
+function aiSetStatus(text, type){
+  const el = document.getElementById('ai-status');
+  if(!el) return;
+  el.textContent = text;
+  el.className = 'ai-status' + (type ? ' ' + type : '');
+}
+function toggleAiFill(){
+  document.getElementById('ai-fill-card').classList.toggle('closed');
+}
+function setAiProv(name, btn){
+  AI_OPTS.provider = name;
+  document.querySelectorAll('.ai-prov-btn').forEach(b => b.classList.toggle('active', b.dataset.aiprov === name));
+  document.getElementById('ai-prov-tag').textContent = AI_PROV_LABELS[name];
+  document.getElementById('ai-prov-tag').classList.toggle('ready', name === 'heuristic' || !!AI_OPTS[name + 'Key']);
+  renderAiKeyArea();
+  aiSaveOpts();
+}
+function renderAiKeyArea(){
+  const wrap = document.getElementById('ai-key-area');
+  if(!wrap) return;
+  const p = AI_OPTS.provider;
+  if(p === 'heuristic'){
+    wrap.innerHTML = `<div class="ai-key-help" style="padding:7px 9px;background:rgba(13,148,136,.08);border-left:3px solid var(--teal);border-radius:5px;margin-bottom:7px">
+      <strong style="color:var(--teal)">Offline mode</strong> &mdash; no API key. Generates SEO from filename, EXIF, dominant colors, GPS location, and your strategy fields.
+    </div>`;
+    return;
+  }
+  const cfg = {
+    gemini: { ph:'AIzaSy...', help:'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+              models:['gemini-2.5-flash','gemini-2.5-pro','gemini-1.5-flash'] },
+    openai: { ph:'sk-...', help:'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>',
+              models:['gpt-4o-mini','gpt-4o','gpt-4.1-mini'] },
+    claude: { ph:'sk-ant-...', help:'Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>',
+              models:['claude-haiku-4-5-20251001','claude-sonnet-4-6','claude-3-5-sonnet-latest'] }
+  }[p];
+  if(!cfg) return;
+  const modelOptions = cfg.models.map(m => `<option value="${m}"${AI_OPTS[p+'Model']===m?' selected':''}>${m}</option>`).join('');
+  wrap.innerHTML = `
+    <div class="ai-key-wrap">
+      <input class="finp" type="password" id="ai-key-input" placeholder="${cfg.ph}" value="${escapeHtml(AI_OPTS[p+'Key']||'')}" oninput="AI_OPTS['${p}Key']=this.value;aiSaveOpts();document.getElementById('ai-prov-tag').classList.toggle('ready',!!this.value)">
+      <button class="ai-key-toggle" onclick="aiToggleKey(this)">Show</button>
+    </div>
+    <div class="ai-key-help">${cfg.help}</div>
+    <div class="frow"><label class="flbl">Model</label>
+      <select class="finp" onchange="AI_OPTS['${p}Model']=this.value;aiSaveOpts()">${modelOptions}</select>
+    </div>`;
+}
+function aiToggleKey(btn){
+  const inp = document.getElementById('ai-key-input');
+  if(!inp) return;
+  if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = 'Hide'; }
+  else { inp.type = 'password'; btn.textContent = 'Show'; }
+}
+
+// ---- Image data prep for AI ----
+async function aiGetImageData(file){
+  // For images: use existing dataUrl, downsize to max 1024 for token efficiency
+  // For videos: extract a middle keyframe
+  if(file.kind === 'video'){
+    return await aiExtractVideoFrame(file);
+  }
+  if(!file.dataUrl) throw new Error('Image not loaded yet');
+  return await aiDownsizeImage(file.dataUrl, 1024);
+}
+async function aiDownsizeImage(dataUrl, maxSide){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      try { resolve(c.toDataURL('image/jpeg', 0.85)); }
+      catch(e){ reject(e); }
+    };
+    img.onerror = () => reject(new Error('Image decode failed'));
+    img.src = dataUrl;
+  });
+}
+async function aiExtractVideoFrame(file){
+  if(!file.blobUrl) throw new Error('Video URL missing');
+  return new Promise((resolve, reject) => {
+    const v = document.createElement('video');
+    v.preload = 'metadata'; v.muted = true; v.src = file.blobUrl;
+    v.onloadedmetadata = () => {
+      v.currentTime = Math.min(v.duration * 0.5, v.duration - 0.05);
+    };
+    v.onseeked = () => {
+      try {
+        const max = 1024;
+        const scale = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(v.videoWidth * scale);
+        c.height = Math.round(v.videoHeight * scale);
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      } catch(e){ reject(e); }
+    };
+    v.onerror = () => reject(new Error('Video read failed'));
+  });
+}
+
+// ---- Provider call dispatcher ----
+function aiSystemPrompt(file){
+  const ctx = [];
+  if(AI_OPTS.brand) ctx.push(`Brand/Site: ${AI_OPTS.brand}`);
+  if(AI_OPTS.keyword) ctx.push(`Target keyword: ${AI_OPTS.keyword}`);
+  // Build location context from GPS + reverse-geocoded address
+  let locParts = [];
+  if(file.address?.display_name) locParts.push(file.address.display_name);
+  else if(file.lat != null && file.lng != null) locParts.push(`coords ${file.lat.toFixed(4)}, ${file.lng.toFixed(4)}`);
+  if(locParts.length) ctx.push(`Location context: ${locParts.join(' | ')}`);
+  ctx.push(`Language: ${AI_OPTS.language || 'English'}`);
+  ctx.push(`Tone: ${AI_OPTS.tone || 'Professional'}`);
+  const kind = file.kind === 'video' ? 'video keyframe' : 'image';
+  return `You are an expert image SEO copywriter analyzing this ${kind}.
+
+Context:
+${ctx.join('\n')}
+
+Analyze the visual content carefully (subjects, setting, mood, colors, composition), then return JSON with exactly these keys:
+
+{
+  "title": "40-70 char title for the image, include target keyword naturally if relevant",
+  "altText": "25-150 char accessible description for screen readers and SEO",
+  "caption": "Short caption (max 160 chars) for use under the ${kind}",
+  "description": "Longer description (120-300 chars) for image schema or article context",
+  "subject": "Main visual subject in 2-6 words",
+  "comment": "An internal note describing what the photographer captured (max 200 chars)",
+  "keywords": ["8-12 relevant keywords, lowercase, no hashtags"],
+  "tags": ["3-6 broad categorization tags"]
+}
+
+Rules:
+- Be factual about what is visible; do not invent brand names, people, or specific places not in the location context.
+- Write all output in ${AI_OPTS.language || 'English'}.
+- ${AI_OPTS.tone || 'Professional'} tone.
+- Return ONLY the JSON object, no markdown fences, no prose.`;
+}
+async function aiCallProvider(file){
+  const p = AI_OPTS.provider;
+  if(p === 'heuristic') return aiHeuristicGenerate(file);
+  // Visual providers need image data
+  const dataUrl = await aiGetImageData(file);
+  if(p === 'gemini') return await aiCallGemini(file, dataUrl);
+  if(p === 'openai') return await aiCallOpenAI(file, dataUrl);
+  if(p === 'claude') return await aiCallClaude(file, dataUrl);
+  throw new Error('Unknown provider');
+}
+
+async function aiCallGemini(file, dataUrl){
+  const key = AI_OPTS.geminiKey;
+  if(!key) throw new Error('No Gemini API key');
+  const base64 = dataUrl.split(',')[1];
+  const mime = dataUrl.match(/^data:(.+?);/)?.[1] || 'image/jpeg';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${AI_OPTS.geminiModel}:generateContent?key=${encodeURIComponent(key)}`;
+  const body = {
+    contents: [{ role:'user', parts:[
+      { text: aiSystemPrompt(file) },
+      { inline_data: { mime_type: mime, data: base64 } }
+    ]}],
+    generationConfig: { temperature: 0.5, response_mime_type: 'application/json' }
+  };
+  const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok){ const t = await r.text(); throw new Error(`Gemini HTTP ${r.status}: ${t.slice(0,180)}`); }
+  const data = await r.json();
+  return aiParseJson(data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+}
+async function aiCallOpenAI(file, dataUrl){
+  const key = AI_OPTS.openaiKey;
+  if(!key) throw new Error('No OpenAI API key');
+  const body = {
+    model: AI_OPTS.openaiModel,
+    messages: [
+      { role:'system', content:'You return only JSON. No markdown, no prose.' },
+      { role:'user', content:[
+        { type:'text', text: aiSystemPrompt(file) },
+        { type:'image_url', image_url:{ url: dataUrl, detail:'low' } }
+      ]}
+    ],
+    response_format: { type:'json_object' }, temperature: 0.5, max_tokens: 800
+  };
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){ const t = await r.text(); throw new Error(`OpenAI HTTP ${r.status}: ${t.slice(0,180)}`); }
+  const data = await r.json();
+  return aiParseJson(data?.choices?.[0]?.message?.content || '');
+}
+async function aiCallClaude(file, dataUrl){
+  const key = AI_OPTS.claudeKey;
+  if(!key) throw new Error('No Claude API key');
+  const base64 = dataUrl.split(',')[1];
+  const mime = dataUrl.match(/^data:(.+?);/)?.[1] || 'image/jpeg';
+  const body = {
+    model: AI_OPTS.claudeModel, max_tokens: 1024, temperature: 0.5,
+    system: 'Return only valid JSON, no markdown, no prose.',
+    messages: [{ role:'user', content:[
+      { type:'image', source:{ type:'base64', media_type: mime, data: base64 } },
+      { type:'text', text: aiSystemPrompt(file) }
+    ]}]
+  };
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': key, 'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){ const t = await r.text(); throw new Error(`Claude HTTP ${r.status}: ${t.slice(0,180)}`); }
+  const data = await r.json();
+  return aiParseJson(data?.content?.[0]?.text || '');
+}
+function aiParseJson(text){
+  if(!text) throw new Error('Empty AI response');
+  try { return aiNormalize(JSON.parse(text)); } catch(_){}
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if(fence){ try { return aiNormalize(JSON.parse(fence[1])); } catch(_){} }
+  const brace = text.match(/\{[\s\S]*\}/);
+  if(brace){ try { return aiNormalize(JSON.parse(brace[0])); } catch(_){} }
+  throw new Error('Could not parse JSON from AI');
+}
+function aiNormalize(obj){
+  return {
+    title: (obj.title||'').toString().slice(0,120),
+    altText: (obj.altText||obj.alt_text||obj.alt||'').toString().slice(0,200),
+    caption: (obj.caption||'').toString().slice(0,160),
+    description: (obj.description||'').toString().slice(0,500),
+    subject: (obj.subject||'').toString().slice(0,100),
+    comment: (obj.comment||obj.notes||'').toString().slice(0,200),
+    keywords: Array.isArray(obj.keywords)
+      ? obj.keywords.map(k => k.toString().toLowerCase().trim()).filter(Boolean).slice(0,15)
+      : (typeof obj.keywords === 'string' ? obj.keywords.split(',').map(s=>s.trim()).filter(Boolean) : []),
+    tags: Array.isArray(obj.tags) ? obj.tags.map(t => t.toString().slice(0,30)).slice(0,8) : []
+  };
+}
+
+// ---- Heuristic (offline) generator for geotag ----
+function aiHeuristicGenerate(file){
+  const base = (file.name||'image').replace(/\.[^.]+$/,'');
+  const stripped = base.replace(/[-_]+/g,'');
+  const looksRandom = stripped.length >= 8 &&
+    (/[a-z]/.test(stripped) && /[A-Z]/.test(stripped) && /\d/.test(stripped) ||
+     (stripped.match(/[aeiouAEIOU]/g)||[]).length / stripped.length < 0.18);
+  const stopWords = /^(img|dsc|dscn|photo|pic|image|untitled|copy|final|new|raw|jpg|jpeg|png|webp|export|download|edit|edited|file|video|clip|mov|mp4)$/i;
+  const fnameWords = looksRandom ? [] :
+    base.replace(/[-_]+/g,' ').replace(/[0-9]+/g,' ').split(/\s+/)
+    .filter(w => {
+      if(w.length < 3 || w.length > 22) return false;
+      if(stopWords.test(w)) return false;
+      const v = (w.match(/[aeiouAEIOU]/gi)||[]).length;
+      if(w.length >= 4 && v === 0) return false;
+      if(w.length >= 5 && v/w.length < 0.2) return false;
+      if(/[bcdfghjklmnpqrstvwxyz]{4,}/i.test(w)) return false;
+      return true;
+    }).map(w => w.toLowerCase());
+  let locWord = '';
+  if(file.address?.address){
+    const a = file.address.address;
+    locWord = a.city || a.town || a.village || a.county || a.state || a.country || '';
+  }
+  const kw = AI_OPTS.keyword || '';
+  const brand = AI_OPTS.brand || '';
+  const subject = fnameWords.length ? fnameWords.map(w => w[0].toUpperCase()+w.slice(1)).join(' ')
+    : (locWord ? `${locWord} ${file.kind === 'video' ? 'video' : 'photograph'}` : (file.kind === 'video' ? 'Video clip' : 'Photograph'));
+  const title = `${subject}${kw?` - ${kw}`:''}${locWord?` in ${locWord}`:''}${brand?` | ${brand}`:''}`.slice(0,120);
+  const alt = `${subject}${locWord?` in ${locWord}`:''}${kw?', '+kw:''}.`.slice(0,200);
+  const caption = `${subject}${brand?' by '+brand:''}${locWord?' - '+locWord:''}.`.slice(0,160);
+  const description = `${subject}${locWord?` taken in ${locWord}`:''}. ${kw?titleCase(kw)+'.':''}${brand?' '+brand+'.':''}`.replace(/\s+/g,' ').trim().slice(0,500);
+  const kwPool = new Set();
+  if(kw) kw.split(/[,;]+/).forEach(k => kwPool.add(k.trim().toLowerCase()));
+  fnameWords.forEach(w => kwPool.add(w));
+  if(locWord) kwPool.add(locWord.toLowerCase());
+  if(file.address?.address){
+    const a = file.address.address;
+    ['city','town','village','county','state','country','tourism','natural'].forEach(k => a[k] && kwPool.add(a[k].toLowerCase()));
+  }
+  if(file.kind === 'video') kwPool.add('video');
+  ['photography','high-resolution'].forEach(k => kwPool.add(k));
+  return {
+    title, altText: alt, caption, description,
+    subject: subject,
+    comment: `${subject}${locWord?` captured in ${locWord}`:''}.`,
+    keywords: [...kwPool].filter(Boolean).slice(0, 10),
+    tags: [locWord, file.kind === 'video'?'video':'image'].filter(Boolean)
+  };
+}
+function titleCase(s){
+  return (s||'').toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+// ---- Apply AI result to a file ----
+function applyAIResult(file, result, mode){
+  if(!file || !result) return;
+  const fill = (currentVal, newVal, isProtected) => {
+    if(!newVal) return currentVal;
+    if(mode === 'all') return newVal;
+    if(mode === 'ai-only' && isProtected) return currentVal;  // keep author/copyright
+    if(mode === 'empty') return currentVal && currentVal.trim() ? currentVal : newVal;
+    return newVal;
+  };
+  file.seo = file.seo || { title:'', alt:'', caption:'', subject:'', comment:'', author:'', copyright:'', credit:'', slug:'' };
+  file.seo.title = fill(file.seo.title, result.title);
+  file.seo.alt = fill(file.seo.alt, result.altText);
+  file.seo.caption = fill(file.seo.caption, result.caption);
+  file.seo.subject = fill(file.seo.subject, result.subject);
+  file.seo.comment = fill(file.seo.comment, result.comment || result.description);
+  // Author / Copyright / Credit are protected in 'ai-only' mode and 'empty' mode only fills if empty
+  // Keywords merge
+  if(result.keywords && result.keywords.length){
+    if(mode === 'all') file.kw = [...new Set(result.keywords.map(k => k.toLowerCase()))];
+    else {
+      // Add new keywords without removing existing
+      const existing = new Set((file.kw||[]).map(k => k.toLowerCase()));
+      const merged = [...(file.kw||[])];
+      result.keywords.forEach(k => {
+        const kl = k.toLowerCase();
+        if(!existing.has(kl)){ merged.push(k); existing.add(kl); }
+      });
+      file.kw = merged.slice(0, 15);
+    }
+  }
+  // Regenerate slug if it was empty or matches the original filename heuristic
+  if(!file.seo.slug || file.seo.slug === slugify(file.name.replace(/\.[^.]+$/,''))){
+    file.seo.slug = slugify(file.seo.title || file.name.replace(/\.[^.]+$/,''));
+  }
+  file.modified = true;
+}
+
+// ---- User-facing actions ----
+async function aiFillSelected(){
+  if(SEL < 0 || !FILES[SEL]){ toast('Select a file first', 'err'); return; }
+  const file = FILES[SEL];
+  if(file.kind !== 'video' && !file.dataUrl){
+    toast('File still loading - try again in a moment', 'warn'); return;
+  }
+  aiSetStatus(`Calling ${AI_PROV_LABELS[AI_OPTS.provider]}...`, 'busy');
+  try {
+    const result = await aiCallProvider(file);
+    applyAIResult(file, result, AI_OPTS.overwriteMode || 'empty');
+    loadSeoIntoUI(file);
+    renderKeywords(file.kw || []);
+    // Mirror to meta tab too
+    sv('m_Desc', file.seo.alt);
+    sv('m_Artist', file.seo.author);
+    sv('m_Copyright', file.seo.copyright);
+    computeSeoScore();
+    updateFileItem(SEL);
+    markDirty();
+    aiSetStatus(`Filled with ${AI_PROV_LABELS[AI_OPTS.provider]}`, 'ok');
+    toast('AI fields applied to this file');
+  } catch(e){
+    aiSetStatus('Error: ' + e.message.slice(0,80), 'err');
+    toast(`AI fill failed: ${e.message}`, 'err');
+  }
+}
+
+async function aiFillAll(){
+  const valid = FILES.filter(Boolean);
+  if(!valid.length){ toast('No files in queue', 'err'); return; }
+  if(!confirm(`AI Auto-Fill SEO for ${valid.length} file${valid.length>1?'s':''}? This may incur API costs.`)) return;
+  showProgress(`AI Auto-Fill (${AI_PROV_LABELS[AI_OPTS.provider]})...`, 0);
+  let done = 0, errors = 0;
+  for(let i = 0; i < FILES.length; i++){
+    const file = FILES[i]; if(!file) continue;
+    updateProgress(Math.round(done / valid.length * 95), `${file.name}`);
+    try {
+      if(file.kind !== 'video' && !file.dataUrl){ errors++; continue; }
+      const result = await aiCallProvider(file);
+      applyAIResult(file, result, AI_OPTS.overwriteMode || 'empty');
+      updateFileItem(i);
+    } catch(e){
+      console.warn('AI fill failed for', file.name, e);
+      errors++;
+    }
+    done++;
+  }
+  hideProgress();
+  if(SEL >= 0 && FILES[SEL]){
+    loadSeoIntoUI(FILES[SEL]);
+    renderKeywords(FILES[SEL].kw || []);
+    computeSeoScore();
+  }
+  const ok = done - errors;
+  toast(`AI Auto-Fill: ${ok}/${done} succeeded${errors?', '+errors+' failed':''}`, errors ? 'warn' : 'success');
+}
+
+// ---- Init AI panel ----
+function aiInit(){
+  aiLoadOpts();
+  // Reflect into UI
+  const provBtn = document.querySelector(`.ai-prov-btn[data-aiprov="${AI_OPTS.provider}"]`);
+  if(provBtn){
+    document.querySelectorAll('.ai-prov-btn').forEach(b => b.classList.remove('active'));
+    provBtn.classList.add('active');
+  }
+  document.getElementById('ai-prov-tag').textContent = AI_PROV_LABELS[AI_OPTS.provider] || 'Heuristic';
+  document.getElementById('ai-prov-tag').classList.toggle('ready', AI_OPTS.provider === 'heuristic' || !!AI_OPTS[AI_OPTS.provider + 'Key']);
+  if(document.getElementById('ai-keyword') && AI_OPTS.keyword) document.getElementById('ai-keyword').value = AI_OPTS.keyword;
+  if(document.getElementById('ai-brand') && AI_OPTS.brand) document.getElementById('ai-brand').value = AI_OPTS.brand;
+  if(document.getElementById('ai-tone') && AI_OPTS.tone) document.getElementById('ai-tone').value = AI_OPTS.tone;
+  if(document.getElementById('ai-lang') && AI_OPTS.language) document.getElementById('ai-lang').value = AI_OPTS.language;
+  if(document.getElementById('ai-mode') && AI_OPTS.overwriteMode) document.getElementById('ai-mode').value = AI_OPTS.overwriteMode;
+  renderAiKeyArea();
+}
+
+// =========================================================
+//  INIT
+// =========================================================
+initMap();
+aiInit();
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

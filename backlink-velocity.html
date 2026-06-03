@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backlink Velocity Tracker - Monitor New & Lost Links Over Time</title>
+<meta name="description" content="Track backlink acquisition velocity over time. Capture periodic snapshots of your backlink profile, visualize new vs lost links, detect unusual spikes (potential negative SEO), and project monthly link acquisition trends.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#9333ea; --accent-h:#7e22ce; --accent-soft:rgba(147,51,234,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#c084fc; --accent-h:#d8b4fe; --accent-soft:rgba(192,132,252,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--pink);border:1px solid var(--pink);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.snaps strong{color:var(--accent)}
+.hdr-stat.new strong{color:var(--success);font-size:14px}
+.hdr-stat.lost strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.snap-list{display:flex;flex-direction:column;gap:5px}
+.snap-row{padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;font-size:11.5px;cursor:pointer;transition:all .12s}
+.snap-row:hover{border-color:var(--accent);transform:translateX(2px)}
+.snap-row.active{border-color:var(--accent);background:var(--accent-soft)}
+.snap-row .date{font-weight:700;font-family:var(--mono);font-size:11px}
+.snap-row .count{font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:800}
+.snap-row button{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:2px 5px;font-weight:700}
+.snap-row button:hover{color:var(--danger)}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:22px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.kpi .delta{font-size:11px;font-family:var(--mono);font-weight:800;margin-top:2px}
+.kpi .delta.pos{color:var(--success)}
+.kpi .delta.neg{color:var(--danger)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.chart-wrap{position:relative;height:300px;padding:14px}
+
+.link-row{padding:10px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr auto auto;gap:12px;align-items:center;font-size:12px}
+.link-row:last-child{border-bottom:none}
+.link-row .ico{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px}
+.link-row.new .ico{background:var(--success)}
+.link-row.lost .ico{background:var(--danger)}
+.link-row .domain{font-weight:700;font-size:12.5px}
+.link-row .url{font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:520px}
+.link-row .da{font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:800;text-align:center;min-width:40px}
+.link-row .anchor{font-family:var(--mono);font-size:10.5px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.alert-row{padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr auto;gap:11px;align-items:start;font-size:12px}
+.alert-row:last-child{border-bottom:none}
+.alert-row .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex-shrink:0;margin-top:1px}
+.alert-row.spike .icon{background:var(--warn)}
+.alert-row.drop .icon{background:var(--danger)}
+.alert-row.normal .icon{background:var(--success)}
+.alert-row .body .title{font-size:12.5px;font-weight:700}
+.alert-row .body .desc{font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px}
+.alert-row .meta{font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:800;text-align:right}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+    <div><div class="logo-name">Backlink<span>Velocity</span></div></div>
+    <span class="logo-tag">TRENDS</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat snaps">Snapshots: <strong id="stat-snaps">0</strong></div>
+  <div class="hdr-stat new">New (latest): <strong id="stat-new">0</strong></div>
+  <div class="hdr-stat lost">Lost (latest): <strong id="stat-lost">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="backlink-profile.html" class="hdr-link" style="border-color:rgba(147,51,234,.4);color:var(--accent)">Backlinks</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Snapshots</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Capture Snapshot</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Label (optional)</label><input id="i-label" placeholder="After outreach campaign"></div>
+          <div class="f hint">Captures current backlink list from Backlink Profile tool. Run monthly for trend tracking. Detects new + lost links between snapshots.</div>
+          <button class="btn-sub" onclick="captureSnapshot()">📸 Capture Now</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Saved Snapshots</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="snap-list" id="snap-list"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="captureSnapshot()">📸 New Snapshot</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportJSON()">JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="velocity" onclick="setTab('velocity')">Velocity Chart</button>
+      <button class="tab" data-tab="new" onclick="setTab('new')">New Links</button>
+      <button class="tab" data-tab="lost" onclick="setTab('lost')">Lost Links</button>
+      <button class="tab" data-tab="alerts" onclick="setTab('alerts')">Alerts</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Capture monthly snapshots to track velocity</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='bv_state_v1';
+const defaultState={snapshots:[], view:'overview', active:null};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function captureSnapshot(){
+  try{const bl=JSON.parse(localStorage.getItem('bl_state_v1')||'null');
+    if(!bl?.backlinks?.length){toast('No backlinks in Backlink Profile','err');return;}
+    const links=bl.backlinks.map(b=>({
+      sourceDomain:b.sourceDomain||'',
+      sourceUrl:b.sourceUrl||b.url||'',
+      anchor:b.anchor||'',
+      da:b.da||b.domainAuthority||0,
+    }));
+    const snap={
+      id:'s_'+Math.random().toString(36).slice(2,9),
+      date:'2026-05-29',
+      timestamp:Date.now(),
+      label:document.getElementById('i-label').value.trim(),
+      total:links.length,
+      uniqueDomains:new Set(links.map(l=>l.sourceDomain)).size,
+      links
+    };
+    state.snapshots.push(snap);
+    state.active=snap.id;
+    document.getElementById('i-label').value='';
+    saveState();render();
+    toast(`Snapshot captured: ${links.length} links`,'success');
+  }catch(e){toast('Capture failed','err');}
+}
+function deleteSnap(id, ev){ev?.stopPropagation();if(!confirm('Delete snapshot?'))return;state.snapshots=state.snapshots.filter(s=>s.id!==id);if(state.active===id)state.active=null;saveState();render();}
+function selectSnap(id){state.active=id;saveState();render();}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function getDiffs(){
+  // Compute diff for each consecutive pair
+  const sorted=state.snapshots.slice().sort((a,b)=>a.timestamp-b.timestamp);
+  const diffs=[];
+  for(let i=1;i<sorted.length;i++){
+    const prev=sorted[i-1], curr=sorted[i];
+    const prevKeys=new Set(prev.links.map(l=>l.sourceDomain+'|'+l.sourceUrl));
+    const currKeys=new Set(curr.links.map(l=>l.sourceDomain+'|'+l.sourceUrl));
+    const newLinks=curr.links.filter(l=>!prevKeys.has(l.sourceDomain+'|'+l.sourceUrl));
+    const lostLinks=prev.links.filter(l=>!currKeys.has(l.sourceDomain+'|'+l.sourceUrl));
+    diffs.push({from:prev, to:curr, new:newLinks, lost:lostLinks, net:newLinks.length-lostLinks.length});
+  }
+  return {sorted, diffs};
+}
+
+function renderSnapList(){
+  const list=document.getElementById('snap-list');
+  if(!state.snapshots.length){list.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:10px;font-family:var(--mono)">No snapshots yet</div>';return;}
+  list.innerHTML=state.snapshots.slice().reverse().map(s=>`<div class="snap-row ${state.active===s.id?'active':''}" onclick="selectSnap('${s.id}')"><div><div class="date">${escapeHtml(s.date)}</div>${s.label?`<div style="font-size:9.5px;color:var(--text3);font-family:var(--mono)">${escapeHtml(s.label)}</div>`:''}</div><div class="count">${s.total}</div><button onclick="deleteSnap('${s.id}',event)">✕</button></div>`).join('');
+}
+
+let chart;
+function render(){
+  renderSnapList();
+  const {sorted, diffs}=getDiffs();
+  const latest=sorted[sorted.length-1];
+  const latestDiff=diffs[diffs.length-1];
+  document.getElementById('stat-snaps').textContent=sorted.length;
+  document.getElementById('stat-new').textContent=latestDiff?latestDiff.new.length:0;
+  document.getElementById('stat-lost').textContent=latestDiff?latestDiff.lost.length:0;
+  if(state.view==='overview') return renderOverview(sorted, diffs);
+  if(state.view==='velocity') return renderVelocity(sorted, diffs);
+  if(state.view==='new') return renderNew(diffs);
+  if(state.view==='lost') return renderLost(diffs);
+  if(state.view==='alerts') return renderAlerts(diffs);
+}
+
+function renderOverview(sorted, diffs){
+  if(!sorted.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      <div class="et">Backlink Velocity Tracker</div>
+      <div class="ed">Capture periodic snapshots of your backlink profile to track velocity over time. The tool compares snapshots to detect newly-acquired and lost backlinks, projects monthly trends, and alerts you to unusual spikes (negative SEO risk) or drops (lost outreach effort).</div>
+    </div>`;
+    return;
+  }
+  const latest=sorted[sorted.length-1];
+  const first=sorted[0];
+  const totalGrowth=latest.total-first.total;
+  const allNew=diffs.reduce((s,d)=>s+d.new.length,0);
+  const allLost=diffs.reduce((s,d)=>s+d.lost.length,0);
+  const daysSpanned=sorted.length>=2?Math.max(1, (latest.timestamp-first.timestamp)/(1000*60*60*24)):1;
+  const monthlyVelocity=daysSpanned>=1?Math.round(allNew/daysSpanned*30):0;
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Current total</div><div class="v">${latest.total}</div><div class="s">${latest.uniqueDomains} unique domains</div></div>
+      <div class="kpi ${totalGrowth>=0?'s':'d'}"><div class="l">Lifetime growth</div><div class="v">${totalGrowth>0?'+':''}${totalGrowth}</div><div class="s">since ${first.date}</div></div>
+      <div class="kpi s"><div class="l">Total new acquired</div><div class="v">${allNew}</div><div class="s">across all periods</div></div>
+      <div class="kpi d"><div class="l">Total lost</div><div class="v">${allLost}</div><div class="s">links removed</div></div>
+      <div class="kpi"><div class="l">Monthly velocity</div><div class="v">${monthlyVelocity}</div><div class="s">avg new/month</div></div>
+    </div>
+    ${diffs.length?`<div class="section"><div class="section-hdr"><h3>Latest Period</h3></div><div style="padding:14px">
+      <p style="font-size:13.5px;line-height:1.6;color:var(--text2)">From <strong style="color:var(--text)">${escapeHtml(diffs[diffs.length-1].from.date)}</strong> to <strong style="color:var(--text)">${escapeHtml(diffs[diffs.length-1].to.date)}</strong>: <strong style="color:var(--success)">${diffs[diffs.length-1].new.length} new</strong> backlinks acquired, <strong style="color:var(--danger)">${diffs[diffs.length-1].lost.length} lost</strong>. Net change: <strong style="color:${diffs[diffs.length-1].net>=0?'var(--success)':'var(--danger)'}">${diffs[diffs.length-1].net>=0?'+':''}${diffs[diffs.length-1].net}</strong>.</p>
+    </div></div>`:''}
+    ${sorted.length<2?'<div class="section"><div style="padding:30px;text-align:center;color:var(--text2);line-height:1.6">Capture a second snapshot to start tracking velocity and detect new/lost links.</div></div>':''}
+  `;
+}
+
+function renderVelocity(sorted, diffs){
+  if(sorted.length<2){document.getElementById('cbody').innerHTML='<div class="empty"><div class="et">Need at least 2 snapshots</div><div class="ed">Capture another to see velocity charts.</div></div>';return;}
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>Total Backlinks Over Time</h3></div><div class="chart-wrap"><canvas id="ch-total"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>New vs Lost Per Period</h3></div><div class="chart-wrap"><canvas id="ch-velocity"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+    Chart.defaults.borderColor=isDark?'#1e2d44':'#d1d9e8';
+    const labels=sorted.map(s=>s.date+(s.label?' ('+s.label.slice(0,12)+')':''));
+    const ctx1=document.getElementById('ch-total')?.getContext('2d');
+    if(ctx1){if(chart)chart.destroy();chart=new Chart(ctx1,{type:'line',data:{labels,datasets:[{label:'Total backlinks',data:sorted.map(s=>s.total),borderColor:'#9333ea',backgroundColor:'rgba(147,51,234,.15)',tension:0.3,fill:true,pointRadius:5},{label:'Unique domains',data:sorted.map(s=>s.uniqueDomains),borderColor:'#16a34a',backgroundColor:'transparent',tension:0.3,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:false}}}});}
+    const ctx2=document.getElementById('ch-velocity')?.getContext('2d');
+    if(ctx2){const diffLabels=diffs.map(d=>d.to.date);new Chart(ctx2,{type:'bar',data:{labels:diffLabels,datasets:[{label:'New',data:diffs.map(d=>d.new.length),backgroundColor:'#16a34a'},{label:'Lost',data:diffs.map(d=>-d.lost.length),backgroundColor:'#dc2626'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+Math.abs(c.parsed.y)}}},scales:{y:{beginAtZero:true,stacked:false},x:{stacked:false}}}});}
+  },50);
+}
+
+function renderNew(diffs){
+  if(!diffs.length){document.getElementById('cbody').innerHTML='<div class="empty"><div class="et">Need at least 2 snapshots</div></div>';return;}
+  const allNew=diffs.flatMap(d=>d.new.map(l=>({...l, acquiredOn:d.to.date})));
+  // Latest first
+  allNew.sort((a,b)=>(b.acquiredOn||'').localeCompare(a.acquiredOn||''));
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Newly Acquired Backlinks (${allNew.length})</h3></div><div>
+    ${allNew.length?allNew.map(l=>`<div class="link-row new"><div class="ico">+</div><div><div class="domain">${escapeHtml(l.sourceDomain||'(no domain)')}</div><div class="url">${escapeHtml(l.sourceUrl||'')}</div></div><div class="da">DA${l.da||'—'}</div><div class="anchor" title="${escapeHtml(l.anchor||'')}">${escapeHtml(l.anchor||'(no anchor)')}<br><span style="color:var(--text3);font-size:9.5px">${escapeHtml(l.acquiredOn)}</span></div></div>`).join(''):'<div style="padding:30px;text-align:center;color:var(--text3)">No new links between snapshots</div>'}
+  </div></div>`;
+}
+
+function renderLost(diffs){
+  if(!diffs.length){document.getElementById('cbody').innerHTML='<div class="empty"><div class="et">Need at least 2 snapshots</div></div>';return;}
+  const allLost=diffs.flatMap(d=>d.lost.map(l=>({...l, lostOn:d.to.date})));
+  allLost.sort((a,b)=>(b.lostOn||'').localeCompare(a.lostOn||''));
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Lost Backlinks (${allLost.length})</h3></div><div>
+    ${allLost.length?allLost.map(l=>`<div class="link-row lost"><div class="ico">−</div><div><div class="domain">${escapeHtml(l.sourceDomain||'(no domain)')}</div><div class="url">${escapeHtml(l.sourceUrl||'')}</div></div><div class="da">DA${l.da||'—'}</div><div class="anchor" title="${escapeHtml(l.anchor||'')}">${escapeHtml(l.anchor||'(no anchor)')}<br><span style="color:var(--text3);font-size:9.5px">${escapeHtml(l.lostOn)}</span></div></div>`).join(''):'<div style="padding:30px;text-align:center;color:var(--success);font-weight:700">✓ No lost links</div>'}
+  </div></div>`;
+}
+
+function renderAlerts(diffs){
+  if(!diffs.length){document.getElementById('cbody').innerHTML='<div class="empty"><div class="et">Need at least 2 snapshots</div></div>';return;}
+  const alerts=[];
+  // Compute baseline (median new links per period)
+  const newCounts=diffs.map(d=>d.new.length);
+  const sorted=newCounts.slice().sort((a,b)=>a-b);
+  const median=sorted[Math.floor(sorted.length/2)]||0;
+  diffs.forEach((d,i)=>{
+    if(d.new.length >= median*3 && d.new.length>=5){alerts.push({type:'spike', title:`Spike: ${d.new.length} new links`, desc:`Between ${d.from.date} and ${d.to.date} — ${(d.new.length/Math.max(1,median)).toFixed(1)}x your median rate. Investigate if intentional outreach or possible negative SEO`, period:d.to.date, count:d.new.length});}
+    if(d.lost.length>=10){alerts.push({type:'drop', title:`Lost ${d.lost.length} backlinks`, desc:`Significant link loss between ${d.from.date} and ${d.to.date}. Check the most valuable lost links for recovery opportunity`, period:d.to.date, count:d.lost.length});}
+    if(d.new.length===0 && i===diffs.length-1){alerts.push({type:'drop', title:'No new links acquired', desc:`Latest period saw zero new backlinks. Review outreach + content efforts`, period:d.to.date, count:0});}
+  });
+  if(diffs.length>=3){const recent=diffs.slice(-3);const allDeclining=recent.every((d,i)=>i===0||d.new.length<recent[i-1].new.length);if(allDeclining)alerts.push({type:'drop', title:'Declining velocity trend', desc:`New link acquisition declined for ${recent.length} consecutive periods. Outreach effort may need refresh`, period:'trend', count:0});}
+  if(!alerts.length){alerts.push({type:'normal', title:'Velocity looks healthy', desc:'No significant spikes or drops detected. Sustainable growth pattern', period:diffs[diffs.length-1].to.date, count:0});}
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Alerts</h3><span class="badge">${alerts.length}</span></div><div>
+    ${alerts.map(a=>`<div class="alert-row ${a.type}"><div class="icon">${a.type==='spike'?'!':a.type==='drop'?'↓':'✓'}</div><div class="body"><div class="title">${escapeHtml(a.title)}</div><div class="desc">${escapeHtml(a.desc)}</div></div><div class="meta">${escapeHtml(a.period)}</div></div>`).join('')}
+  </div></div>`;
+}
+
+function exportCSV(){
+  if(!state.snapshots.length){toast('Nothing to export','err');return;}
+  const {sorted, diffs}=getDiffs();
+  const rows=[['snapshot_date','label','total_links','unique_domains','new_since_prev','lost_since_prev','net']];
+  sorted.forEach((s,i)=>{const d=i>0?diffs[i-1]:null;rows.push([s.date, s.label||'', s.total, s.uniqueDomains, d?d.new.length:'-', d?d.lost.length:'-', d?d.net:'-']);});
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='backlink-velocity.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state.snapshots,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='backlink-velocity.json';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('JSON exported','success');
+}
+
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

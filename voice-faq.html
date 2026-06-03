@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Search & FAQ Optimizer - Question Keywords + FAQPage Schema Generator</title>
+<meta name="description" content="Extract question-intent keywords (how, what, where, near me), mine People Also Ask via SERP API, score voice-search readiness, generate FAQPage JSON-LD schema, optimize answer formats for featured snippets. 100% client-side.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#7c3aed; --accent-h:#6d28d9; --accent-soft:rgba(124,58,237,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --code-bg:#0c1828;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#a78bfa; --accent-h:#c4b5fd; --accent-soft:rgba(167,139,250,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+  --code-bg:#040b18;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(124,58,237,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--pink);border:1px solid var(--pink);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.q strong{color:var(--accent)}
+.hdr-stat.faq strong{color:var(--success)}
+.hdr-stat.score strong{color:var(--blue)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT */
+#left{width:320px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{font-family:var(--mono);min-height:50px;resize:vertical;line-height:1.5}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.tpills{display:flex;flex-wrap:wrap;gap:4px}
+.tpill{padding:5px 10px;border-radius:5px;font-size:10.5px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.tpill:hover{border-color:var(--accent);color:var(--accent)}
+.tpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.pp-row{display:flex;flex-wrap:wrap;gap:4px}
+.pp{padding:5px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.pp:hover{border-color:var(--accent);color:var(--accent)}
+.pp.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pp .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 4px;border-radius:3px;margin-left:4px}
+.pp:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px}
+.tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.scard.ok::before{background:var(--success)}
+.scard.warn::before{background:var(--amber)}
+.scard.bad::before{background:var(--danger)}
+.scard-label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px}
+.scard-val{font-size:24px;font-weight:800;color:var(--text);margin-top:4px;font-family:var(--mono);line-height:1.1}
+.scard.ok .scard-val{color:var(--success)}
+.scard.warn .scard-val{color:var(--amber)}
+.scard.bad .scard-val{color:var(--danger)}
+.scard-sub{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+/* QUESTION CARDS */
+.qcard{padding:12px 14px;border-bottom:1px solid var(--border);transition:background .12s}
+.qcard:last-child{border-bottom:none}
+.qcard:hover{background:var(--bg3)}
+.qcard .qh{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.qcard .qtype{width:24px;height:24px;border-radius:5px;color:#fff;font-family:var(--mono);font-weight:800;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--text3)}
+.qcard .qtype.how{background:var(--blue)}
+.qcard .qtype.what{background:var(--purple)}
+.qcard .qtype.where{background:var(--teal)}
+.qcard .qtype.when{background:var(--amber)}
+.qcard .qtype.why{background:var(--pink)}
+.qcard .qtype.who{background:var(--success)}
+.qcard .qtype.can{background:#0891b2}
+.qcard .qtype.is{background:#84cc16}
+.qcard .qtype.near{background:var(--accent)}
+.qcard .qtype.other{background:var(--text3)}
+.qcard .qtext{flex:1;font-size:13px;font-weight:600;color:var(--text);line-height:1.4}
+.qcard .vbadge{font-size:9.5px;font-family:var(--mono);font-weight:800;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px}
+.qcard .vbadge.high{background:rgba(22,163,74,.13);color:var(--success)}
+.qcard .vbadge.med{background:rgba(217,119,6,.13);color:var(--amber)}
+.qcard .vbadge.low{background:var(--bg3);color:var(--text3)}
+.qcard .source-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;padding:1px 5px;border-radius:3px;background:var(--bg);color:var(--text2);border:1px solid var(--border);text-transform:uppercase}
+.qcard .qmeta{display:flex;gap:8px;font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:5px;flex-wrap:wrap}
+.qcard .qmeta strong{color:var(--text2)}
+.qcard .ans-wrap{margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:6px;border-left:3px solid var(--accent)}
+.qcard .ans-wrap .ans-label{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.qcard .ans-wrap .ans-text{font-size:12px;color:var(--text);line-height:1.55;white-space:pre-wrap}
+.qcard .qactions{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.qcard .qactions button{padding:4px 9px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:4px}
+.qcard .qactions button:hover{border-color:var(--accent);color:var(--accent)}
+.qcard .qactions .select{margin-left:auto}
+.qcard .qactions .select.selected{background:var(--success);border-color:var(--success);color:#fff}
+
+.code-out{background:var(--code-bg);color:#e2ecf8;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11.5px;line-height:1.55;overflow:auto;max-height:500px;white-space:pre-wrap;word-break:break-word}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+.progress-line{height:3px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));width:0;transition:width .3s}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:320px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </div>
+    <div><div class="logo-name">Voice<span>FAQ</span></div></div>
+    <span class="logo-tag">QA</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat q"><strong id="stat-q">0</strong> questions</div>
+  <div class="hdr-stat faq"><strong id="stat-faq">0</strong> with answers</div>
+  <div class="hdr-stat score">Voice: <strong id="stat-score">—</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="content-brief.html" class="hdr-link" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Brief
+  </a>
+  <a href="schema-generator.html" class="hdr-link" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Schema
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Discovery</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Topic & Context</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Topic / service / keyword</label><input id="i-topic" placeholder="emergency plumber" oninput="saveInputs()"></div>
+          <div class="row2">
+            <div class="f"><label>Brand</label><input id="i-brand" placeholder="Acme" oninput="saveInputs()"></div>
+            <div class="f"><label>City</label><input id="i-city" placeholder="Boston" oninput="saveInputs()"></div>
+          </div>
+          <div class="f"><label>Country</label><select id="i-country" onchange="saveInputs()">
+            <option value="us">US</option><option value="ca">CA</option><option value="uk">UK</option><option value="au">AU</option><option value="in">IN</option>
+          </select></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Question Patterns to Generate</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="tpills" id="pattern-pills">
+            <button class="tpill active" data-p="how">how</button>
+            <button class="tpill active" data-p="what">what</button>
+            <button class="tpill active" data-p="where">where</button>
+            <button class="tpill active" data-p="when">when</button>
+            <button class="tpill" data-p="why">why</button>
+            <button class="tpill" data-p="who">who</button>
+            <button class="tpill active" data-p="can">can/do</button>
+            <button class="tpill" data-p="is">is/are</button>
+            <button class="tpill active" data-p="near">near me</button>
+            <button class="tpill" data-p="cost">how much</button>
+          </div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>SERP Mining (PAA)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="prov-pills"></div>
+          <div id="prov-cfg"></div>
+          <div class="f"><div class="hint">Mines "People Also Ask" + Related Searches from Google SERP. Optional but recommended — gives real-world questions Google is already showing.</div></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Answer Generation (optional)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="ai-pills"></div>
+          <div id="ai-cfg"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="discover()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="7" x2="11" y2="15"/><line x1="7" y1="11" x2="15" y2="11"/></svg>
+        Discover Questions
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="answerSelected()">✨ AI Answer Selected</button>
+        <button class="btn-sub" onclick="exportSchema()">JSON-LD</button>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="addManual()">+ Manual</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="questions" onclick="setTab('questions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Questions <span class="count" id="ct-q">0</span>
+      </button>
+      <button class="tab" data-tab="dashboard" onclick="setTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Voice Score
+      </button>
+      <button class="tab" data-tab="schema" onclick="setTab('schema')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        FAQPage Schema
+      </button>
+      <button class="tab" data-tab="patterns" onclick="setTab('patterns')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>
+        Patterns Guide
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready — set topic and click Discover</span>
+  </div>
+  <div class="ft-item"><span>SERP: <strong id="ft-prov">none</strong> · AI: <strong id="ft-ai">offline</strong></span></div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * VOICE SEARCH & FAQ OPTIMIZER
+ * Discover question keywords, score voice-readiness, generate FAQPage schema
+ * ========================================================================== */
+
+/* ---------- PATTERNS ---------- */
+const PATTERNS = {
+  how:   (t, ctx)=>[
+    `how to ${t}`, `how do I ${t}`, `how can I ${t}`,
+    `how does ${t} work`, `how long does ${t} take`,
+    ctx.city?`how to find a ${t} in ${ctx.city}`:`how to find a ${t}`,
+    `how to choose the best ${t}`, `how to avoid ${t} mistakes`,
+  ],
+  what:  (t, ctx)=>[
+    `what is ${t}`, `what does a ${t} do`, `what causes ${t}`,
+    `what to do when ${t}`, `what to look for in a ${t}`,
+    `what is the best ${t}${ctx.city?' in '+ctx.city:''}`,
+    `what should I know before hiring a ${t}`, `what does ${t} include`,
+  ],
+  where: (t, ctx)=>[
+    ctx.city?`where to find a ${t} in ${ctx.city}`:`where to find a ${t}`,
+    `where can I get ${t}`, `where to hire a ${t}`,
+    `where is the nearest ${t}`, `where are the best ${t}s`,
+  ],
+  when:  (t, ctx)=>[
+    `when to call a ${t}`, `when to hire a ${t}`, `when do you need a ${t}`,
+    `when is ${t} an emergency`, `when should I get ${t}`, `when does ${t} happen`,
+  ],
+  why:   (t, ctx)=>[
+    `why do I need a ${t}`, `why is ${t} important`, `why does ${t} happen`,
+    `why hire a ${t}`, `why ${t} is expensive`, `why choose a ${t}`,
+  ],
+  who:   (t, ctx)=>[
+    `who is the best ${t}${ctx.city?' in '+ctx.city:''}`,
+    `who to call for ${t}`, `who does ${t}`, `who needs a ${t}`,
+  ],
+  can:   (t, ctx)=>[
+    `can a ${t} ${ctx.city?'come to '+ctx.city:'help'}`,
+    `do you need a ${t}`, `does a ${t} include`, `can I do ${t} myself`,
+    `can ${t} be fixed`, `should I hire a ${t}`,
+  ],
+  is:    (t, ctx)=>[
+    `is ${t} worth it`, `is ${t} expensive`, `is ${t} dangerous`,
+    `is a ${t} necessary`, `are ${t}s licensed`, `is ${t} covered by insurance`,
+  ],
+  near:  (t, ctx)=>[
+    `${t} near me`, `${t} near my location`, `${t} close to me`,
+    `${t} nearby`, `closest ${t}`, `local ${t}`,
+  ],
+  cost:  (t, ctx)=>[
+    `how much does ${t} cost`, `how much is ${t}`, `${t} prices`,
+    `${t} pricing${ctx.city?' '+ctx.city:''}`, `average cost of ${t}`,
+    `${t} cost calculator`, `how much should ${t} cost`,
+  ],
+};
+
+const VOICE_BOOSTERS = ['near me','nearby','closest','open now','tonight','today','this morning','this afternoon','best','top-rated','reviews','price','cost','how much','where','when','what time'];
+
+const QUESTION_STARTS = ['how','what','where','when','why','who','which','can','do','does','is','are','should','will','would','could'];
+
+/* ---------- PROVIDERS ---------- */
+const SERP_PROVIDERS = {
+  serper: {label:'Serper', free:'2,500', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,country,key}){
+      const r = await fetch('https://google.serper.dev/search', {method:'POST', headers:{'X-API-KEY':key.key,'Content-Type':'application/json'}, body:JSON.stringify({q:query, gl:country||'us'})});
+      if(!r.ok) throw new Error('Serper '+r.status); const j = await r.json();
+      return {paa:(j.peopleAlsoAsk||[]).map(p=>p.question), related:(j.relatedSearches||[]).map(r=>r.query), organic:(j.organic||[]).map(o=>({title:o.title, snippet:o.snippet}))};
+    },
+    async autocomplete({query,country,key}){
+      try { const r = await fetch('https://google.serper.dev/autocomplete', {method:'POST', headers:{'X-API-KEY':key.key,'Content-Type':'application/json'}, body:JSON.stringify({q:query, gl:country||'us'})}); if(!r.ok) return []; const j = await r.json(); return (j.suggestions||[]).map(s=>s.value||s).filter(Boolean); } catch(e){ return []; }
+    }
+  },
+  serpapi: {label:'SerpAPI', free:'100/mo', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,country,key}){
+      const r = await fetch(`https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(query)}&gl=${country||'us'}&api_key=${encodeURIComponent(key.key)}`);
+      if(!r.ok) throw new Error('SerpAPI '+r.status); const j = await r.json();
+      return {paa:(j.related_questions||[]).map(p=>p.question), related:(j.related_searches||[]).map(r=>r.query), organic:(j.organic_results||[]).map(o=>({title:o.title, snippet:o.snippet}))};
+    },
+    async autocomplete({query,country,key}){
+      try { const r = await fetch(`https://serpapi.com/search.json?engine=google_autocomplete&q=${encodeURIComponent(query)}&gl=${country||'us'}&api_key=${encodeURIComponent(key.key)}`); if(!r.ok) return []; const j = await r.json(); return (j.suggestions||[]).map(s=>s.value).filter(Boolean); } catch(e){ return []; }
+    }
+  },
+  valueserp: {label:'ValueSERP', free:'100/mo', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,country,key}){
+      const r = await fetch(`https://api.valueserp.com/search?api_key=${encodeURIComponent(key.key)}&q=${encodeURIComponent(query)}&gl=${country||'us'}`);
+      if(!r.ok) throw new Error('ValueSERP '+r.status); const j = await r.json();
+      return {paa:(j.related_questions||[]).map(p=>p.question), related:(j.related_searches||[]).map(r=>r.query), organic:(j.organic_results||[]).map(o=>({title:o.title, snippet:o.snippet}))};
+    },
+    async autocomplete(){ return []; }
+  },
+};
+
+const AI_PROVIDERS = {
+  gemini: {label:'Gemini', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    note:'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+    async ask(prompt, keys){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const j = await res.json(); return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  },
+  openai: {label:'OpenAI', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.5})});
+      if(!r.ok) throw new Error('OpenAI '+r.status); const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  claude: {label:'Claude', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1500, messages:[{role:'user',content:prompt}]})});
+      if(!r.ok) throw new Error('Claude '+r.status); const j = await r.json(); return j.content?.[0]?.text || '';
+    }
+  },
+  groq: {label:'Groq', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.5})});
+      if(!r.ok) throw new Error('Groq '+r.status); const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+};
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'vf_state_v1';
+const defaultState = {
+  inputs: {topic:'', brand:'', city:'', country:'us'},
+  patterns: ['how','what','where','when','can','near'],
+  serp: {provider:'serper', keys:{}},
+  ai: {provider:'gemini', keys:{}},
+  questions: [],  // [{id, q, source, type, voiceScore, selected, answer}]
+  view: 'questions',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+// Inherit
+(function inherit(){
+  try {
+    if(!Object.keys(state.serp.keys).length){
+      const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+      if(cf?.settings?.keys){ state.serp.keys = clone(cf.settings.keys); state.serp.provider = cf.settings.provider || state.serp.provider; }
+    }
+    if(!Object.keys(state.ai.keys).length){
+      ['gbp_state_v1','rr_state_v1','ai_state_v1','kw_state_v1','ps_state_v1','sm_state_v1','cb_state_v1','ctr_state_v1'].forEach(k=>{
+        const o = JSON.parse(localStorage.getItem(k)||'null');
+        if(o?.ai?.keys){ Object.entries(o.ai.keys).forEach(([id, keys])=>{if(keys.key && !state.ai.keys[id]?.key) state.ai.keys[id] = clone(keys);}); }
+      });
+    }
+    if(!state.inputs.topic){
+      const kw = JSON.parse(localStorage.getItem('kw_state_v1')||'null');
+      const sel = kw?.keywords?.filter(k=>k.selected)?.[0];
+      if(sel) state.inputs.topic = sel.kw;
+    }
+    if(!state.inputs.brand){
+      const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+      const b = cf?.businesses?.[0];
+      if(b){ state.inputs.brand = b.name||state.inputs.brand; state.inputs.city = state.inputs.city||b.city||''; }
+    }
+  } catch(e){}
+  saveState();
+})();
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function classifyType(q){
+  const l = q.toLowerCase().trim();
+  if(/^how /.test(l)) return 'how';
+  if(/^what /.test(l)) return 'what';
+  if(/^where /.test(l)) return 'where';
+  if(/^when /.test(l)) return 'when';
+  if(/^why /.test(l)) return 'why';
+  if(/^who /.test(l)) return 'who';
+  if(/^(can|do|does|should|will|would|could) /.test(l)) return 'can';
+  if(/^(is|are) /.test(l)) return 'is';
+  if(/near (me|my)/.test(l)) return 'near';
+  if(/^how much/.test(l)) return 'cost';
+  return 'other';
+}
+
+function voiceScore(q){
+  const l = q.toLowerCase();
+  let score = 30; // base
+  // Starts with question word
+  if(QUESTION_STARTS.some(s=>l.startsWith(s+' '))) score += 25;
+  // Has voice booster
+  if(VOICE_BOOSTERS.some(b=>l.includes(b))) score += 20;
+  // Length appropriate (4-12 words ideal for voice)
+  const wordCount = l.split(/\s+/).length;
+  if(wordCount>=4 && wordCount<=12) score += 15;
+  else if(wordCount>=3 && wordCount<=15) score += 8;
+  // Natural language (vs keyword stuffing) — no double spaces, contractions OK
+  if(!/\s{2,}/.test(l) && /^[a-z]/.test(l)) score += 5;
+  // Ends with ? (cleaner)
+  if(q.trim().endsWith('?')) score += 5;
+  return Math.min(100, score);
+}
+
+/* ---------- INPUTS ---------- */
+function saveInputs(){
+  state.inputs.topic = document.getElementById('i-topic').value.trim();
+  state.inputs.brand = document.getElementById('i-brand').value.trim();
+  state.inputs.city = document.getElementById('i-city').value.trim();
+  state.inputs.country = document.getElementById('i-country').value;
+  saveState();
+}
+function fillInputs(){
+  document.getElementById('i-topic').value = state.inputs.topic||'';
+  document.getElementById('i-brand').value = state.inputs.brand||'';
+  document.getElementById('i-city').value = state.inputs.city||'';
+  document.getElementById('i-country').value = state.inputs.country||'us';
+  // Pattern pills
+  document.querySelectorAll('#pattern-pills .tpill').forEach(b=>{
+    b.classList.toggle('active', state.patterns.includes(b.dataset.p));
+    b.onclick = ()=>{const p = b.dataset.p; if(state.patterns.includes(p)) state.patterns = state.patterns.filter(x=>x!==p); else state.patterns.push(p); b.classList.toggle('active'); saveState();};
+  });
+  // SERP pills
+  document.getElementById('prov-pills').innerHTML = Object.entries(SERP_PROVIDERS).map(([id,p])=>`<button class="pp ${state.serp.provider===id?'active':''}" onclick="selSerp('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderSerpCfg();
+  document.getElementById('ai-pills').innerHTML = Object.entries(AI_PROVIDERS).map(([id,p])=>`<button class="pp ${state.ai.provider===id?'active':''}" onclick="selAi('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderAiCfg();
+}
+function selSerp(id){state.serp.provider=id;saveState();document.querySelectorAll('#prov-pills .pp').forEach(b=>b.classList.toggle('active',b.textContent.includes(SERP_PROVIDERS[id].label)));renderSerpCfg();}
+function renderSerpCfg(){
+  const p=SERP_PROVIDERS[state.serp.provider]; const k=state.serp.keys[state.serp.provider]||{};
+  document.getElementById('prov-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="serp-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveSerpKey()"></div>`).join('');
+  document.getElementById('ft-prov').textContent = p.label;
+}
+function saveSerpKey(){const p=SERP_PROVIDERS[state.serp.provider]; const keys=state.serp.keys[state.serp.provider]||{}; p.fields.forEach(f=>{keys[f.key]=document.getElementById('serp-'+f.key).value.trim();}); state.serp.keys[state.serp.provider]=keys; saveState();}
+function selAi(id){state.ai.provider=id;saveState();document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active',b.textContent.includes(AI_PROVIDERS[id].label)));renderAiCfg();}
+function renderAiCfg(){
+  const p=AI_PROVIDERS[state.ai.provider]; const k=state.ai.keys[state.ai.provider]||{};
+  document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('') + (p.note?`<div class="f"><div class="hint">${p.note}</div></div>`:'');
+  document.getElementById('ft-ai').textContent = state.ai.keys[state.ai.provider]?.key ? p.label : 'offline';
+}
+function saveAiKey(){const p=AI_PROVIDERS[state.ai.provider]; const keys=state.ai.keys[state.ai.provider]||{}; p.fields.forEach(f=>{keys[f.key]=document.getElementById('ai-'+f.key).value.trim();}); state.ai.keys[state.ai.provider]=keys; saveState(); document.getElementById('ft-ai').textContent = keys.key ? AI_PROVIDERS[state.ai.provider].label : 'offline';}
+
+/* ---------- DISCOVER ---------- */
+async function discover(){
+  saveInputs();
+  if(!state.inputs.topic){ toast('Set topic first','err'); return; }
+  const t = state.inputs.topic.toLowerCase();
+  const ctx = {brand:state.inputs.brand, city:state.inputs.city, country:state.inputs.country};
+  const seen = new Set(state.questions.map(q=>q.q.toLowerCase()));
+
+  function add(q, source){
+    const clean = q.trim().replace(/\s+/g,' ');
+    if(!clean || clean.length<8 || seen.has(clean.toLowerCase())) return;
+    seen.add(clean.toLowerCase());
+    const text = clean.charAt(0).toUpperCase()+clean.slice(1)+(clean.endsWith('?')?'':'?');
+    state.questions.push({id:uid(), q:text, source, type:classifyType(text), voiceScore:voiceScore(text), selected:false, answer:''});
+  }
+
+  // 1. Template-based
+  state.patterns.forEach(p=>{
+    (PATTERNS[p]||(()=>[]))(t, ctx).forEach(q=>add(q, 'template:'+p));
+  });
+  document.getElementById('prog-fill').style.width = '20%';
+
+  // 2. SERP PAA + Related + Autocomplete
+  const sp = SERP_PROVIDERS[state.serp.provider]; const keys = state.serp.keys[state.serp.provider]||{};
+  if(sp.fields.every(f=>keys[f.key])){
+    document.getElementById('ft-status').textContent = 'Mining SERP...';
+    // PAA from base query
+    try {
+      const r = await sp.search({query: state.inputs.topic + (state.inputs.city?' '+state.inputs.city:''), country:state.inputs.country, key:keys});
+      (r.paa||[]).forEach(q=>add(q, 'paa'));
+      (r.related||[]).forEach(q=>{ if(/[?]|^how|^what|^where|^when|^why|^who|^can|^do |^should/i.test(q)) add(q, 'related'); });
+    } catch(e){ toast('SERP failed: '+e.message,'err'); }
+    document.getElementById('prog-fill').style.width = '50%';
+    // Autocomplete from key question starters
+    if(sp.autocomplete){
+      const seeds = ['how', 'what', 'where', state.inputs.topic, state.inputs.topic+' near'];
+      for(const s of seeds){
+        try { const sugg = await sp.autocomplete({query: s+' '+state.inputs.topic, country:state.inputs.country, key:keys}); sugg.forEach(q=>{ if(/[?]|^how|^what|^where|^when|^why|^who|^can|^do |^should/i.test(q)) add(q, 'autocomplete'); }); } catch(e){}
+        await sleep(200);
+      }
+    }
+    // PAA expansion: fetch PAA for top 3 generated questions for deeper expansion
+    const topGen = state.questions.filter(q=>q.source.startsWith('template')).slice(0,3);
+    for(const tq of topGen){
+      try { const r2 = await sp.search({query: tq.q, country:state.inputs.country, key:keys}); (r2.paa||[]).forEach(q=>add(q, 'paa-deep')); } catch(e){}
+      await sleep(200);
+    }
+  }
+
+  saveState();
+  document.getElementById('prog-fill').style.width = '100%';
+  setTimeout(()=>document.getElementById('prog-fill').style.width = '0', 600);
+  document.getElementById('ft-status').textContent = `Discovered ${state.questions.length} questions`;
+  renderAll();
+  toast(`Discovered ${state.questions.length} questions`,'success');
+}
+
+/* ---------- ANSWER ---------- */
+async function answerSelected(){
+  const selected = state.questions.filter(q=>q.selected && !q.answer);
+  if(!selected.length){ toast('Select questions first (check the boxes)','err'); return; }
+  const ai = AI_PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  if(!keys?.key){ toast('Configure AI in left panel','err'); return; }
+  document.getElementById('prog-fill').style.width = '5%';
+  let done = 0;
+  for(const q of selected){
+    try {
+      const prompt = `You are writing concise FAQ answers for a local business${state.inputs.brand?' called '+state.inputs.brand:''}${state.inputs.city?' in '+state.inputs.city:''} that does ${state.inputs.topic}.
+
+QUESTION: ${q.q}
+
+Write a 40-80 word answer:
+- Direct, no fluff
+- Starts with the answer (not "great question!")
+- Specific to ${state.inputs.brand||'this business'} where possible
+- Optimized for voice / featured snippets — conversational, natural sentences
+- Include 1 specific number or named entity if relevant
+- End with a soft CTA only if natural
+
+Output ONLY the answer text. No labels, no markdown, no preamble.`;
+      const ans = await ai.ask(prompt, keys);
+      q.answer = ans.trim().replace(/^"|"$/g,'');
+      done++;
+      document.getElementById('prog-fill').style.width = (done/selected.length*100)+'%';
+      document.getElementById('ft-status').textContent = `Answered ${done}/${selected.length}`;
+      saveState(); renderAll();
+      await sleep(300);
+    } catch(e){ toast('AI failed for one: '+e.message,'err'); }
+  }
+  document.getElementById('prog-fill').style.width = '0';
+  toast(`Answered ${done} questions`,'success');
+}
+
+function toggleSel(id){const q=state.questions.find(x=>x.id===id); if(q){ q.selected = !q.selected; saveState(); renderAll();}}
+function delQ(id){state.questions = state.questions.filter(q=>q.id!==id); saveState(); renderAll();}
+function addManual(){
+  const q = prompt('Enter a question:'); if(!q) return;
+  state.questions.push({id:uid(), q, source:'manual', type:classifyType(q), voiceScore:voiceScore(q), selected:true, answer:''});
+  saveState(); renderAll();
+}
+function clearAll(){ if(!confirm('Clear all questions?')) return; state.questions=[]; saveState(); renderAll();}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderCenter();}
+
+function renderAll(){
+  document.getElementById('stat-q').textContent = state.questions.length;
+  document.getElementById('stat-faq').textContent = state.questions.filter(q=>q.answer).length;
+  document.getElementById('ct-q').textContent = state.questions.length;
+  // Average voice score
+  if(state.questions.length){
+    const avg = Math.round(state.questions.reduce((s,q)=>s+(q.voiceScore||0),0)/state.questions.length);
+    document.getElementById('stat-score').textContent = avg+'%';
+  } else { document.getElementById('stat-score').textContent = '—'; }
+  renderCenter();
+}
+
+function renderCenter(){
+  const body = document.getElementById('cbody');
+  if(state.view==='questions') return renderQuestions(body);
+  if(state.view==='dashboard') return renderDashboard(body);
+  if(state.view==='schema') return renderSchema(body);
+  if(state.view==='patterns') return renderPatterns(body);
+}
+
+function renderQuestions(body){
+  if(!state.questions.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><div class="et">Voice Search & FAQ Optimizer</div><div class="ed">Discover questions real people ask about your service: template generation (how/what/where/when/can/near me/cost), Google PAA mining, autocomplete expansion. Voice-search score per question, AI-generated answers, ready-to-paste FAQPage JSON-LD.</div></div></div>`;
+    return;
+  }
+  // Sort by voice score desc
+  const sorted = state.questions.slice().sort((a,b)=>(b.voiceScore||0)-(a.voiceScore||0));
+  const typeCounts = {};
+  state.questions.forEach(q=>{typeCounts[q.type] = (typeCounts[q.type]||0)+1;});
+  body.innerHTML = `
+    <div style="margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <strong style="font-size:11px;color:var(--text2)">Filter:</strong>
+      ${Object.entries(typeCounts).map(([t,n])=>`<span style="padding:4px 9px;border-radius:5px;background:var(--bg3);font-family:var(--mono);font-size:10.5px;color:var(--text2);font-weight:700">${t} (${n})</span>`).join('')}
+      <button class="cb-btn" style="margin-left:auto" onclick="selectAll(true)">Select all</button>
+      <button class="cb-btn" onclick="selectAll(false)">Clear sel</button>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Discovered Questions</h3><span class="badge">${sorted.length}</span></div><div style="padding:0">
+      ${sorted.map(q=>`<div class="qcard">
+        <div class="qh">
+          <div class="qtype ${q.type}">${q.type.toUpperCase().slice(0,3)}</div>
+          <div class="qtext">${escapeHtml(q.q)}</div>
+          <span class="vbadge ${q.voiceScore>=70?'high':q.voiceScore>=50?'med':'low'}">${q.voiceScore}</span>
+        </div>
+        <div class="qmeta"><span class="source-tag">${escapeHtml(q.source.split(':')[0])}</span>${q.answer?'<span style="color:var(--success);font-weight:700">✓ Answered</span>':''}</div>
+        ${q.answer?`<div class="ans-wrap"><div class="ans-label">Answer</div><div class="ans-text">${escapeHtml(q.answer)}</div></div>`:''}
+        <div class="qactions">
+          <button onclick="copyQ('${q.id}')">📋 Copy</button>
+          <button onclick="editAnswer('${q.id}')">${q.answer?'Edit answer':'+ Add answer'}</button>
+          <button onclick="delQ('${q.id}')">Delete</button>
+          <button class="select ${q.selected?'selected':''}" onclick="toggleSel('${q.id}')">${q.selected?'✓ Selected':'Select'}</button>
+        </div>
+      </div>`).join('')}
+    </div></div>
+  `;
+}
+
+function selectAll(v){state.questions.forEach(q=>q.selected=v); saveState(); renderAll();}
+function copyQ(id){const q=state.questions.find(x=>x.id===id); if(!q) return; navigator.clipboard.writeText(q.q+(q.answer?'\n\n'+q.answer:'')); toast('Copied','success');}
+function editAnswer(id){const q=state.questions.find(x=>x.id===id); if(!q) return; const a=prompt('Answer (≤80 words ideal for voice):', q.answer||''); if(a===null) return; q.answer=a.trim(); saveState(); renderAll();}
+
+function renderDashboard(body){
+  if(!state.questions.length){renderQuestions(body); return;}
+  const total = state.questions.length;
+  const answered = state.questions.filter(q=>q.answer).length;
+  const avgScore = Math.round(state.questions.reduce((s,q)=>s+(q.voiceScore||0),0)/total);
+  const high = state.questions.filter(q=>q.voiceScore>=70).length;
+  const fromPaa = state.questions.filter(q=>q.source.startsWith('paa')).length;
+  const fromAuto = state.questions.filter(q=>q.source==='autocomplete').length;
+  // Type distribution
+  const typeCounts = {};
+  state.questions.forEach(q=>{typeCounts[q.type] = (typeCounts[q.type]||0)+1;});
+  body.innerHTML = `
+    <div class="summary">
+      <div class="scard"><div class="scard-label">Total Questions</div><div class="scard-val">${total}</div></div>
+      <div class="scard ${avgScore>=70?'ok':avgScore>=50?'warn':'bad'}"><div class="scard-label">Avg Voice Score</div><div class="scard-val">${avgScore}%</div><div class="scard-sub">${high} high-voice</div></div>
+      <div class="scard ${answered/total>=.5?'ok':'warn'}"><div class="scard-label">Answered</div><div class="scard-val">${answered}/${total}</div><div class="scard-sub">${Math.round(answered/total*100)}%</div></div>
+      <div class="scard"><div class="scard-label">From Google PAA</div><div class="scard-val">${fromPaa}</div><div class="scard-sub">real questions</div></div>
+      <div class="scard"><div class="scard-label">From Autocomplete</div><div class="scard-val">${fromAuto}</div></div>
+      <div class="scard"><div class="scard-label">Question Types</div><div class="scard-val" style="font-size:14px;font-family:var(--font);line-height:1.4">${Object.keys(typeCounts).length}</div><div class="scard-sub">${Object.keys(typeCounts).join(', ')}</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Voice Search Optimization Checklist</h3></div><div style="padding:14px;font-size:12.5px;line-height:1.65">
+      ${[
+        {label:'Discovered 20+ questions', ok:total>=20, hint:'Aim for 30-50 to cover the topic thoroughly.'},
+        {label:'80%+ have answers', ok:answered/total>=0.8, hint:'Use AI Answer Selected to fill gaps.'},
+        {label:'Avg voice score ≥ 70%', ok:avgScore>=70, hint:'High voice scores = better featured snippet eligibility.'},
+        {label:'Questions from PAA (real-world)', ok:fromPaa>=3, hint:'Add a SERP key to mine People Also Ask.'},
+        {label:'Mix of question types', ok:Object.keys(typeCounts).length>=4, hint:'Cover how / what / where / when / can at minimum.'},
+        {label:'Answers are 40-80 words', ok:state.questions.filter(q=>q.answer && q.answer.split(/\s+/).length>=40 && q.answer.split(/\s+/).length<=80).length/(answered||1)>=0.6, hint:'Sweet spot for voice + featured snippet.'},
+      ].map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="width:22px;height:22px;border-radius:50%;background:${c.ok?'var(--success)':'var(--text3)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">${c.ok?'✓':'·'}</span><div style="flex:1"><strong>${c.label}</strong>${!c.ok?`<div style="font-size:11px;color:var(--text2)">${c.hint}</div>`:''}</div></div>`).join('')}
+    </div></div>
+  `;
+}
+
+function renderSchema(body){
+  const answered = state.questions.filter(q=>q.answer);
+  if(!answered.length){body.innerHTML = '<div class="empty"><div class="et">No answered questions yet</div><div class="ed">Select questions and click <strong>AI Answer Selected</strong> first, or add manual answers.</div></div>'; return;}
+  const schema = {
+    '@context':'https://schema.org',
+    '@type':'FAQPage',
+    mainEntity: answered.map(q=>({
+      '@type':'Question',
+      name: q.q,
+      acceptedAnswer: {'@type':'Answer', text:q.answer},
+    })),
+  };
+  const json = JSON.stringify(schema, null, 2);
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>FAQPage JSON-LD (${answered.length} questions)</h3>
+      <button class="cb-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(json).replace(/"/g,'&quot;')});toast('Copied','success')">📋 Copy</button>
+      <button class="cb-btn primary" onclick="downloadSchema()">⬇ Download</button>
+    </div><div style="padding:14px"><pre class="code-out">${escapeHtml(json)}</pre></div></div>
+    <div class="section"><div class="section-hdr"><h3>HTML &lt;script&gt; tag (paste in &lt;head&gt;)</h3></div><div style="padding:14px"><pre class="code-out" style="font-size:11px">${escapeHtml(`<script type="application/ld+json">\n${json}\n</`+`script>`)}</pre></div></div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text2);line-height:1.6;padding:10px 14px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--accent)"><strong>Tips for FAQPage rich results:</strong> Answers must visibly appear on the same page as the schema. Don't hide them in &lt;details&gt; if they're not expanded by default — Google needs to see them. Use this on a relevant page (service page, blog post), not a dedicated FAQ-only page if possible.</div>
+  `;
+}
+
+function downloadSchema(){
+  const answered = state.questions.filter(q=>q.answer);
+  const schema = {'@context':'https://schema.org','@type':'FAQPage', mainEntity: answered.map(q=>({'@type':'Question', name:q.q, acceptedAnswer:{'@type':'Answer', text:q.answer}}))};
+  const blob = new Blob([JSON.stringify(schema, null, 2)], {type:'application/ld+json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`faq-schema-${(state.inputs.topic||'faq').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.json`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Downloaded','success');
+}
+
+function renderPatterns(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Voice Search Optimization Patterns</h3></div><div style="padding:14px;font-size:13px;line-height:1.7">
+      <p style="color:var(--text2);margin-bottom:14px">Voice search behaves differently from typed search. Here's what works.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:14px 0 6px">1. Conversational, long-tail queries</h4>
+      <p style="font-size:12px;color:var(--text2)">Voice users speak in full sentences. "What's the best plumber near me right now?" not "best plumber Boston".</p>
+      <p style="font-size:12px;color:var(--text2);margin-top:5px"><strong>Optimize:</strong> Include natural, conversational question phrases. Long-tail (5-12 words) is the sweet spot.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">2. Local + immediate intent</h4>
+      <p style="font-size:12px;color:var(--text2)">Voice queries are 3× more likely to be local. "near me", "open now", "tonight", "today" are high-intent voice triggers.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">3. Answer format: direct + concise</h4>
+      <p style="font-size:12px;color:var(--text2)">Voice assistants read the first 1-2 sentences. Featured snippets are typically 40-60 words. Aim for clear, direct answers — don't bury the lede.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">4. Use natural language + entities</h4>
+      <p style="font-size:12px;color:var(--text2)">Mention the entity (city, neighborhood, brand, person, named service). Google's voice answers love specific named things.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">5. FAQPage schema (this tool's output)</h4>
+      <p style="font-size:12px;color:var(--text2)">Marks individual Q&A pairs for Google. Doesn't directly cause voice answer pickup but increases featured snippet probability + rich SERP appearance.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">6. Position #1 still matters</h4>
+      <p style="font-size:12px;color:var(--text2)">Google rarely reads from a result below position 3 for voice. Voice optimization works best when you can rank organically in top 3 first.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">Question types and their voice value</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px"><thead><tr style="background:var(--bg3)"><th style="text-align:left;padding:7px">Type</th><th style="text-align:left;padding:7px">Voice value</th><th style="text-align:left;padding:7px">Notes</th></tr></thead><tbody>
+        <tr><td style="padding:7px;border-bottom:1px solid var(--border)"><strong>Near me</strong></td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--success);font-weight:700">VERY HIGH</td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--text2)">Top voice query type for local businesses.</td></tr>
+        <tr><td style="padding:7px;border-bottom:1px solid var(--border)"><strong>How much / Cost</strong></td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--success);font-weight:700">HIGH</td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--text2)">Frequent voice intent for services.</td></tr>
+        <tr><td style="padding:7px;border-bottom:1px solid var(--border)"><strong>How (to/do)</strong></td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--success);font-weight:700">HIGH</td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--text2)">Strong featured-snippet candidate.</td></tr>
+        <tr><td style="padding:7px;border-bottom:1px solid var(--border)"><strong>When/Where</strong></td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--blue);font-weight:700">MEDIUM</td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--text2)">Often answered by GBP directly.</td></tr>
+        <tr><td style="padding:7px;border-bottom:1px solid var(--border)"><strong>What is</strong></td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--blue);font-weight:700">MEDIUM</td><td style="padding:7px;border-bottom:1px solid var(--border);color:var(--text2)">Featured snippet eligible.</td></tr>
+        <tr><td style="padding:7px"><strong>Why</strong></td><td style="padding:7px;color:var(--amber);font-weight:700">LOW</td><td style="padding:7px;color:var(--text2)">Less common in voice; more typed/research.</td></tr>
+      </tbody></table>
+    </div></div>
+  `;
+}
+
+/* ---------- EXPORTS ---------- */
+function exportCSV(){
+  if(!state.questions.length){toast('No data','err'); return;}
+  const rows = [['question','type','source','voice_score','selected','answer']];
+  state.questions.forEach(q=>rows.push([q.q, q.type, q.source, q.voiceScore, q.selected?'yes':'no', q.answer||'']));
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`voice-faq-${(state.inputs.topic||'topic').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+function exportSchema(){
+  if(state.view!=='schema') setTab('schema');
+  setTimeout(()=>downloadSchema(), 100);
+}
+
+/* ---------- BOOT ---------- */
+fillInputs();
+renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

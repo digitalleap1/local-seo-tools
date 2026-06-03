@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTR Title Lab - Title Tag & Meta Description Optimization with CTR Prediction</title>
+<meta name="description" content="A/B variants of titles + meta descriptions with predicted CTR based on position-CTR curves, length/word/emoji checks, SERP preview, AI-generated alternatives, competitor SERP analysis. 100% client-side.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#db2777; --accent-h:#be185d; --accent-soft:rgba(219,39,119,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#ec4899; --accent-h:#f472b6; --accent-soft:rgba(236,72,153,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(219,39,119,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--purple);border:1px solid var(--purple);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.var strong{color:var(--accent)}
+.hdr-stat.best strong{color:var(--success)}
+.hdr-stat.pos strong{color:var(--blue)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT — INPUTS */
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{font-family:var(--font);min-height:54px;resize:vertical;line-height:1.5}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.pp-row{display:flex;flex-wrap:wrap;gap:4px}
+.pp{padding:5px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.pp:hover{border-color:var(--accent);color:var(--accent)}
+.pp.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pp .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 4px;border-radius:3px;margin-left:4px}
+.pp:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+/* VARIANT CARDS */
+.variant-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.variant-card.best{border-color:var(--success);background:rgba(22,163,74,.04);box-shadow:0 0 0 2px rgba(22,163,74,.2)}
+.variant-card.best::before{content:'BEST';position:absolute;top:0;right:0;background:var(--success);color:#fff;font-family:var(--mono);font-size:9px;font-weight:800;padding:3px 9px;border-radius:0 0 0 8px;letter-spacing:.5px}
+.variant-card .vh{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.variant-card .vnum{width:24px;height:24px;border-radius:5px;background:var(--bg3);color:var(--text2);font-family:var(--mono);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.variant-card .vlabel{flex:1;font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.variant-card .vscore{font-family:var(--mono);font-weight:800;font-size:18px;color:var(--text)}
+.variant-card.best .vscore{color:var(--success)}
+
+.serp-preview{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:Arial,sans-serif;color:#202124;margin:8px 0}
+[data-theme="dark"] .serp-preview{background:var(--bg);color:var(--text)}
+.serp-preview .url-line{display:flex;align-items:center;gap:6px;font-size:12px;color:#5f6368;margin-bottom:3px}
+[data-theme="dark"] .serp-preview .url-line{color:var(--text2)}
+.serp-preview .favicon{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.serp-preview .url{font-family:Arial,sans-serif;font-size:14px;color:#202124}
+[data-theme="dark"] .serp-preview .url{color:var(--text)}
+.serp-preview .title{font-size:20px;color:#1a0dab;font-weight:400;line-height:1.3;margin-bottom:3px;cursor:pointer}
+[data-theme="dark"] .serp-preview .title{color:#8ab4f8}
+.serp-preview .desc{font-size:14px;color:#4d5156;line-height:1.5}
+[data-theme="dark"] .serp-preview .desc{color:var(--text2)}
+
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-top:10px}
+.check{padding:7px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:10.5px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono)}
+.check .ck{font-weight:700;color:var(--text2)}
+.check .cv{font-weight:800}
+.check.ok .cv{color:var(--success)}
+.check.warn .cv{color:var(--amber)}
+.check.fail .cv{color:var(--danger)}
+
+.actions{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.actions button{padding:6px 11px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:4px}
+.actions button:hover{border-color:var(--accent);color:var(--accent)}
+.actions .copy{background:var(--accent);border-color:var(--accent);color:#fff;margin-left:auto}
+.actions .copy:hover{background:var(--accent-h)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm)}
+.scard-label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px}
+.scard-val{font-size:24px;font-weight:800;color:var(--text);margin-top:4px;font-family:var(--mono)}
+.scard-sub{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+
+.chart-wrap{position:relative;height:240px;padding:10px 16px 16px}
+
+.progress-line{height:3px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));width:0;transition:width .3s}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div><div class="logo-name">CTR<span>Title Lab</span></div></div>
+    <span class="logo-tag">A/B</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat var"><strong id="stat-var">0</strong> variants</div>
+  <div class="hdr-stat best">Best: <strong id="stat-best">—</strong></div>
+  <div class="hdr-stat pos">Pos: <strong id="stat-pos">—</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="content-brief.html" class="hdr-link" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Brief
+  </a>
+  <a href="page-auditor.html" class="hdr-link" style="border-color:rgba(22,163,74,.4);color:#16a34a">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="14 2 14 8 20 8"/><path d="M4 4v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6a2 2 0 0 0-2 2z"/></svg>
+    Page Audit
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Test Setup</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Target Keyword & Context</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Target keyword</label><input id="i-kw" placeholder="emergency plumber boston" oninput="saveInputs()"></div>
+          <div class="row2">
+            <div class="f"><label>Brand</label><input id="i-brand" placeholder="Acme" oninput="saveInputs()"></div>
+            <div class="f"><label>City</label><input id="i-city" placeholder="Boston" oninput="saveInputs()"></div>
+          </div>
+          <div class="row2">
+            <div class="f"><label>Page URL</label><input id="i-url" placeholder="acme.com/boston" oninput="saveInputs()"></div>
+            <div class="f"><label>Expected position</label><input type="number" id="i-pos" min="1" max="20" value="5" oninput="saveInputs()"></div>
+          </div>
+          <div class="f"><label>Monthly searches (for CTR projection)</label><input type="number" id="i-vol" min="0" placeholder="2400" oninput="saveInputs()"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Current Title & Description</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Current title</label><input id="i-cur-title" placeholder="Current title tag" oninput="onCurrentChange()"></div>
+          <div class="f"><label>Current meta description</label><textarea id="i-cur-desc" placeholder="Current meta description" oninput="onCurrentChange()"></textarea></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Variants (optional)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="ai-pills"></div>
+          <div id="ai-cfg"></div>
+          <div class="f"><label>Number of AI variants to generate</label><input type="number" id="i-ai-count" value="6" min="1" max="12" oninput="saveInputs()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="generateVariants()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Generate Variants
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="addManual()">+ Manual</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="variants" onclick="setTab('variants')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Variants
+      </button>
+      <button class="tab" data-tab="ctr" onclick="setTab('ctr')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+        CTR Projection
+      </button>
+      <button class="tab" data-tab="patterns" onclick="setTab('patterns')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="7" x2="7.01" y2="7"/><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+        High-CTR Patterns
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Set current title + keyword, then Generate Variants</span>
+  </div>
+  <div class="ft-item"><span>AI: <strong id="ft-ai">offline</strong></span></div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * CTR TITLE LAB
+ * A/B variants of titles/metas + CTR prediction + AI alternatives
+ * ========================================================================== */
+
+/* ---------- POSITION → CTR CURVE ----------
+ * Based on aggregated industry studies (Advanced Web Ranking 2024, Backlinko, Sistrix).
+ * These are baseline averages — adjusted by feature presence (numbers, brackets, emotion).
+ */
+const POSITION_CTR = {1:.275, 2:.158, 3:.110, 4:.082, 5:.063, 6:.049, 7:.039, 8:.032, 9:.028, 10:.025, 11:.011, 12:.010, 13:.009, 14:.008, 15:.007, 16:.007, 17:.006, 18:.006, 19:.005, 20:.005};
+
+/* ---------- SCORING ENGINE ---------- */
+const POWER_WORDS = ['best','top','expert','proven','guaranteed','trusted','#1','professional','licensed','insured','certified','award-winning','5-star','authentic','official','genuine','exclusive','premium','authoritative','complete','ultimate','essential','official','definitive','comprehensive','master','step-by-step','easy','simple','quick','fast','instant','immediate','same-day','24/7','24-hour','emergency','urgent','tonight','today','new','latest','updated','2026','free','cheap','affordable','low-cost','no obligation','no risk','guarantee','risk-free','first-time'];
+const EMOTION_WORDS = ['amazing','incredible','unbelievable','stunning','shocking','surprising','powerful','effective','smart','clever','easy','hard','simple','difficult','painful','painless','fast','slow','reliable','dependable','honest','trustworthy','transparent','clear','obvious','urgent','critical','vital','essential','important','must-have','need-to-know','warning','beware','avoid','danger','risk','safe','secure','proven','tested','trusted','popular','favorite','loved','hated','best','worst','top','bottom'];
+
+function scoreTitle(title, kw, brand, city){
+  if(!title) return {score:0, checks:[], ctrMultiplier:1};
+  const t = title.toLowerCase();
+  const tkw = (kw||'').toLowerCase();
+  const tbrand = (brand||'').toLowerCase();
+  const tcity = (city||'').toLowerCase();
+  const len = title.length;
+  const words = title.split(/\s+/).filter(Boolean);
+  const checks = [];
+
+  // 1. Length
+  const lenStatus = len>=30 && len<=60 ? 'ok' : (len>=20 && len<=70 ? 'warn' : 'fail');
+  checks.push({label:'Length', value:len+' ch', status:lenStatus, weight:15});
+  // 2. Keyword inclusion
+  const hasKw = tkw && t.includes(tkw);
+  checks.push({label:'Keyword', value: hasKw?'yes':'no', status: hasKw?'ok':'fail', weight:20});
+  // 3. Keyword position (earlier = better)
+  let kwPosScore = 'fail';
+  if(hasKw){
+    const idx = t.indexOf(tkw);
+    kwPosScore = idx<10 ? 'ok' : idx<25 ? 'warn' : 'fail';
+  }
+  checks.push({label:'KW Position', value: hasKw?(t.indexOf(tkw)<10?'front':t.indexOf(tkw)<25?'mid':'late'):'—', status: kwPosScore, weight:10});
+  // 4. Brand inclusion
+  const hasBrand = tbrand && t.includes(tbrand);
+  checks.push({label:'Brand', value: hasBrand?'yes':'no', status: hasBrand?'ok':'warn', weight:8});
+  // 5. City (for local intent)
+  const hasCity = tcity && t.includes(tcity);
+  checks.push({label:'City', value: hasCity?'yes':'no', status: hasCity?'ok':tcity?'warn':'ok', weight:10});
+  // 6. Power words
+  const pw = POWER_WORDS.filter(w=>t.includes(w));
+  checks.push({label:'Power words', value:pw.length+'', status: pw.length>=1?'ok':'warn', weight:10});
+  // 7. Numbers
+  const hasNum = /\d/.test(title);
+  checks.push({label:'Number', value: hasNum?'yes':'no', status: hasNum?'ok':'warn', weight:8});
+  // 8. Brackets / pipe (delimiter)
+  const hasDelim = /[|–\-:•]/.test(title);
+  checks.push({label:'Delimiter', value: hasDelim?'yes':'no', status: hasDelim?'ok':'warn', weight:5});
+  // 9. Emotion / curiosity
+  const em = EMOTION_WORDS.filter(w=>t.includes(w));
+  checks.push({label:'Emotion', value: em.length+'', status: em.length>=1?'ok':'warn', weight:7});
+  // 10. ALL CAPS WORDS (bad)
+  const allCapsWords = words.filter(w=>w.length>3 && w===w.toUpperCase()).length;
+  checks.push({label:'All-caps', value: allCapsWords+'', status: allCapsWords===0?'ok':allCapsWords<=1?'warn':'fail', weight:5});
+  // 11. Stop word stuffing
+  const stops = ['the','a','an','of','to','for','and','or','with','in','on','at'];
+  const stopCount = words.filter(w=>stops.includes(w.toLowerCase())).length;
+  checks.push({label:'Stop words', value: stopCount+'', status: stopCount/words.length<.4?'ok':'warn', weight:2});
+
+  // CTR multiplier based on features
+  let multiplier = 1.0;
+  if(hasKw && t.indexOf(tkw)<10) multiplier *= 1.15;       // KW in front
+  if(hasNum) multiplier *= 1.10;                            // Number boost
+  if(pw.length>=1) multiplier *= 1.08;                      // Power word
+  if(em.length>=1) multiplier *= 1.06;                      // Emotion
+  if(hasBrand) multiplier *= 1.05;                          // Brand recognition
+  if(hasCity && tcity) multiplier *= 1.12;                  // Local match
+  if(/\[\d+\]|\(\d+\)/.test(title)) multiplier *= 1.07;     // Brackets/parens
+  if(allCapsWords>=2) multiplier *= 0.85;                   // Penalize spam
+  if(len>65) multiplier *= 0.88;                            // Truncation penalty
+  if(len<20) multiplier *= 0.85;                            // Too short
+
+  // Score 0-100
+  let pts = 0, max = 0;
+  checks.forEach(c=>{
+    max += c.weight;
+    if(c.status==='ok') pts += c.weight;
+    else if(c.status==='warn') pts += c.weight*0.5;
+  });
+  const score = Math.round(pts/max*100);
+
+  return {score, checks, ctrMultiplier: Math.round(multiplier*100)/100};
+}
+
+function scoreDescription(desc, kw, brand, city){
+  if(!desc) return {score:0, checks:[]};
+  const t = desc.toLowerCase();
+  const tkw = (kw||'').toLowerCase();
+  const tbrand = (brand||'').toLowerCase();
+  const tcity = (city||'').toLowerCase();
+  const len = desc.length;
+  const checks = [];
+  // length
+  const lenStatus = len>=130 && len<=160?'ok':len>=110 && len<=170?'warn':'fail';
+  checks.push({label:'Length', value:len+' ch', status:lenStatus, weight:20});
+  // KW
+  const hasKw = tkw && t.includes(tkw);
+  checks.push({label:'Keyword', value: hasKw?'yes':'no', status: hasKw?'ok':'fail', weight:15});
+  // CTA
+  const cta = /\bcall\b|\bbook\b|\bget\b|\bsign up\b|\bclaim\b|\bvisit\b|\blearn more\b|\btoday\b|\bnow\b|\bfree\b|\bsave\b|\bguaranteed\b/.test(t);
+  checks.push({label:'CTA', value: cta?'yes':'no', status: cta?'ok':'warn', weight:15});
+  // Number
+  const hasNum = /\d/.test(desc);
+  checks.push({label:'Number', value: hasNum?'yes':'no', status: hasNum?'ok':'warn', weight:8});
+  // City
+  const hasCity = tcity && t.includes(tcity);
+  checks.push({label:'City', value: hasCity?'yes':'no', status: hasCity?'ok':tcity?'warn':'ok', weight:10});
+  // Brand
+  const hasBrand = tbrand && t.includes(tbrand);
+  checks.push({label:'Brand', value: hasBrand?'yes':'no', status: hasBrand?'ok':'warn', weight:7});
+  // Sentence variety (rough: at least 2 punctuation marks)
+  const punct = (desc.match(/[.!?]/g)||[]).length;
+  checks.push({label:'Sentences', value: punct+'', status: punct>=2?'ok':'warn', weight:5});
+
+  let pts=0, max=0;
+  checks.forEach(c=>{ max+=c.weight; if(c.status==='ok') pts+=c.weight; else if(c.status==='warn') pts+=c.weight*0.5; });
+  return {score: Math.round(pts/max*100), checks};
+}
+
+function predictCTR(position, titleMultiplier){
+  const baseline = POSITION_CTR[Math.min(20, Math.max(1, position))] || 0.005;
+  return Math.min(0.5, baseline * (titleMultiplier||1));
+}
+
+/* ---------- AI PROVIDERS ---------- */
+const AI_PROVIDERS = {
+  gemini: {label:'Gemini', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    note:'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+    async ask(prompt, keys){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const j = await res.json(); return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  },
+  openai: {label:'OpenAI', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.85})});
+      if(!r.ok) throw new Error('OpenAI '+r.status); const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  claude: {label:'Claude', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1200, messages:[{role:'user',content:prompt}]})});
+      if(!r.ok) throw new Error('Claude '+r.status); const j = await r.json(); return j.content?.[0]?.text || '';
+    }
+  },
+  groq: {label:'Groq', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.85})});
+      if(!r.ok) throw new Error('Groq '+r.status); const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+};
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'ctr_state_v1';
+const defaultState = {
+  inputs: {kw:'', brand:'', city:'', url:'', pos:5, vol:0, curTitle:'', curDesc:'', aiCount:6},
+  ai: {provider:'gemini', keys:{}},
+  variants: [],   // [{id, type:'title'|'desc'|'both', title, desc, source:'manual'|'ai'|'current'|'generated', scores}]
+  view: 'variants',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+// Inherit AI keys + context
+(function inherit(){
+  try {
+    if(!Object.keys(state.ai.keys).length){
+      ['gbp_state_v1','rr_state_v1','ai_state_v1','kw_state_v1','ps_state_v1','sm_state_v1','cb_state_v1'].forEach(k=>{
+        const o = JSON.parse(localStorage.getItem(k)||'null');
+        if(o?.ai?.keys){ Object.entries(o.ai.keys).forEach(([id, keys])=>{if(keys.key && !state.ai.keys[id]?.key) state.ai.keys[id] = clone(keys);}); }
+      });
+    }
+    if(!state.inputs.kw){
+      const kw = JSON.parse(localStorage.getItem('kw_state_v1')||'null');
+      const sel = kw?.keywords?.filter(k=>k.selected)?.[0];
+      if(sel) state.inputs.kw = sel.kw;
+    }
+    if(!state.inputs.brand){
+      const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+      const b = cf?.businesses?.[0];
+      if(b){ state.inputs.brand = b.name; state.inputs.city = b.city||state.inputs.city; }
+    }
+  } catch(e){}
+  saveState();
+})();
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function pct(v){return (v*100).toFixed(1)+'%';}
+
+/* ---------- INPUTS ---------- */
+function saveInputs(){
+  state.inputs.kw = document.getElementById('i-kw').value.trim();
+  state.inputs.brand = document.getElementById('i-brand').value.trim();
+  state.inputs.city = document.getElementById('i-city').value.trim();
+  state.inputs.url = document.getElementById('i-url').value.trim();
+  state.inputs.pos = parseInt(document.getElementById('i-pos').value)||5;
+  state.inputs.vol = parseInt(document.getElementById('i-vol').value)||0;
+  state.inputs.aiCount = parseInt(document.getElementById('i-ai-count').value)||6;
+  saveState();
+  renderAll();
+}
+function onCurrentChange(){
+  state.inputs.curTitle = document.getElementById('i-cur-title').value;
+  state.inputs.curDesc = document.getElementById('i-cur-desc').value;
+  saveState();
+  // Re-score current variant if exists
+  const cur = state.variants.find(v=>v.source==='current');
+  if(cur){ cur.title = state.inputs.curTitle; cur.desc = state.inputs.curDesc; saveState(); }
+  renderAll();
+}
+function fillInputs(){
+  document.getElementById('i-kw').value = state.inputs.kw||'';
+  document.getElementById('i-brand').value = state.inputs.brand||'';
+  document.getElementById('i-city').value = state.inputs.city||'';
+  document.getElementById('i-url').value = state.inputs.url||'';
+  document.getElementById('i-pos').value = state.inputs.pos||5;
+  document.getElementById('i-vol').value = state.inputs.vol||0;
+  document.getElementById('i-cur-title').value = state.inputs.curTitle||'';
+  document.getElementById('i-cur-desc').value = state.inputs.curDesc||'';
+  document.getElementById('i-ai-count').value = state.inputs.aiCount||6;
+  // AI pills
+  document.getElementById('ai-pills').innerHTML = Object.entries(AI_PROVIDERS).map(([id,p])=>`<button class="pp ${state.ai.provider===id?'active':''}" onclick="selAi('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderAiCfg();
+}
+function selAi(id){
+  state.ai.provider = id; saveState();
+  document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active', b.textContent.includes(AI_PROVIDERS[id].label)));
+  renderAiCfg();
+}
+function renderAiCfg(){
+  const p = AI_PROVIDERS[state.ai.provider]; const k = state.ai.keys[state.ai.provider]||{};
+  document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('') + (p.note?`<div class="f"><div class="hint">${p.note}</div></div>`:'');
+  document.getElementById('ft-ai').textContent = state.ai.keys[state.ai.provider]?.key ? p.label : 'offline';
+}
+function saveAiKey(){
+  const p = AI_PROVIDERS[state.ai.provider];
+  const keys = state.ai.keys[state.ai.provider]||{};
+  p.fields.forEach(f=>{keys[f.key] = document.getElementById('ai-'+f.key).value.trim();});
+  state.ai.keys[state.ai.provider] = keys; saveState();
+  document.getElementById('ft-ai').textContent = keys.key ? AI_PROVIDERS[state.ai.provider].label : 'offline';
+}
+
+/* ---------- GENERATE VARIANTS ---------- */
+async function generateVariants(){
+  saveInputs();
+  const i = state.inputs;
+  if(!i.kw){ toast('Set target keyword','err'); return; }
+  if(!i.curTitle){ toast('Set current title','err'); return; }
+  // Reset
+  state.variants = [{id:uid(), source:'current', title:i.curTitle, desc:i.curDesc}];
+
+  // Template-based variants
+  const kw = i.kw.charAt(0).toUpperCase()+i.kw.slice(1);
+  const brand = i.brand;
+  const city = i.city;
+  const yr = new Date().getFullYear();
+
+  const titles = [];
+  if(city && brand) titles.push(`${kw} in ${city} | ${brand}`);
+  if(brand) titles.push(`${kw} | ${brand}`);
+  if(city) titles.push(`Best ${kw} in ${city} (${yr})`);
+  if(city) titles.push(`${kw} Near You — Same-Day Service in ${city}`);
+  titles.push(`#1 ${kw} — Trusted by 5,000+ Customers`);
+  if(city) titles.push(`${kw} ${city}: Get a Free Quote in 60 Seconds`);
+  titles.push(`${kw}: 7 Things to Know Before You Buy`);
+  if(brand) titles.push(`${brand}: Licensed & Insured ${kw} ${city||''}`.trim());
+  if(city) titles.push(`${city}'s Top-Rated ${kw} — Call Now`);
+  titles.push(`${kw} — Free Estimate, No Hidden Fees`);
+
+  const descs = [];
+  if(city && brand) descs.push(`Looking for ${i.kw.toLowerCase()} in ${city}? ${brand} has served ${city} since 2008 with same-day service and free estimates. Call us today for a fast, fair quote.`);
+  if(city) descs.push(`Need ${i.kw.toLowerCase()} in ${city}? Get a same-day appointment, transparent pricing, and 5-star service. Free estimates, no obligation. Book online or call now.`);
+  descs.push(`Looking for trusted ${i.kw.toLowerCase()}? We offer 24/7 service, licensed pros, and a 100% satisfaction guarantee. Get a free quote in 60 seconds.`);
+  if(brand && city) descs.push(`${brand} delivers ${i.kw.toLowerCase()} ${city} residents trust — licensed, insured, and rated 4.9/5 across 500+ reviews. Get started today.`);
+  descs.push(`The ${i.kw.toLowerCase()} you can trust: licensed pros, upfront pricing, same-day appointments, and a 100% satisfaction guarantee. Book online in 60 seconds.`);
+
+  // Pair titles with desc 0 (first descs) initially
+  titles.forEach(t=>state.variants.push({id:uid(), source:'generated', title:t, desc:descs[0]||''}));
+  descs.slice(1).forEach(d=>state.variants.push({id:uid(), source:'generated', title:titles[0]||i.curTitle, desc:d}));
+
+  // AI variants
+  const aiReady = state.ai.keys[state.ai.provider]?.key;
+  if(aiReady){
+    document.getElementById('prog-fill').style.width = '40%';
+    document.getElementById('ft-status').textContent = 'Generating AI variants...';
+    const prompt = `Generate ${i.aiCount} high-CTR title tag + meta description pairs for this page:
+
+TARGET KEYWORD: ${i.kw}
+BRAND: ${i.brand || '(unspecified)'}
+CITY: ${i.city || '(unspecified)'}
+PAGE INTENT: local service / local business
+
+Each variant should:
+- Title: 35-60 characters, include the keyword early, sound human, include 1 power word or number
+- Description: 130-155 characters, include the keyword + a clear CTA (call, book, get quote, etc.)
+
+Output as JSON array with this exact format:
+[{"title":"...","desc":"..."}, ...]
+
+Mix styles: ${i.aiCount>=3?'one with a number, one with a question, one with brackets/parens for emphasis':'whatever fits'}. Don't echo the current ones. Be creative but realistic — these go on a real page.
+
+Output ONLY the JSON array, nothing else.`;
+
+    try {
+      const p = AI_PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider];
+      const ans = await p.ask(prompt, keys);
+      const m = ans.match(/\[[\s\S]+\]/);
+      if(m){
+        const arr = JSON.parse(m[0]);
+        arr.forEach(v=>{ if(v.title) state.variants.push({id:uid(), source:'ai', title:v.title, desc:v.desc||''}); });
+      }
+    } catch(e){ toast('AI failed: '+e.message,'err'); }
+    document.getElementById('prog-fill').style.width = '100%';
+    setTimeout(()=>document.getElementById('prog-fill').style.width = '0', 600);
+  }
+
+  saveState();
+  scoreAll();
+  renderAll();
+  toast(`Generated ${state.variants.length-1} variants`,'success');
+}
+
+function scoreAll(){
+  state.variants.forEach(v=>{
+    v.titleScore = scoreTitle(v.title, state.inputs.kw, state.inputs.brand, state.inputs.city);
+    v.descScore = scoreDescription(v.desc, state.inputs.kw, state.inputs.brand, state.inputs.city);
+    v.predictedCTR = predictCTR(state.inputs.pos, v.titleScore.ctrMultiplier);
+    v.combinedScore = Math.round((v.titleScore.score*0.6 + v.descScore.score*0.4));
+  });
+  saveState();
+}
+
+function addManual(){
+  const t = prompt('Enter title:'); if(!t) return;
+  const d = prompt('Enter meta description:') || '';
+  state.variants.push({id:uid(), source:'manual', title:t, desc:d});
+  scoreAll(); saveState(); renderAll();
+}
+function delVariant(id){
+  if(!confirm('Delete this variant?')) return;
+  state.variants = state.variants.filter(v=>v.id!==id);
+  saveState(); renderAll();
+}
+function clearAll(){
+  if(!confirm('Clear all variants?')) return;
+  state.variants = []; saveState(); renderAll(); toast('Cleared','success');
+}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderCenter();}
+
+function renderAll(){
+  const best = state.variants.length ? state.variants.slice().sort((a,b)=>(b.combinedScore||0)-(a.combinedScore||0))[0] : null;
+  document.getElementById('stat-var').textContent = state.variants.length;
+  document.getElementById('stat-best').textContent = best ? (best.combinedScore||0)+'%' : '—';
+  document.getElementById('stat-pos').textContent = state.inputs.pos ? '#'+state.inputs.pos : '—';
+  renderCenter();
+}
+
+let charts = [];
+function destroyCharts(){charts.forEach(c=>c.destroy()); charts=[];}
+
+function renderCenter(){
+  destroyCharts();
+  const body = document.getElementById('cbody');
+  if(!state.variants.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><div><div class="et">CTR Title Lab</div><div class="ed">Optimize title tags and meta descriptions for max click-through rate. Generates template + AI variants, scores each on 11 ranking factors, predicts CTR based on position-CTR curves + feature multipliers, projects monthly traffic delta vs current.</div></div></div>`;
+    return;
+  }
+  if(state.view==='variants') return renderVariants(body);
+  if(state.view==='ctr') return renderCtr(body);
+  if(state.view==='patterns') return renderPatterns(body);
+}
+
+function renderVariants(body){
+  const sorted = state.variants.slice().sort((a,b)=>(b.combinedScore||0)-(a.combinedScore||0));
+  const bestId = sorted[0]?.id;
+  body.innerHTML = sorted.map((v,i)=>{
+    const titleScore = v.titleScore||{score:0,checks:[]};
+    const descScore = v.descScore||{score:0,checks:[]};
+    return `<div class="variant-card ${v.id===bestId?'best':''}">
+      <div class="vh">
+        <div class="vnum">${i+1}</div>
+        <div class="vlabel">${escapeHtml(v.source||'variant')}${v.source==='current'?' (your current)':''}</div>
+        <div class="vscore" title="Combined title (60%) + desc (40%) score">${v.combinedScore||0}%</div>
+      </div>
+      <div class="serp-preview">
+        <div class="url-line"><div class="favicon">${(state.inputs.brand||'A').charAt(0)}</div><span class="url">${escapeHtml(state.inputs.url||'example.com')}</span></div>
+        <div class="title">${escapeHtml(v.title)}</div>
+        <div class="desc">${escapeHtml(v.desc||'')}</div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;font-size:11px;color:var(--text2);flex-wrap:wrap"><span>Title score: <strong style="color:var(--text)">${titleScore.score||0}%</strong></span><span>Desc score: <strong style="color:var(--text)">${descScore.score||0}%</strong></span><span>CTR multiplier: <strong style="color:var(--accent)">${titleScore.ctrMultiplier||1}×</strong></span><span>Predicted CTR @ #${state.inputs.pos}: <strong style="color:var(--success)">${pct(v.predictedCTR||0)}</strong></span></div>
+      <div class="checks">${titleScore.checks.slice(0,8).map(c=>`<div class="check ${c.status}"><span class="ck">${escapeHtml(c.label)}</span><span class="cv">${escapeHtml(c.value)}</span></div>`).join('')}</div>
+      <div class="actions">
+        <button onclick="editVariant('${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</button>
+        <button onclick="delVariant('${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Delete</button>
+        <button class="copy" onclick="copyVariant('${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCtr(body){
+  const current = state.variants.find(v=>v.source==='current');
+  const best = state.variants.slice().sort((a,b)=>(b.combinedScore||0)-(a.combinedScore||0))[0];
+  const vol = state.inputs.vol||0;
+  const curCTR = current?.predictedCTR||0;
+  const bestCTR = best?.predictedCTR||0;
+  const curTraffic = Math.round(vol * curCTR);
+  const bestTraffic = Math.round(vol * bestCTR);
+  const lift = curTraffic ? Math.round((bestTraffic-curTraffic)/curTraffic*100) : (bestTraffic>0?100:0);
+
+  body.innerHTML = `
+    <div class="summary">
+      <div class="scard"><div class="scard-label">Current CTR</div><div class="scard-val">${pct(curCTR)}</div><div class="scard-sub">@ position #${state.inputs.pos}</div></div>
+      <div class="scard"><div class="scard-label">Best Variant CTR</div><div class="scard-val" style="color:var(--success)">${pct(bestCTR)}</div><div class="scard-sub">${current && best?(best.combinedScore-current.combinedScore>=0?'+':'')+(best.combinedScore-current.combinedScore)+'pts vs current':''}</div></div>
+      <div class="scard"><div class="scard-label">Current Monthly Clicks</div><div class="scard-val">${curTraffic.toLocaleString()}</div><div class="scard-sub">${vol?vol.toLocaleString()+' searches/mo':'set volume'}</div></div>
+      <div class="scard"><div class="scard-label">Projected With Best</div><div class="scard-val" style="color:var(--success)">${bestTraffic.toLocaleString()}</div><div class="scard-sub">+${(bestTraffic-curTraffic).toLocaleString()} clicks/mo</div></div>
+      <div class="scard"><div class="scard-label">Lift</div><div class="scard-val" style="color:${lift>0?'var(--success)':lift<0?'var(--danger)':'var(--text2)'}">${lift>0?'+':''}${lift}%</div></div>
+    </div>
+
+    <div class="section"><div class="section-hdr"><h3>CTR by Variant (Position #${state.inputs.pos})</h3></div><div class="chart-wrap"><canvas id="ch-ctr"></canvas></div></div>
+
+    <div class="section"><div class="section-hdr"><h3>Position-CTR Curve</h3></div><div class="chart-wrap"><canvas id="ch-curve"></canvas></div><div style="padding:0 16px 14px;font-size:11px;color:var(--text2);line-height:1.6">Industry-averaged CTR by SERP position (Advanced Web Ranking 2024 + Backlinko aggregated data). Your variants get multiplied by feature bonuses (numbers, brand, city, power words) to estimate position-adjusted CTR.</div></div>
+  `;
+  setTimeout(()=>{
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color = isDark?'#7e95b8':'#5b6b88';
+    const sorted = state.variants.slice().sort((a,b)=>(b.combinedScore||0)-(a.combinedScore||0));
+    const ctx = document.getElementById('ch-ctr')?.getContext('2d');
+    if(ctx) charts.push(new Chart(ctx, {type:'bar', data:{labels:sorted.map((v,i)=>v.source==='current'?'CURRENT':'V'+(i+1)), datasets:[{label:'Predicted CTR', data:sorted.map(v=>(v.predictedCTR||0)*100), backgroundColor: sorted.map((v,i)=>i===0?'#16a34a':v.source==='current'?'#db2777':'#7c3aed')}]}, options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'CTR: '+c.parsed.y.toFixed(2)+'%'}}}, scales:{y:{beginAtZero:true, title:{display:true, text:'CTR %'}}}}}));
+    const ctx2 = document.getElementById('ch-curve')?.getContext('2d');
+    if(ctx2){
+      const labels = Object.keys(POSITION_CTR).map(p=>'#'+p);
+      const data = Object.values(POSITION_CTR).map(v=>v*100);
+      charts.push(new Chart(ctx2, {type:'line', data:{labels, datasets:[{label:'Avg CTR', data, borderColor:'#db2777', backgroundColor:'rgba(219,39,119,.1)', tension:0.35, fill:true, pointRadius:4}]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, title:{display:true,text:'CTR %'}}}}}));
+    }
+  }, 50);
+}
+
+function renderPatterns(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>High-CTR Title Patterns</h3></div><div style="padding:14px;font-size:13px;line-height:1.7">
+      <p style="margin-bottom:14px;color:var(--text2)">These patterns consistently outperform plain titles in click-through-rate tests across local + service businesses.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:14px 0 6px">1. Keyword + City + Brand</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">Emergency Plumber in Boston | Acme Plumbing</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Lift: ~12% vs no city. Works best for local service intent.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">2. Year-based freshness</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">Best Plumber in Boston (${new Date().getFullYear()})</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Year signals freshness. Update annually.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">3. Number-based ("listicle bait")</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">7 Things to Know Before Hiring a Plumber in Boston</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Odd numbers (3, 5, 7) outperform even ones in studies.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">4. Brackets / Parens for emphasis</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">Emergency Plumber Boston [Same-Day Service]</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Brackets break visual monotony in SERP. Lift: ~7%.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">5. Question-based (for "how" intent)</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">How Much Does a Plumber Cost in Boston?</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Matches People Also Ask. Works for informational + commercial intent.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">6. Power word + benefit</h4>
+      <code style="display:block;background:var(--bg);padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px">Trusted Boston Plumbers — Free Quote in 60 Seconds</code>
+      <p style="font-size:12px;color:var(--text2);margin:5px 0 0">Specific time promise + trust word.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin:18px 0 6px">Patterns to AVOID</h4>
+      <ul style="padding-left:20px;font-size:12px;color:var(--text2)">
+        <li>ALL CAPS WORDS — looks like spam, often suppressed</li>
+        <li>Keyword stuffing ("Plumber Plumbing Plumbers Best Plumber")</li>
+        <li>Too vague ("Welcome to Our Site")</li>
+        <li>Brand-only ("Acme Plumbing") — wastes the title</li>
+        <li>Clickbait without delivery — Google can rewrite</li>
+      </ul>
+    </div></div>
+
+    <div class="section"><div class="section-hdr"><h3>High-CTR Meta Description Patterns</h3></div><div style="padding:14px;font-size:13px;line-height:1.7">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Meta descriptions don't directly affect ranking but heavily influence CTR. The 130-160 char sweet spot avoids truncation.</p>
+
+      <p><strong>Formula:</strong> <em>Problem statement + Solution + Specific differentiator + CTA + Urgency</em></p>
+
+      <code style="display:block;background:var(--bg);padding:10px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px;margin:10px 0">Need a plumber in Boston? Acme has served Boston since 2008 with same-day service and free estimates. Call us today for a fast, fair quote.</code>
+
+      <p style="margin-top:14px"><strong>CTA verbs that convert:</strong></p>
+      <ul style="padding-left:20px;font-size:12px;color:var(--text2);columns:2;-webkit-columns:2;-moz-columns:2"><li>Get</li><li>Book</li><li>Call</li><li>Save</li><li>Claim</li><li>Find</li><li>Learn</li><li>See</li><li>Compare</li><li>Discover</li></ul>
+
+      <p style="margin-top:14px;color:var(--text2);font-size:12px"><strong>Note:</strong> Google rewrites ~70% of meta descriptions based on query context. Your meta is a strong suggestion, not a guarantee.</p>
+    </div></div>
+  `;
+}
+
+function copyVariant(id){
+  const v = state.variants.find(x=>x.id===id); if(!v) return;
+  navigator.clipboard.writeText(`Title: ${v.title}\nMeta: ${v.desc}`).then(()=>toast('Copied','success'));
+}
+
+function editVariant(id){
+  const v = state.variants.find(x=>x.id===id); if(!v) return;
+  const t = prompt('Edit title:', v.title); if(t===null) return;
+  const d = prompt('Edit description:', v.desc); if(d===null) return;
+  v.title = t; v.desc = d; scoreAll(); saveState(); renderAll();
+}
+
+/* ---------- EXPORT ---------- */
+function exportCSV(){
+  if(!state.variants.length){ toast('No variants','err'); return; }
+  const rows = [['source','title','desc','title_score','desc_score','combined_score','ctr_multiplier','predicted_ctr','projected_clicks_at_pos'+(state.inputs.pos||5)]];
+  state.variants.forEach(v=>{
+    const clicks = state.inputs.vol ? Math.round(state.inputs.vol*(v.predictedCTR||0)) : '';
+    rows.push([v.source, v.title, v.desc, v.titleScore?.score||0, v.descScore?.score||0, v.combinedScore||0, v.titleScore?.ctrMultiplier||1, (v.predictedCTR||0).toFixed(4), clicks]);
+  });
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`ctr-variants-${(state.inputs.kw||'kw').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+
+/* ---------- BOOT ---------- */
+fillInputs();
+if(state.variants.length) scoreAll();
+renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

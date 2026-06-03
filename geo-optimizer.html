@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEO / AEO Optimizer - Optimize for ChatGPT, Perplexity, Google AI, Bing Copilot</title>
+<meta name="description" content="Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO) auditor. Test if AI search engines (ChatGPT, Perplexity, Google AI Overviews, Bing Copilot) cite your content. Passage citability scoring, brand-mention sweeps, llms.txt validation, and AI-friendly content rewrites.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#7c3aed; --accent-h:#6d28d9; --accent-soft:rgba(124,58,237,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#a78bfa; --accent-h:#c4b5fd; --accent-soft:rgba(167,139,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(124,58,237,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--pink);border:1px solid var(--pink);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.score strong{color:var(--accent);font-size:14px}
+.hdr-stat.mentions strong{color:var(--success)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f textarea{resize:vertical;min-height:60px;font-family:var(--font)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.6;cursor:not-allowed}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text)}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.score-hero{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:14px;display:grid;grid-template-columns:140px 1fr;gap:24px;align-items:center;box-shadow:var(--shadow-sm)}
+.score-circle{position:relative;width:140px;height:140px}
+.score-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-circle .bg{stroke:var(--bg3);stroke-width:11;fill:none}
+.score-circle .fg{stroke:var(--accent);stroke-width:11;fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s}
+.score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-text .v{font-size:36px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1}
+.score-text .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.score-info h2{font-size:19px;font-weight:800;margin-bottom:4px}
+.score-info .sub{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.score-pills{display:flex;gap:6px;flex-wrap:wrap}
+.score-pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--bg3);color:var(--text);border:1px solid var(--border);display:flex;align-items:center;gap:4px}
+.score-pill.ok{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.score-pill.warn{background:rgba(245,158,11,.13);color:var(--warn);border-color:rgba(245,158,11,.3)}
+.score-pill.miss{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-hdr .badge.ok{background:rgba(22,163,74,.12);color:var(--success)}
+.section-hdr .badge.miss{background:rgba(220,38,38,.12);color:var(--danger)}
+
+.check-list{display:flex;flex-direction:column}
+.check{padding:10px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr auto;gap:11px;align-items:start}
+.check:last-child{border-bottom:none}
+.check .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;margin-top:1px}
+.check.pass .icon{background:rgba(22,163,74,.15);color:var(--success)}
+.check.warn .icon{background:rgba(245,158,11,.15);color:var(--warn)}
+.check.fail .icon{background:rgba(220,38,38,.15);color:var(--danger)}
+.check.info .icon{background:rgba(37,99,235,.15);color:var(--blue)}
+.check .body .title{font-size:12.5px;font-weight:700;margin-bottom:2px}
+.check .body .desc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.check .body .desc code{background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:10.5px}
+.check .actions{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+
+/* Platforms grid */
+.platforms{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:14px}
+.platform{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden}
+.platform.testing{border-color:var(--accent);background:var(--accent-soft)}
+.platform.cited{border-color:var(--success);background:rgba(22,163,74,.06)}
+.platform.notcited{border-color:var(--danger);background:rgba(220,38,38,.04)}
+.platform-hdr{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.platform-logo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900;font-family:var(--mono);flex-shrink:0}
+.platform-info{flex:1;min-width:0}
+.platform-info .name{font-size:13px;font-weight:800}
+.platform-info .sub{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+.platform-status{padding:3px 8px;border-radius:11px;font-size:10px;font-weight:800;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.platform-status.cited{background:rgba(22,163,74,.18);color:var(--success)}
+.platform-status.notcited{background:rgba(220,38,38,.15);color:var(--danger)}
+.platform-status.untested{background:var(--bg3);color:var(--text2)}
+.platform-body{font-size:11px;line-height:1.5;color:var(--text2)}
+.platform-body code{background:var(--bg2);padding:2px 5px;border-radius:3px;font-family:var(--mono);font-size:10.5px;border:1px solid var(--border)}
+
+.passage{padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.passage:last-child{border-bottom:none}
+.passage .pscore{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;font-family:var(--mono)}
+.passage .pscore.high{background:var(--success)}
+.passage .pscore.med{background:var(--warn)}
+.passage .pscore.low{background:var(--danger)}
+.passage .pinfo .ptitle{font-size:12px;font-weight:700}
+.passage .pinfo .pdesc{font-size:11px;color:var(--text2);line-height:1.45;margin-top:2px}
+.passage .pinfo .pflags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.passage .pflag{font-size:9.5px;font-weight:700;font-family:var(--mono);padding:1px 6px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.passage .pflag.bad{background:rgba(220,38,38,.1);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.passage .pflag.good{background:rgba(22,163,74,.1);color:var(--success);border-color:rgba(22,163,74,.3)}
+.passage .pacts{display:flex;flex-direction:column;gap:3px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000}
+.busy.show{display:flex}
+.busy .card{background:var(--bg2);padding:24px 30px;border-radius:14px;border:1px solid var(--border);text-align:center;max-width:340px}
+.busy .sp{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg3);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.busy h3{font-size:13.5px;margin-bottom:5px}
+.busy p{font-size:11.5px;color:var(--text2);font-family:var(--mono)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .score-hero{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+    <div><div class="logo-name">GEO/<span>AEO</span></div></div>
+    <span class="logo-tag">AI SEARCH</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat score">GEO Score: <strong id="stat-score">—</strong></div>
+  <div class="hdr-stat mentions">Cited by: <strong id="stat-cited">0</strong>/4</div>
+  <div class="hdr-stat">Passages: <strong id="stat-passages">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(167,139,250,.4);color:var(--accent)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Page & AI Setup</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Page to Audit</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Target URL *</label><input id="i-url" placeholder="https://yoursite.com/services/plumbing"></div>
+          <div class="f"><label>Brand name</label><input id="i-brand" placeholder="Acme Plumbing"></div>
+          <div class="f"><label>City / region</label><input id="i-city" placeholder="Denver"></div>
+          <div class="f"><label>Primary topic / service</label><input id="i-topic" placeholder="emergency plumbing"></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ Pull from Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Test Queries (one per line)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><textarea id="i-queries" rows="6">best plumber in {city}
+who is {brand}
+{brand} reviews
+emergency {topic} near me
+how to find a reliable plumber in {city}</textarea><div class="hint">Used to test AI search citation. {brand}, {city}, {topic} get substituted.</div></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Provider (for citation test)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Provider</label><select id="prov-sel" onchange="onProvChange()">
+            <option value="gemini">Gemini (free)</option>
+            <option value="openai">OpenAI GPT-4o</option>
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="perplexity">Perplexity (sonar)</option>
+            <option value="groq">Groq (free)</option>
+          </select></div>
+          <div class="f"><label>API key</label><input id="i-key" placeholder="paste key" oninput="saveKey()"></div>
+          <div class="f"><div class="hint">Citation tests query the AI directly with your test queries and check if your brand/domain shows up in the response or sources.</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" id="btn-run" onclick="runAudit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 11 12 21 4 13"/><polyline points="22 4 12 14 9 11"/></svg>
+        Run GEO Audit
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportReport()">Report</button>
+        <button class="btn-sub" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Overview
+      </button>
+      <button class="tab" data-tab="platforms" onclick="setTab('platforms')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+        AI Platforms
+      </button>
+      <button class="tab" data-tab="passages" onclick="setTab('passages')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/></svg>
+        Citable Passages
+      </button>
+      <button class="tab" data-tab="llmstxt" onclick="setTab('llmstxt')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        llms.txt
+      </button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg>
+        GEO Playbook
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Enter a URL and run GEO audit</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+<div class="busy" id="busy"><div class="card"><div class="sp"></div><h3 id="busy-title">Running GEO audit…</h3><p id="busy-msg">Fetching page and analyzing</p></div></div>
+
+<script>
+/* ==========================================================================
+ * GEO / AEO OPTIMIZER
+ * Generative Engine Optimization auditor for AI search visibility.
+ * ========================================================================== */
+
+const STORE_KEY = 'geo_state_v1';
+const defaultState = {
+  url:'', brand:'', city:'', topic:'',
+  queries: 'best plumber in {city}\nwho is {brand}\n{brand} reviews\nemergency {topic} near me\nhow to find a reliable plumber in {city}',
+  provider:'gemini',
+  apiKeys: {gemini:'', openai:'', claude:'', perplexity:'', groq:''},
+  results: null,
+  view:'overview',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function setBusy(show, title, msg){ const b=document.getElementById('busy'); if(title) document.getElementById('busy-title').textContent=title; if(msg) document.getElementById('busy-msg').textContent=msg; b.classList.toggle('show', show); }
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function setStatus(s){document.getElementById('ft-status').textContent=s;}
+
+function getInputs(){
+  state.url = document.getElementById('i-url').value.trim();
+  state.brand = document.getElementById('i-brand').value.trim();
+  state.city = document.getElementById('i-city').value.trim();
+  state.topic = document.getElementById('i-topic').value.trim();
+  state.queries = document.getElementById('i-queries').value;
+  state.provider = document.getElementById('prov-sel').value;
+  saveState();
+}
+function fillInputs(){
+  document.getElementById('i-url').value = state.url||'';
+  document.getElementById('i-brand').value = state.brand||'';
+  document.getElementById('i-city').value = state.city||'';
+  document.getElementById('i-topic').value = state.topic||'';
+  document.getElementById('i-queries').value = state.queries||defaultState.queries;
+  document.getElementById('prov-sel').value = state.provider;
+  document.getElementById('i-key').value = state.apiKeys[state.provider]||'';
+}
+function onProvChange(){
+  state.provider = document.getElementById('prov-sel').value;
+  document.getElementById('i-key').value = state.apiKeys[state.provider]||'';
+  saveState();
+}
+function saveKey(){ state.apiKeys[state.provider] = document.getElementById('i-key').value.trim(); saveState(); }
+
+function syncFromCitation(){
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.[0];
+    if(b){
+      if(!state.brand) state.brand = b.name||'';
+      if(!state.city) state.city = b.city||'';
+      if(!state.url && b.website) state.url = b.website;
+      if(!state.topic) state.topic = b.category||'';
+      fillInputs(); saveState();
+      toast('Synced from Citation Finder','success');
+    } else { toast('No business in Citation Finder','err'); }
+  } catch(e){ toast('Sync failed','err'); }
+}
+
+/* ---------- CORS PROXY ---------- */
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function fetchPage(url){
+  for(const px of PROXIES){
+    try {
+      const r = await fetch(px(url));
+      if(r.ok){
+        const text = await r.text();
+        if(text && text.length > 100) return text;
+      }
+    } catch(e){}
+  }
+  throw new Error('All CORS proxies failed');
+}
+
+async function fetchRaw(url){
+  for(const px of PROXIES){
+    try {
+      const r = await fetch(px(url));
+      if(r.ok) return await r.text();
+    } catch(e){}
+  }
+  return null;
+}
+
+/* ---------- AI PROVIDERS ---------- */
+async function askAI(prompt){
+  const provider = state.provider;
+  const key = state.apiKeys[provider];
+  if(!key) throw new Error(`${provider} API key required`);
+  if(provider==='gemini'){
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.3}})
+    });
+    if(!r.ok) throw new Error('Gemini '+r.status);
+    const j = await r.json();
+    return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+  if(provider==='openai'){
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+      body: JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.3})
+    });
+    if(!r.ok) throw new Error('OpenAI '+r.status);
+    const j = await r.json();
+    return j.choices?.[0]?.message?.content||'';
+  }
+  if(provider==='claude'){
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1500, messages:[{role:'user',content:prompt}]})
+    });
+    if(!r.ok) throw new Error('Claude '+r.status);
+    const j = await r.json();
+    return j.content?.[0]?.text||'';
+  }
+  if(provider==='perplexity'){
+    const r = await fetch('https://api.perplexity.ai/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+      body: JSON.stringify({model:'llama-3.1-sonar-small-128k-online', messages:[{role:'user',content:prompt}], temperature:0.3})
+    });
+    if(!r.ok) throw new Error('Perplexity '+r.status);
+    const j = await r.json();
+    return (j.choices?.[0]?.message?.content||'') + (j.citations?.length?'\n\nSources:\n'+j.citations.join('\n'):'');
+  }
+  if(provider==='groq'){
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+      body: JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.3})
+    });
+    if(!r.ok) throw new Error('Groq '+r.status);
+    const j = await r.json();
+    return j.choices?.[0]?.message?.content||'';
+  }
+  throw new Error('Unknown provider');
+}
+
+/* ---------- PASSAGE EXTRACTION & SCORING ---------- */
+function extractPassages(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  // Get text nodes from main content elements
+  const selectors = ['p','li','blockquote','h2','h3','h4','td','dt','dd'];
+  const passages = [];
+  selectors.forEach(sel=>{
+    doc.querySelectorAll(sel).forEach(el=>{
+      const text = (el.textContent||'').trim();
+      if(text.length<40 || text.length>1000) return;
+      passages.push({tag:sel, text});
+    });
+  });
+  return passages;
+}
+
+function scorePassage(p){
+  const text = p.text;
+  const flags = [];
+  let score = 50;
+  // Length sweet spot
+  if(text.length>=80 && text.length<=400) { score+=15; flags.push({type:'good',label:'Optimal length'}); }
+  else if(text.length<60) { score-=10; flags.push({type:'bad',label:'Too short'}); }
+  else if(text.length>500) { score-=5; flags.push({type:'bad',label:'Too long'}); }
+  // Self-contained (starts with subject, not pronoun)
+  const firstWord = text.split(/\s+/)[0].toLowerCase();
+  if(/^(it|this|that|they|these|those|he|she|we|i)$/.test(firstWord)) { score-=10; flags.push({type:'bad',label:'Starts with pronoun'}); }
+  else { flags.push({type:'good',label:'Self-contained'}); }
+  // Factual indicators
+  if(/\d+%|\$\d|\d{4}|first|since|founded|established|located|serves|offers/.test(text.toLowerCase())) { score+=10; flags.push({type:'good',label:'Has facts'}); }
+  // Direct answer format
+  if(/^(yes|no|the|a|an)\s+\w+\s+(is|are|was|were|means|stands|refers)/i.test(text)) { score+=10; flags.push({type:'good',label:'Direct answer'}); }
+  // Question-answer format
+  if(/^(what|why|how|when|where|who)/i.test(text) && text.includes('?')) { score+=5; flags.push({type:'good',label:'Question hook'}); }
+  // List markers
+  if(p.tag==='li') { score+=5; flags.push({type:'good',label:'List item'}); }
+  // Heading near content (h2/h3)
+  if(/^h[234]$/.test(p.tag)) { score+=5; flags.push({type:'good',label:'Heading'}); }
+  // Negative: heavy marketing language
+  if(/best in class|world-class|cutting-edge|game-changing|revolutionary|premier/i.test(text)) { score-=10; flags.push({type:'bad',label:'Marketing fluff'}); }
+  // First-person heavy
+  if((text.match(/\b(we|our|us)\b/gi)||[]).length >= 4) { score-=5; flags.push({type:'bad',label:'Too first-person'}); }
+  // Citations / authoritative reference
+  if(/according to|study by|research shows|data from|report by/i.test(text)) { score+=10; flags.push({type:'good',label:'Authoritative'}); }
+  return {score: Math.max(0, Math.min(100, score)), flags};
+}
+
+/* ---------- AUDIT ---------- */
+async function runAudit(){
+  getInputs();
+  if(!state.url){ toast('URL required','err'); return; }
+  setBusy(true, 'Running GEO audit…', 'Fetching page');
+  setStatus('Fetching page…');
+  let html = '';
+  try {
+    html = await fetchPage(state.url);
+  } catch(e){
+    setBusy(false);
+    toast('Could not fetch page (CORS)','err');
+    return;
+  }
+  setBusy(true, 'Running GEO audit…', 'Extracting passages and analyzing');
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const passages = extractPassages(html).map(p=>{
+    const sc = scorePassage(p);
+    return {...p, score:sc.score, flags:sc.flags};
+  }).sort((a,b)=>b.score-a.score).slice(0, 30);
+
+  // Document-level checks
+  const checks = runChecks(doc, html);
+
+  // llms.txt check
+  let llmsTxt = null;
+  try {
+    const origin = new URL(state.url).origin;
+    const t = await fetchRaw(origin + '/llms.txt');
+    if(t && t.length > 10) llmsTxt = t;
+  } catch(e){}
+
+  // AI citation tests (only if key present)
+  const queries = state.queries.split('\n').map(q=>q.trim()).filter(Boolean).map(q=>q.replace(/\{brand\}/gi, state.brand||'this business').replace(/\{city\}/gi, state.city||'').replace(/\{topic\}/gi, state.topic||''));
+  const citationTests = [];
+  const key = state.apiKeys[state.provider];
+  if(key && queries.length){
+    for(let i=0;i<Math.min(queries.length, 5);i++){
+      const q = queries[i];
+      setBusy(true, 'Running GEO audit…', `Testing AI query ${i+1}/${Math.min(queries.length,5)}: "${q.substring(0,40)}…"`);
+      try {
+        const ans = await askAI(q);
+        const cited = checkCitation(ans, state.brand, state.url);
+        citationTests.push({query:q, answer:ans, cited:cited.cited, mentions:cited.mentions, urls:cited.urls});
+      } catch(e){
+        citationTests.push({query:q, answer:'', error:e.message, cited:false, mentions:0, urls:[]});
+      }
+      await new Promise(r=>setTimeout(r, 400));
+    }
+  }
+  // Score
+  const audit = scoreAudit(checks, passages, llmsTxt, citationTests);
+  state.results = {ts:'2026-05-29', url:state.url, passages, checks, llmsTxt, citationTests, audit};
+  saveState();
+  setBusy(false);
+  render();
+  setStatus(`GEO score: ${audit.score}/100 · ${passages.length} passages analyzed`);
+  toast(`Audit complete · ${audit.score}/100`,'success');
+}
+
+function runChecks(doc, html){
+  const checks = [];
+  // FAQPage schema
+  const jsonLd = [...doc.querySelectorAll('script[type="application/ld+json"]')].map(s=>{ try{return JSON.parse(s.textContent);}catch(e){return null;}}).filter(Boolean);
+  const flat = jsonLd.flatMap(x=>Array.isArray(x)?x:(x['@graph']?x['@graph']:[x]));
+  const hasFaq = flat.some(x=>(x['@type']||'').toString().includes('FAQPage'));
+  checks.push({key:'faq_schema', status:hasFaq?'pass':'warn', weight:8, title:'FAQPage schema', desc: hasFaq?'FAQPage structured data found.':'No FAQPage schema. AI search engines prefer pages with explicit Q&A markup.'});
+  const hasHowTo = flat.some(x=>(x['@type']||'').toString().includes('HowTo'));
+  checks.push({key:'howto_schema', status:hasHowTo?'pass':'info', weight:4, title:'HowTo schema', desc: hasHowTo?'HowTo schema found — useful for step-by-step AI citations.':'No HowTo schema (only relevant for instructional content).'});
+  const hasOrg = flat.some(x=>{const t=(x['@type']||'').toString();return t.includes('Organization')||t.includes('LocalBusiness');});
+  checks.push({key:'org_schema', status:hasOrg?'pass':'fail', weight:10, title:'Organization/LocalBusiness schema', desc: hasOrg?'Entity-defining schema present.':'No Organization or LocalBusiness schema. Critical for AI brand recognition.'});
+  // Meta description
+  const md = doc.querySelector('meta[name="description"]')?.content||'';
+  checks.push({key:'meta_desc', status:md.length>=80&&md.length<=200?'pass':md?'warn':'fail', weight:5, title:'Meta description', desc: md?(md.length<80?`Too short (${md.length} chars)`:md.length>200?`Too long (${md.length} chars)`:`Good length (${md.length} chars).`):'Missing meta description'});
+  // h1
+  const h1 = doc.querySelector('h1');
+  checks.push({key:'h1', status:h1?'pass':'fail', weight:5, title:'H1 heading present', desc: h1?`H1: "${(h1.textContent||'').trim().substring(0,80)}"`:'No H1 found.'});
+  // First-paragraph TL;DR
+  const firstP = doc.querySelector('main p, article p, body p');
+  const firstText = firstP?.textContent?.trim()||'';
+  const tldr = firstText.length >= 100 && firstText.length <= 320;
+  checks.push({key:'tldr', status:tldr?'pass':'warn', weight:7, title:'First paragraph is citable', desc: tldr?`First paragraph is ${firstText.length} chars — ideal for AI quote-and-cite.`:`First paragraph is ${firstText.length} chars (aim for 100-320 for AI quoting).`});
+  // Author / E-E-A-T
+  const author = doc.querySelector('[rel="author"], .author, [itemprop="author"]')?.textContent || flat.find(x=>x.author)?.author?.name;
+  checks.push({key:'author', status:author?'pass':'warn', weight:6, title:'Author / E-E-A-T signal', desc: author?`Author found: ${escapeHtml(String(author).substring(0,60))}`:'No clear author byline. AI search ranks E-E-A-T highly.'});
+  // External authority links
+  const allLinks = [...doc.querySelectorAll('a[href^="http"]')];
+  const ownDomain = state.url ? new URL(state.url).hostname : '';
+  const external = allLinks.filter(a=>!a.href.includes(ownDomain));
+  checks.push({key:'external_refs', status:external.length>=2?'pass':external.length?'warn':'fail', weight:5, title:`Outbound authority links: ${external.length}`, desc: external.length>=2?'Healthy outbound link count.':'Add 2-3 outbound links to authoritative sources (.edu, .gov, Wikipedia).'});
+  // Word count
+  const text = (doc.body?.textContent||'').replace(/\s+/g,' ').trim();
+  const words = text.split(/\s+/).length;
+  checks.push({key:'word_count', status:words>=400?'pass':words>=200?'warn':'fail', weight:4, title:`Word count: ${words}`, desc: words<200?'Thin content — AI search needs substance to extract from.':words<400?'Below ideal depth (400+).':'Healthy content depth.'});
+  // Images with alt
+  const imgs = [...doc.querySelectorAll('img')];
+  const withAlt = imgs.filter(i=>i.alt && i.alt.trim());
+  checks.push({key:'img_alt', status:imgs.length===0?'info':withAlt.length/imgs.length>=0.9?'pass':'warn', weight:3, title:`Image alt text: ${withAlt.length}/${imgs.length}`, desc: imgs.length?(withAlt.length===imgs.length?'All images have alt text.':`${imgs.length-withAlt.length} images missing alt text.`):'No images on page.'});
+  // Date freshness
+  const dates = flat.filter(x=>x.datePublished||x.dateModified);
+  const lastMod = dates.length?(dates[0].dateModified||dates[0].datePublished):null;
+  const freshness = lastMod?(new Date('2026-05-29') - new Date(lastMod))/(86400000):null;
+  checks.push({key:'freshness', status:freshness===null?'warn':freshness<180?'pass':freshness<365?'warn':'fail', weight:5, title:'Content freshness', desc: lastMod?`Last modified: ${lastMod} (${Math.round(freshness)} days ago)`:'No publication/modification date in schema'});
+  // Tables
+  const tables = doc.querySelectorAll('table').length;
+  checks.push({key:'tables', status:tables>0?'pass':'info', weight:3, title:`Tables: ${tables}`, desc: tables?'Tables increase AI quote-ability for comparison/data content.':'No tables (only relevant for data-rich content).'});
+  // Lists
+  const lists = doc.querySelectorAll('ul,ol').length;
+  checks.push({key:'lists', status:lists>=2?'pass':lists?'warn':'fail', weight:4, title:`Lists: ${lists}`, desc: lists>=2?'Good list usage — AI prefers list-formatted answers.':'Few/no lists. Bullet lists are highly citable.'});
+  // Headings hierarchy
+  const headings = ['h1','h2','h3','h4'].map(t=>doc.querySelectorAll(t).length);
+  const hasHierarchy = headings[0]===1 && headings[1]>=2;
+  checks.push({key:'hierarchy', status:hasHierarchy?'pass':'warn', weight:5, title:'Heading hierarchy', desc: hasHierarchy?`Good: 1 H1, ${headings[1]} H2s, ${headings[2]} H3s`:`Headings: ${headings[0]} H1 / ${headings[1]} H2 / ${headings[2]} H3 — fix structure`});
+  // Mention of common AI queries
+  const lowerText = text.toLowerCase();
+  const hasFaqText = /\b(what is|how to|why|when should|where can)\b/.test(lowerText);
+  checks.push({key:'q_phrasing', status:hasFaqText?'pass':'warn', weight:4, title:'Question phrasing in content', desc: hasFaqText?'Page contains natural question phrasing.':'Add "What is", "How to", "Why" questions — AI extracts answers from these.'});
+  // robots.txt AI crawler check
+  // (Won't fully check — flag for guidance)
+  checks.push({key:'ai_crawler', status:'info', weight:3, title:'AI crawler access (check robots.txt)', desc: 'Verify your robots.txt allows GPTBot, ClaudeBot, PerplexityBot, Google-Extended for AI training/retrieval.'});
+  return checks;
+}
+
+function checkCitation(answer, brand, url){
+  const lower = answer.toLowerCase();
+  let mentions = 0;
+  const brandRx = brand ? new RegExp('\\b' + brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i') : null;
+  if(brandRx && brandRx.test(answer)) mentions++;
+  // URL mention
+  let urls = [];
+  try {
+    const domain = url ? new URL(url).hostname.replace('www.','') : '';
+    if(domain && lower.includes(domain)) mentions++;
+    const matches = answer.match(/https?:\/\/[^\s)]+/g) || [];
+    urls = matches.filter(m=>!domain || m.includes(domain));
+  } catch(e){}
+  return {cited: mentions>0, mentions, urls};
+}
+
+function scoreAudit(checks, passages, llmsTxt, citationTests){
+  let totalW = 0, earnedW = 0;
+  checks.forEach(c=>{
+    if(c.status==='info') return;
+    totalW += c.weight;
+    if(c.status==='pass') earnedW += c.weight;
+    else if(c.status==='warn') earnedW += c.weight*0.5;
+  });
+  const checksScore = totalW ? Math.round(earnedW/totalW*100) : 0;
+  // Average passage score (top 10)
+  const top10 = passages.slice(0,10);
+  const passageScore = top10.length ? Math.round(top10.reduce((s,p)=>s+p.score,0)/top10.length) : 50;
+  // llms.txt presence
+  const llmsScore = llmsTxt ? 100 : 0;
+  // Citation success
+  const citedCount = citationTests.filter(t=>t.cited).length;
+  const citationScore = citationTests.length ? Math.round(citedCount/citationTests.length*100) : null;
+  // Weighted combine
+  const weights = {checks:0.4, passages:0.3, llms:0.1, citations:0.2};
+  let combined, parts;
+  if(citationScore !== null){
+    combined = Math.round(checksScore*weights.checks + passageScore*weights.passages + llmsScore*weights.llms + citationScore*weights.citations);
+    parts = [{l:'On-page checks', v:checksScore, w:40},{l:'Passage citability', v:passageScore, w:30},{l:'llms.txt', v:llmsScore, w:10},{l:'AI citation tests', v:citationScore, w:20}];
+  } else {
+    combined = Math.round(checksScore*0.5 + passageScore*0.4 + llmsScore*0.1);
+    parts = [{l:'On-page checks', v:checksScore, w:50},{l:'Passage citability', v:passageScore, w:40},{l:'llms.txt', v:llmsScore, w:10}];
+  }
+  const passed = checks.filter(c=>c.status==='pass').length;
+  const warn = checks.filter(c=>c.status==='warn').length;
+  const fail = checks.filter(c=>c.status==='fail').length;
+  return {score:combined, parts, passed, warn, fail, total:checks.length, citedCount, citationTotal:citationTests.length};
+}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+function render(){
+  if(!state.results){
+    document.getElementById('cbody').innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/><circle cx="12" cy="12" r="3"/></svg>
+      <div class="et">Generative Engine Optimization</div>
+      <div class="ed">Audit whether AI search engines (ChatGPT, Perplexity, Google AI Overviews, Bing Copilot) will cite your content. Enter a URL on the left and click <strong>Run GEO Audit</strong>. You'll get a citability score, top 30 most-quotable passages from your page, llms.txt validation, on-page GEO checks, and (with an AI key) live citation tests against the major AI search engines.</div>
+    </div>`;
+    document.getElementById('stat-score').textContent = '—';
+    document.getElementById('stat-cited').textContent = '0';
+    document.getElementById('stat-passages').textContent = '0';
+    return;
+  }
+  const a = state.results.audit;
+  document.getElementById('stat-score').textContent = a.score+'/100';
+  document.getElementById('stat-cited').textContent = a.citedCount;
+  document.getElementById('stat-passages').textContent = state.results.passages.length;
+  if(state.view==='overview') return renderOverview();
+  if(state.view==='platforms') return renderPlatforms();
+  if(state.view==='passages') return renderPassages();
+  if(state.view==='llmstxt') return renderLlms();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(){
+  const r = state.results;
+  const a = r.audit;
+  const col = (a.score>=80?'#16a34a':a.score>=60?'#d97706':'#dc2626');
+  const dash = 2*Math.PI*60;
+  const off = dash*(1-a.score/100);
+  document.getElementById('cbody').innerHTML = `
+    <div class="score-hero">
+      <div class="score-circle">
+        <svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="60" class="bg"/><circle cx="70" cy="70" r="60" class="fg" style="stroke:${col};stroke-dasharray:${dash};stroke-dashoffset:${off}"/></svg>
+        <div class="score-text"><div class="v" style="color:${col}">${a.score}</div><div class="l">/ 100</div></div>
+      </div>
+      <div class="score-info">
+        <h2>GEO Score for ${escapeHtml(state.url)}</h2>
+        <div class="sub">${a.score>=80?'Excellent — your page is set up for AI search citation.':a.score>=60?'Decent foundation. Fix warnings to improve.':'AI search engines will struggle to cite this page. Critical work needed.'}</div>
+        <div class="score-pills">
+          <div class="score-pill ok">✓ ${a.passed} pass</div>
+          <div class="score-pill warn">⚠ ${a.warn} warn</div>
+          <div class="score-pill miss">✗ ${a.fail} fail</div>
+          ${a.citationTotal?`<div class="score-pill ${a.citedCount>=a.citationTotal*0.6?'ok':'warn'}">Cited by AI: ${a.citedCount}/${a.citationTotal}</div>`:''}
+          <div class="score-pill">${r.passages.length} passages</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section"><div class="section-hdr"><h3>Score Breakdown</h3></div><div style="padding:14px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        ${a.parts.map(p=>{const c=(p.v>=80?'#16a34a':p.v>=60?'#d97706':'#dc2626');return `<div style="background:var(--bg);padding:11px 13px;border-radius:8px;border-left:4px solid ${c}"><div style="font-size:10px;font-family:var(--mono);font-weight:800;color:var(--text2);text-transform:uppercase">${escapeHtml(p.l)}</div><div style="font-size:22px;font-weight:900;color:${c};font-family:var(--mono)">${p.v}%</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">weight ${p.w}%</div></div>`;}).join('')}
+      </div>
+    </div></div>
+
+    <div class="section"><div class="section-hdr"><h3>On-Page GEO Checks</h3><span class="badge ok">${a.passed} pass</span><span class="badge miss">${a.fail} fail</span></div><div class="check-list">
+      ${r.checks.map(c=>`<div class="check ${c.status}"><div class="icon">${c.status==='pass'?'✓':c.status==='warn'?'!':c.status==='fail'?'✗':'i'}</div><div class="body"><div class="title">${escapeHtml(c.title)}</div><div class="desc">${escapeHtml(c.desc)}</div></div><div class="actions">${c.weight?c.weight+'pt':''}</div></div>`).join('')}
+    </div></div>
+  `;
+}
+
+function renderPlatforms(){
+  const r = state.results;
+  const PLATFORMS = [
+    {id:'chatgpt', name:'ChatGPT (OpenAI)', sub:'gpt-4o, gpt-4o-mini', logo:'GPT', color:'#10a37f', desc:'Uses Bing index + training data. Web access via browse plugin.'},
+    {id:'perplexity', name:'Perplexity', sub:'Pro + Sonar models', logo:'PPX', color:'#1fb8cd', desc:'Real-time web search + citation. Strong source attribution.'},
+    {id:'google_ai', name:'Google AI Overviews', sub:'Gemini-powered SGE', logo:'AIO', color:'#4285f4', desc:'In Google Search results. Pulls from indexed pages with semantic understanding.'},
+    {id:'bing_copilot', name:'Bing Copilot', sub:'GPT-4 + Bing index', logo:'BC', color:'#0078d4', desc:'In Bing + Edge. Uses Bing index. Pulls from sources in real-time.'},
+    {id:'claude', name:'Claude (Anthropic)', sub:'claude-sonnet-4-6', logo:'CL', color:'#d4906f', desc:'Training-cutoff dependent. Limited browsing. Strong reasoning over passages.'},
+    {id:'gemini', name:'Gemini', sub:'Google direct', logo:'GMI', color:'#a18ff7', desc:'Real-time web + Google index. Strong on local entity knowledge.'},
+  ];
+  const tests = r.citationTests || [];
+  const html = `
+    <div class="section"><div class="section-hdr"><h3>AI Search Platforms</h3><span class="badge">${tests.length?tests.length+' queries tested':'No live tests run'}</span></div>
+      <div class="platforms">
+        ${PLATFORMS.map(p=>{
+          const matched = tests.length && (p.id===state.provider || (p.id==='chatgpt'&&state.provider==='openai') || (p.id==='gemini'&&state.provider==='gemini') || (p.id==='claude'&&state.provider==='claude') || (p.id==='perplexity'&&state.provider==='perplexity'));
+          const cls = matched ? (tests.some(t=>t.cited)?'cited':'notcited') : '';
+          const sts = matched ? (tests.some(t=>t.cited)?'cited':'notcited') : 'untested';
+          return `<div class="platform ${cls}">
+            <div class="platform-hdr">
+              <div class="platform-logo" style="background:${p.color}">${p.logo}</div>
+              <div class="platform-info"><div class="name">${escapeHtml(p.name)}</div><div class="sub">${escapeHtml(p.sub)}</div></div>
+              <div class="platform-status ${sts}">${sts==='cited'?'CITED':sts==='notcited'?'NOT CITED':'UNTESTED'}</div>
+            </div>
+            <div class="platform-body">${escapeHtml(p.desc)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    ${tests.length?`<div class="section"><div class="section-hdr"><h3>Live Citation Tests (${state.provider})</h3><span class="badge ${r.audit.citedCount?'ok':'miss'}">${r.audit.citedCount}/${tests.length} cited</span></div><div style="padding:0">
+      ${tests.map(t=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="font-size:13px;font-weight:700;flex:1">"${escapeHtml(t.query)}"</div><div class="platform-status ${t.cited?'cited':'notcited'}">${t.cited?'✓ CITED':'✗ NOT CITED'}</div></div>
+        ${t.error?`<div style="color:var(--danger);font-size:11px;font-family:var(--mono)">Error: ${escapeHtml(t.error)}</div>`:`<div style="font-size:11.5px;color:var(--text2);line-height:1.55;background:var(--bg);padding:10px 12px;border-radius:6px;max-height:140px;overflow-y:auto;white-space:pre-wrap">${escapeHtml(t.answer)}</div>`}
+        ${t.mentions?`<div style="margin-top:5px;font-size:10.5px;color:var(--success);font-family:var(--mono)">${t.mentions} brand/domain mentions</div>`:''}
+      </div>`).join('')}
+    </div></div>`:`<div class="section"><div class="section-hdr"><h3>How to Run Live Citation Tests</h3></div><div style="padding:16px;font-size:12.5px;line-height:1.7;color:var(--text2)">Add an API key for any AI provider in the left panel and run the audit again. Each query will be sent to the AI — if your brand or domain appears in the response, that platform is "citing" you for that query.</div></div>`}
+  `;
+  document.getElementById('cbody').innerHTML = html;
+}
+
+function renderPassages(){
+  const r = state.results;
+  const passages = r.passages || [];
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Top ${Math.min(30,passages.length)} Most-Citable Passages</h3><span class="badge">${passages.filter(p=>p.score>=70).length} high-quality</span></div><div style="padding:0">
+      ${passages.length?passages.map(p=>{
+        const cls = p.score>=70?'high':p.score>=50?'med':'low';
+        return `<div class="passage"><div class="pscore ${cls}">${p.score}</div><div class="pinfo"><div class="ptitle">&lt;${p.tag}&gt;</div><div class="pdesc">${escapeHtml(p.text.substring(0,280))}${p.text.length>280?'…':''}</div><div class="pflags">${p.flags.map(f=>`<span class="pflag ${f.type}">${escapeHtml(f.label)}</span>`).join('')}</div></div><div class="pacts"><div>${p.text.length} chars</div></div></div>`;
+      }).join(''):'<div style="padding:30px;text-align:center;color:var(--text3)">No passages found</div>'}
+    </div></div>
+  `;
+}
+
+function renderLlms(){
+  const r = state.results;
+  const has = !!r.llmsTxt;
+  const sampleLlms = `# ${state.brand||'Your Business'}\n\n> ${state.brand||'Your business'} provides ${state.topic||'services'} in ${state.city||'your city'}. ${state.url||''}\n\n## Services\n- Service 1 — Description\n- Service 2 — Description\n\n## Key Pages\n- [About](${state.url||'/about'}): Company background and team\n- [Services](${state.url||'/services'}): Full service list with pricing\n- [Locations](${state.url||'/locations'}): All service areas\n\n## FAQs\n- [FAQ page](${state.url||'/faq'}): Common questions answered\n\n## Press & References\n- [Customer reviews](${state.url||'/reviews'}): 4.8★ average across 200+ reviews\n\n## Optional\n- [Privacy Policy](/privacy)\n- [Terms of Service](/terms)`;
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>llms.txt Status</h3><span class="badge ${has?'ok':'miss'}">${has?'FOUND':'NOT FOUND'}</span></div><div style="padding:16px">
+      ${has?`<div style="font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.55">Your site serves <code>llms.txt</code> — AI crawlers can find your structured overview. <strong style="color:var(--success)">Excellent.</strong></div><pre style="background:var(--bg);padding:14px;border-radius:8px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;overflow-x:auto;border:1px solid var(--border);max-height:400px;overflow-y:auto">${escapeHtml(r.llmsTxt)}</pre>`:`<div style="font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.55">No <code>llms.txt</code> file found at the root of your domain. This is a proposed standard (similar to robots.txt) that gives AI crawlers a curated overview of your site, products, services, and the most important pages. AI search engines that respect it (Perplexity, ChatGPT browse, Anthropic) use it as a high-trust signal.</div><div style="background:rgba(245,158,11,.1);border-left:4px solid var(--warn);padding:11px 14px;border-radius:6px;font-size:12px;margin-bottom:14px"><strong>Action:</strong> Create a file at <code>${state.url?new URL(state.url).origin:'https://yoursite.com'}/llms.txt</code> with the content below.</div>`}
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Generated llms.txt Template</h3><button class="cb-btn" onclick="copyLlms()">Copy</button></div><div style="padding:16px"><pre id="llms-template" style="background:var(--bg);padding:14px;border-radius:8px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;overflow-x:auto;border:1px solid var(--border)">${escapeHtml(sampleLlms)}</pre></div></div>
+    <div class="section"><div class="section-hdr"><h3>What Goes In llms.txt</h3></div><div style="padding:16px;font-size:12.5px;line-height:1.7;color:var(--text2)">
+      <ul style="padding-left:22px">
+        <li><strong>Header (#)</strong> — Your business or site name</li>
+        <li><strong>Blockquote (&gt;)</strong> — 1-2 sentence summary (this is what AI sees first)</li>
+        <li><strong>H2 sections</strong> — Categorized lists of your most important pages</li>
+        <li><strong>Markdown links</strong> — [Title](URL): Brief description format</li>
+        <li><strong>Optional section</strong> — Less-critical pages (Privacy, Terms, etc.)</li>
+      </ul>
+      <p style="margin-top:10px">Keep it under 500 lines. Focus on the pages you want AI to know about and cite.</p>
+    </div></div>
+  `;
+}
+
+function copyLlms(){
+  const t = document.getElementById('llms-template').textContent;
+  navigator.clipboard.writeText(t);
+  toast('llms.txt copied','success');
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML = `<div class="section"><div class="section-hdr"><h3>GEO / AEO Playbook (2026)</h3></div><div style="padding:18px;font-size:13px;line-height:1.75;color:var(--text2)">
+    <p style="margin-bottom:12px"><strong>GEO (Generative Engine Optimization)</strong> = optimizing for AI search engines that <em>generate</em> answers (Perplexity, ChatGPT Search, Google AI Overviews, Bing Copilot).<br><strong>AEO (Answer Engine Optimization)</strong> = the broader category, includes featured snippets, voice search, and AI answer boxes.</p>
+
+    <h3 style="color:var(--accent);margin-top:18px;font-size:14px">The 7 GEO Principles</h3>
+    <ol style="padding-left:22px;margin-top:8px">
+      <li style="margin-bottom:6px"><strong>Direct, self-contained passages.</strong> Each paragraph should make sense on its own — AI extracts and quotes individual passages.</li>
+      <li style="margin-bottom:6px"><strong>Fact density.</strong> Numbers, dates, percentages, named entities all increase the probability of citation.</li>
+      <li style="margin-bottom:6px"><strong>Question phrasing.</strong> Use natural questions in headings and content. AI matches to user queries semantically.</li>
+      <li style="margin-bottom:6px"><strong>Authoritative sources.</strong> Link out to .edu, .gov, established publications. AI checks for outbound trust signals.</li>
+      <li style="margin-bottom:6px"><strong>E-E-A-T signals.</strong> Author byline, credentials, last-updated date, organization schema with sameAs links.</li>
+      <li style="margin-bottom:6px"><strong>Structured data.</strong> FAQPage, HowTo, Organization, LocalBusiness, Article schemas help AI parse meaning.</li>
+      <li style="margin-bottom:6px"><strong>Crawler access.</strong> Allow GPTBot, ClaudeBot, PerplexityBot, Google-Extended in robots.txt — many sites accidentally block them.</li>
+    </ol>
+
+    <h3 style="color:var(--accent);margin-top:18px;font-size:14px">robots.txt for AI Crawlers</h3>
+    <pre style="background:var(--bg);padding:12px;border-radius:7px;font-family:var(--mono);font-size:11px;margin-top:6px;overflow-x:auto">User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Bytespider
+Disallow: /</pre>
+
+    <h3 style="color:var(--accent);margin-top:18px;font-size:14px">High-Citation Content Patterns</h3>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>"What is X" definitions</strong> — first sentence answers, full paragraph elaborates.</li>
+      <li><strong>Comparison tables</strong> — X vs Y vs Z with concrete differentiators.</li>
+      <li><strong>Numbered steps</strong> — "How to..." with explicit ordering.</li>
+      <li><strong>Statistics paragraphs</strong> — "73% of local searches result in a visit within 24 hours (Google, 2024)."</li>
+      <li><strong>Expert quotes with attribution</strong> — "According to [credentialed person], [statement]."</li>
+    </ul>
+
+    <h3 style="color:var(--accent);margin-top:18px;font-size:14px">Anti-Patterns (Reduce Citation)</h3>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Marketing fluff ("world-class", "cutting-edge")</li>
+      <li>First-person heavy ("We help businesses…")</li>
+      <li>Walls of text with no headings</li>
+      <li>Pronoun-starting sentences ("It allows you to…")</li>
+      <li>Vague generalities without numbers or dates</li>
+    </ul>
+
+    <h3 style="color:var(--accent);margin-top:18px;font-size:14px">Local GEO Specifics</h3>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>City + neighborhood mentions in passages, not just metadata</li>
+      <li>Google Business Profile must be claimed + complete (AI Overviews pull from GBP heavily)</li>
+      <li>Schema.org LocalBusiness with sameAs to all social, Wikipedia, Wikidata if possible</li>
+      <li>llms.txt at root listing your service areas + locations pages</li>
+      <li>Reviews with substance (AI extracts review content)</li>
+    </ul>
+  </div></div>`;
+}
+
+/* ---------- EXPORT ---------- */
+function exportReport(){
+  if(!state.results){ toast('Nothing to export','err'); return; }
+  const a = state.results.audit;
+  const css = `*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:920px;margin:0 auto;background:#fff;border-radius:14px;padding:36px;box-shadow:0 4px 16px rgba(15,26,46,.1)}h1{font-size:24px;font-weight:800;border-bottom:3px solid #7c3aed;padding-bottom:12px}h2{font-size:17px;font-weight:700;margin:22px 0 10px;color:#7c3aed}.sc{display:flex;align-items:center;gap:18px;margin:16px 0;padding:16px;background:#f3f6fb;border-radius:10px}.sv{font-size:54px;font-weight:900;color:#7c3aed;font-family:'JetBrains Mono',monospace}.chk{padding:9px 12px;border-radius:7px;background:#f3f6fb;display:grid;grid-template-columns:18px 1fr;gap:10px;margin-bottom:5px}.chk.pass{background:rgba(22,163,74,.08)}.chk.fail{background:rgba(220,38,38,.08)}.chk.warn{background:rgba(245,158,11,.08)}.tit{font-weight:700;font-size:12.5px}.des{font-size:11.5px;color:#5b6b88;margin-top:2px}@media print{body{padding:0}.wrap{box-shadow:none;border-radius:0}}`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>GEO Audit — ${escapeHtml(state.url)}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="wrap">
+<h1>GEO / AEO Audit Report</h1>
+<p style="color:#5b6b88">${state.results.url} · ${state.results.ts}</p>
+<div class="sc"><div class="sv">${a.score}</div><div><div style="font-size:20px;font-weight:800">GEO Score</div><div style="color:#5b6b88;font-size:13px">${a.passed} pass · ${a.warn} warn · ${a.fail} fail · ${a.citationTotal?(a.citedCount+'/'+a.citationTotal+' AI cited'):'no AI tests run'}</div></div></div>
+<h2>On-Page Checks</h2>
+${state.results.checks.map(c=>`<div class="chk ${c.status}"><div>${c.status==='pass'?'✓':c.status==='warn'?'!':c.status==='fail'?'✗':'i'}</div><div><div class="tit">${escapeHtml(c.title)}</div><div class="des">${escapeHtml(c.desc)}</div></div></div>`).join('')}
+<h2>Top Citable Passages (Top 10)</h2>
+${state.results.passages.slice(0,10).map(p=>`<div style="padding:11px 14px;background:#f3f6fb;border-radius:7px;margin-bottom:6px"><div style="font-size:10px;font-family:monospace;color:#5b6b88;font-weight:700">Score ${p.score} · &lt;${p.tag}&gt;</div><div style="margin-top:4px">${escapeHtml(p.text.substring(0,300))}${p.text.length>300?'…':''}</div></div>`).join('')}
+${state.results.citationTests?.length?`<h2>AI Citation Tests</h2>${state.results.citationTests.map(t=>`<div style="padding:11px 14px;background:${t.cited?'rgba(22,163,74,.07)':'rgba(220,38,38,.05)'};border-radius:7px;margin-bottom:6px;border-left:4px solid ${t.cited?'#16a34a':'#dc2626'}"><strong>"${escapeHtml(t.query)}" — ${t.cited?'✓ Cited':'✗ Not cited'}</strong></div>`).join('')}`:''}
+<div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by GEO/AEO Optimizer · ${new Date().toLocaleString()}</div>
+</div></body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a2 = document.createElement('a'); a2.href=url; a2.download='geo-audit.html'; document.body.appendChild(a2); a2.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a2.remove();},100);
+  toast('Report exported','success');
+}
+
+function clearAll(){
+  if(!confirm('Clear results?')) return;
+  state.results = null; saveState(); render();
+  toast('Cleared','success');
+}
+
+/* ---------- INHERIT KEYS ---------- */
+(function(){
+  try {
+    ['ai_state_v1','rr_state_v1','sg_state_v1','vf_state_v1','kw_state_v1','sm_state_v1'].forEach(k=>{
+      const o = JSON.parse(localStorage.getItem(k)||'null');
+      if(o?.ai?.keys){
+        Object.entries(o.ai.keys).forEach(([id, keys])=>{
+          if(keys?.key && !state.apiKeys[id]) state.apiKeys[id] = keys.key;
+        });
+      }
+    });
+  } catch(e){}
+  saveState();
+})();
+
+/* ---------- BOOT ---------- */
+fillInputs();
+render();
+window.addEventListener('beforeunload', saveState);
+['i-url','i-brand','i-city','i-topic','i-queries'].forEach(id=>document.getElementById(id)?.addEventListener('input', getInputs));
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

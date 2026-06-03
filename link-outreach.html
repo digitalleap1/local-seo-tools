@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Link Outreach Tracker - Manage Local Backlink Outreach Campaigns</title>
+<meta name="description" content="Manage local link-building outreach campaigns. Track prospects, email templates, follow-ups, response rates, won/lost outcomes. AI-generated personalized outreach emails. Kanban-style pipeline + funnel analytics.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#9333ea; --accent-h:#7e22ce; --accent-soft:rgba(147,51,234,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#c084fc; --accent-h:#d8b4fe; --accent-soft:rgba(192,132,252,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(147,51,234,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--pink);border:1px solid var(--pink);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.won strong{color:var(--success)}
+.hdr-stat.active strong{color:var(--accent)}
+.hdr-stat.rate strong{color:var(--amber)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f textarea{resize:vertical;min-height:60px;font-family:var(--font)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+.camp-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.camp{padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .12s}
+.camp:hover{border-color:var(--accent)}
+.camp.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.camp .ci{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.camp .cn{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.camp .cc{font-size:10px;font-family:var(--mono);color:var(--text3)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+/* KPI cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 15px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}
+.kpi.w::before{background:var(--warn)}
+.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.kpi .v{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}
+.kpi.w .v{color:var(--warn)}
+.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+
+/* Kanban */
+.kanban{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:100%}
+.kcol{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:560px}
+.kcol-hdr{padding:9px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;background:var(--bg3)}
+.kcol-hdr .kdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kcol-hdr h4{font-size:10.5px;font-weight:800;flex:1;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.kcol-hdr .kc{font-size:10px;font-family:var(--mono);font-weight:800;color:var(--text);background:var(--bg2);padding:2px 6px;border-radius:4px;border:1px solid var(--border)}
+.kcol-body{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:6px}
+
+.card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;transition:all .12s;border-left:3px solid var(--accent)}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.card.s{border-left-color:var(--success)}
+.card.w{border-left-color:var(--warn)}
+.card.d{border-left-color:var(--danger)}
+.card .cn{font-size:11.5px;font-weight:700;margin-bottom:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .cd{font-size:10px;color:var(--text2);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .cm{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:9.5px;font-family:var(--mono);color:var(--text3)}
+.card .cm .cscore{padding:1px 5px;border-radius:3px;background:var(--bg2);border:1px solid var(--border);font-weight:700}
+.card .cm .cscore.hi{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.card .cm .cdate{margin-left:auto}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000;padding:14px}
+.modal.show{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:680px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-hdr h3{font-size:14px;font-weight:800;flex:1}
+.modal-hdr .x{padding:6px;background:var(--bg3);border:none;border-radius:6px;color:var(--text);font-size:14px;font-weight:700}
+.modal-body{padding:14px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modal-foot .ml{margin-right:auto;font-size:10.5px;color:var(--text3);font-family:var(--mono);align-self:center}
+.mr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* Email modal preview */
+.email-prev{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;line-height:1.55;white-space:pre-wrap;max-height:320px;overflow-y:auto;font-family:var(--font)}
+
+/* Empty */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000}
+.busy.show{display:flex}
+.busy .card-b{background:var(--bg2);padding:24px 30px;border-radius:14px;border:1px solid var(--border);text-align:center;max-width:340px}
+.busy .sp{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg3);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Prospect form */
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:11px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+@media (max-width:1280px){
+  .kanban{grid-template-columns:repeat(4,1fr);overflow-x:auto}
+}
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .kanban{grid-template-columns:repeat(2,1fr)}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+    <div><div class="logo-name">Link<span>Outreach</span></div></div>
+    <span class="logo-tag">CAMPAIGNS</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat won">Won: <strong id="stat-won">0</strong></div>
+  <div class="hdr-stat active">Active: <strong id="stat-active">0</strong></div>
+  <div class="hdr-stat rate">Win rate: <strong id="stat-rate">—</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="backlink-profile.html" class="hdr-link" style="border-color:rgba(147,51,234,.4);color:var(--accent)">
+    Backlinks
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Campaigns</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Your Campaigns</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="camp-list" id="camp-list"></div>
+          <button class="btn-sub" onclick="newCampaign()">+ New Campaign</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Your Business</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name</label><input id="i-biz" oninput="saveBiz()"></div>
+          <div class="f"><label>Your name</label><input id="i-you" oninput="saveBiz()"></div>
+          <div class="f"><label>Your email</label><input id="i-email" oninput="saveBiz()"></div>
+          <div class="f"><label>City / region</label><input id="i-city" oninput="saveBiz()"></div>
+          <div class="f"><label>Industry / category</label><input id="i-cat" oninput="saveBiz()"></div>
+          <div class="f"><label>Website</label><input id="i-web" oninput="saveBiz()"></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ Pull from Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Personalization</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Provider</label><select id="prov-sel" onchange="onProvChange()">
+            <option value="gemini">Gemini (free)</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+            <option value="groq">Groq (free)</option>
+          </select></div>
+          <div class="f"><label>API key</label><input id="i-key" placeholder="paste" oninput="saveKey()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="openProspectModal()">+ Add Prospect</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="importCSV()">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="kanban" onclick="setTab('kanban')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="13"/></svg>
+        Pipeline
+      </button>
+      <button class="tab" data-tab="list" onclick="setTab('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        List
+      </button>
+      <button class="tab" data-tab="funnel" onclick="setTab('funnel')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Funnel
+      </button>
+      <button class="tab" data-tab="templates" onclick="setTab('templates')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Templates
+      </button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg>
+        Playbook
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Add prospects to build outreach pipeline</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+<div class="busy" id="busy"><div class="card-b"><div class="sp"></div><h3 id="busy-title">Working…</h3><p id="busy-msg" style="font-size:11.5px;color:var(--text2);font-family:var(--mono)">…</p></div></div>
+
+<!-- Prospect modal -->
+<div class="modal" id="m-prospect">
+  <div class="modal-card">
+    <div class="modal-hdr"><h3 id="pm-title">Add Prospect</h3><button class="x" onclick="document.getElementById('m-prospect').classList.remove('show')">✕</button></div>
+    <div class="modal-body">
+      <div class="mr2">
+        <div class="f"><label>Domain / Site name *</label><input id="pm-site" placeholder="example.org"></div>
+        <div class="f"><label>Contact name</label><input id="pm-name" placeholder="John Smith"></div>
+      </div>
+      <div class="mr2">
+        <div class="f"><label>Email</label><input id="pm-email" placeholder="contact@example.org"></div>
+        <div class="f"><label>Type</label><select id="pm-type"><option>local_business</option><option>news_local</option><option>blog</option><option>resource_page</option><option>directory</option><option>nonprofit</option><option>edu</option><option>gov</option><option>chamber</option><option>sponsorship</option><option>guest_post</option><option>HARO</option><option>broken_link</option></select></div>
+      </div>
+      <div class="mr3">
+        <div class="f"><label>Domain Authority</label><input id="pm-da" type="number" min="0" max="100" placeholder="35"></div>
+        <div class="f"><label>Score (1-100)</label><input id="pm-score" type="number" min="0" max="100" placeholder="auto"></div>
+        <div class="f"><label>Status</label><select id="pm-status"><option value="research">Research</option><option value="ready">Ready to send</option><option value="sent">Sent</option><option value="opened">Opened/Reply</option><option value="negotiating">Negotiating</option><option value="won">Won (Linked!)</option><option value="lost">Lost</option></select></div>
+      </div>
+      <div class="f"><label>Target page (your page to link to)</label><input id="pm-target" placeholder="https://yoursite.com/services"></div>
+      <div class="f"><label>Anchor text suggestion</label><input id="pm-anchor" placeholder="e.g. plumbing services in Denver"></div>
+      <div class="f"><label>Notes / context</label><textarea id="pm-notes" rows="3" placeholder="Why this is a good target, history with them, etc."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <span class="ml" id="pm-last">—</span>
+      <button class="cb-btn" onclick="generateEmail()">✨ Generate Email</button>
+      <button class="cb-btn" onclick="deleteProspect()" id="pm-del" style="display:none;color:var(--danger)">Delete</button>
+      <button class="cb-btn primary" onclick="saveProspect()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email modal -->
+<div class="modal" id="m-email">
+  <div class="modal-card">
+    <div class="modal-hdr"><h3>Outreach Email</h3><button class="x" onclick="document.getElementById('m-email').classList.remove('show')">✕</button></div>
+    <div class="modal-body">
+      <div class="f"><label>Subject</label><input id="em-subject"></div>
+      <div class="f"><label>Email body</label><textarea id="em-body" rows="12" style="font-family:var(--font);font-size:12px;line-height:1.55"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="cb-btn" onclick="document.getElementById('m-email').classList.remove('show')">Close</button>
+      <button class="cb-btn" onclick="copyEmail()">Copy</button>
+      <button class="cb-btn primary" onclick="openMailto()">Open in Mail App</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+ * LOCAL LINK OUTREACH TRACKER
+ * Kanban-style pipeline for managing local backlink outreach campaigns.
+ * ========================================================================== */
+
+const STORE_KEY = 'lo_state_v1';
+const STAGES = [
+  {id:'research',    name:'Research',    color:'#5b6b88'},
+  {id:'ready',       name:'Ready',       color:'#9333ea'},
+  {id:'sent',        name:'Sent',        color:'#2563eb'},
+  {id:'opened',      name:'Opened/Reply',color:'#0d9488'},
+  {id:'negotiating', name:'Negotiating', color:'#f59e0b'},
+  {id:'won',         name:'Won',         color:'#16a34a'},
+  {id:'lost',        name:'Lost',        color:'#dc2626'},
+];
+
+const TEMPLATES = [
+  {id:'sponsorship', name:'Sponsorship / Donation', subject:'Supporting {their_org} from {biz}', body:`Hi {name},
+
+I'm {you}, owner of {biz} — a {category} business serving {city}.
+
+I came across {their_org} while looking for community organizations to support, and I'd love to discuss sponsoring {specific_program_or_event} this year. We have a budget allocated for community giving and {their_org}'s work aligns perfectly with our values.
+
+In exchange for a sponsorship, we'd appreciate being listed on your supporters/partners page with a link back to our site. Many similar organizations recognize sponsors this way — happy to send some examples.
+
+Would you have 15 minutes this week to discuss the details?
+
+Best,
+{you}
+{biz}
+{web}`},
+  {id:'resource', name:'Resource Page', subject:'Resource suggestion for {their_page}', body:`Hi {name},
+
+I just came across your resource page on {their_page_topic} — really comprehensive list, especially the {specific_resource} entry.
+
+I noticed you don't have a resource for {our_topic} yet. We recently put together a detailed guide that covers {what_it_covers}. It includes original data on {data_point}, which I haven't seen elsewhere.
+
+If you think it'd be useful for your readers, here's the link: {target_url}
+
+Either way, thanks for putting together such a useful page.
+
+Best,
+{you}
+{biz}`},
+  {id:'broken_link', name:'Broken Link Replacement', subject:'Broken link on {their_page}', body:`Hi {name},
+
+I was reading your post on {their_page_topic} and noticed the link to "{broken_link_anchor}" is broken — the destination URL returns a 404.
+
+I have a similar resource that might work as a replacement: {target_url}. It covers {what_it_covers} and is regularly updated.
+
+Either way, thought you'd want to know about the broken link. Let me know if I can help with anything else.
+
+Best,
+{you}
+{biz}
+{web}`},
+  {id:'guest_post', name:'Guest Post Pitch', subject:'Guest post idea for {their_site}', body:`Hi {name},
+
+I'm {you} from {biz}, a {category} business in {city}.
+
+I'm a regular reader of {their_site} and especially enjoyed {recent_article}. I'd love to contribute a guest article along these lines:
+
+**{idea_1_title}** — {idea_1_summary}
+**{idea_2_title}** — {idea_2_summary}
+**{idea_3_title}** — {idea_3_summary}
+
+I've written for {credibility_source} previously. Would any of these be a fit for your audience?
+
+Best,
+{you}
+{biz}
+{web}`},
+  {id:'local_news', name:'Local Press / News', subject:'Local story idea: {hook}', body:`Hi {name},
+
+I'm {you}, owner of {biz} in {city}.
+
+I have a local story idea I think your readers would care about:
+
+{story_hook}
+
+I'm happy to provide quotes, data, and photos. Specifically:
+- {data_or_quote_1}
+- {data_or_quote_2}
+
+Would this be of interest? I'm available for a quick call or email this week.
+
+Best,
+{you}
+{biz}
+{phone}
+{web}`},
+  {id:'chamber', name:'Chamber / Local Org', subject:'New member at {chamber_name}', body:`Hi {name},
+
+I'm {you}, owner of {biz} — a {category} business serving {city}.
+
+I'm interested in joining {chamber_name} and getting involved with the local business community. I see members get listed in the directory and on the {chamber_name} website — happy to provide our details:
+
+- Business: {biz}
+- Category: {category}
+- Web: {web}
+- Phone: {phone}
+
+What's the next step to becoming a member?
+
+Best,
+{you}`},
+  {id:'followup', name:'Follow-up', subject:'Following up: {original_subject}', body:`Hi {name},
+
+Just bumping this up in case it got buried. {one_line_recap_of_original_email}
+
+If now isn't a good time, no worries — just let me know and I'll stop following up.
+
+Best,
+{you}`},
+];
+
+const defaultState = {
+  biz:{name:'', you:'', email:'', city:'', cat:'', web:'', phone:''},
+  apiKeys:{gemini:'', openai:'', claude:'', groq:''},
+  provider:'gemini',
+  activeCampaign:'',
+  campaigns:[], // {id, name, goal, deadline, color}
+  prospects:[], // {id, campaignId, site, name, email, type, da, score, status, target, anchor, notes, email_subject, email_body, history:[{date,event}], createdAt, updatedAt}
+  view:'kanban',
+  editingId: null,
+  templates: TEMPLATES,
+};
+
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function setBusy(s,t,m){const b=document.getElementById('busy');if(t)document.getElementById('busy-title').textContent=t;if(m)document.getElementById('busy-msg').textContent=m;b.classList.toggle('show',s);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+
+/* ---------- BIZ INPUTS ---------- */
+function fillBiz(){
+  Object.entries({biz:'name',you:'you',email:'email',city:'city',cat:'cat',web:'web'}).forEach(([id,k])=>{
+    const el=document.getElementById('i-'+id); if(el) el.value=state.biz[k]||'';
+  });
+  document.getElementById('prov-sel').value=state.provider;
+  document.getElementById('i-key').value=state.apiKeys[state.provider]||'';
+}
+function saveBiz(){
+  Object.entries({biz:'name',you:'you',email:'email',city:'city',cat:'cat',web:'web'}).forEach(([id,k])=>{
+    state.biz[k]=document.getElementById('i-'+id).value;
+  });
+  saveState();
+}
+function onProvChange(){state.provider=document.getElementById('prov-sel').value;document.getElementById('i-key').value=state.apiKeys[state.provider]||'';saveState();}
+function saveKey(){state.apiKeys[state.provider]=document.getElementById('i-key').value.trim();saveState();}
+function syncFromCitation(){
+  try {
+    const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b=cf?.businesses?.[0];
+    if(b){
+      state.biz.name=b.name||state.biz.name;
+      state.biz.city=b.city||state.biz.city;
+      state.biz.cat=b.category||state.biz.cat;
+      state.biz.web=b.website||state.biz.web;
+      state.biz.phone=b.phone||state.biz.phone;
+      saveState();fillBiz();
+      toast('Synced','success');
+    } else toast('No business found','err');
+  } catch(e){toast('Sync failed','err');}
+}
+
+/* ---------- CAMPAIGNS ---------- */
+function renderCampaigns(){
+  const list=document.getElementById('camp-list');
+  if(!state.campaigns.length){list.innerHTML='<div style="font-size:10.5px;color:var(--text3);padding:6px;text-align:center;font-family:var(--mono)">No campaigns yet</div>';return;}
+  list.innerHTML=state.campaigns.map(c=>{
+    const count = state.prospects.filter(p=>p.campaignId===c.id).length;
+    return `<div class="camp ${c.id===state.activeCampaign?'active':''}" onclick="selectCampaign('${c.id}')"><span class="ci" style="background:${c.color||'#9333ea'}"></span><span class="cn">${escapeHtml(c.name)}</span><span class="cc">${count}</span></div>`;
+  }).join('');
+}
+function selectCampaign(id){state.activeCampaign=id;saveState();renderCampaigns();render();}
+function newCampaign(){
+  const name = prompt('Campaign name (e.g. "Q3 Resource Pages"):');
+  if(!name) return;
+  const id = 'c_'+Math.random().toString(36).slice(2,9);
+  state.campaigns.push({id, name, color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), createdAt:'2026-05-29'});
+  state.activeCampaign=id;
+  saveState();renderCampaigns();render();
+  toast(`Campaign "${name}" created`,'success');
+}
+
+/* ---------- PROSPECTS ---------- */
+function openProspectModal(id){
+  state.editingId = id;
+  const p = id ? state.prospects.find(x=>x.id===id) : null;
+  document.getElementById('pm-title').textContent = p ? 'Edit Prospect' : 'Add Prospect';
+  document.getElementById('pm-site').value = p?.site||'';
+  document.getElementById('pm-name').value = p?.name||'';
+  document.getElementById('pm-email').value = p?.email||'';
+  document.getElementById('pm-type').value = p?.type||'local_business';
+  document.getElementById('pm-da').value = p?.da||'';
+  document.getElementById('pm-score').value = p?.score||'';
+  document.getElementById('pm-status').value = p?.status||'research';
+  document.getElementById('pm-target').value = p?.target||'';
+  document.getElementById('pm-anchor').value = p?.anchor||'';
+  document.getElementById('pm-notes').value = p?.notes||'';
+  document.getElementById('pm-last').textContent = p?.updatedAt?`Updated ${p.updatedAt}`:'New prospect';
+  document.getElementById('pm-del').style.display = id ? 'block' : 'none';
+  document.getElementById('m-prospect').classList.add('show');
+}
+function saveProspect(){
+  const site = document.getElementById('pm-site').value.trim();
+  if(!site){toast('Site/domain required','err'); return;}
+  let p;
+  if(state.editingId){
+    p = state.prospects.find(x=>x.id===state.editingId);
+  } else {
+    if(!state.activeCampaign){toast('Create a campaign first','err'); return;}
+    p = {id:'p_'+Math.random().toString(36).slice(2,9), campaignId:state.activeCampaign, history:[], createdAt:'2026-05-29'};
+    state.prospects.push(p);
+  }
+  const oldStatus = p.status;
+  p.site = site;
+  p.name = document.getElementById('pm-name').value.trim();
+  p.email = document.getElementById('pm-email').value.trim();
+  p.type = document.getElementById('pm-type').value;
+  p.da = parseInt(document.getElementById('pm-da').value)||0;
+  p.score = parseInt(document.getElementById('pm-score').value)||computeScore(p);
+  p.status = document.getElementById('pm-status').value;
+  p.target = document.getElementById('pm-target').value.trim();
+  p.anchor = document.getElementById('pm-anchor').value.trim();
+  p.notes = document.getElementById('pm-notes').value;
+  p.updatedAt = '2026-05-29';
+  if(oldStatus && oldStatus !== p.status){
+    p.history = p.history || [];
+    p.history.push({date:'2026-05-29', event:`Status: ${oldStatus} → ${p.status}`});
+  }
+  saveState();
+  document.getElementById('m-prospect').classList.remove('show');
+  render();
+  toast('Saved','success');
+}
+function deleteProspect(){
+  if(!state.editingId) return;
+  if(!confirm('Delete this prospect?')) return;
+  state.prospects = state.prospects.filter(p=>p.id!==state.editingId);
+  state.editingId = null;
+  saveState();
+  document.getElementById('m-prospect').classList.remove('show');
+  render();
+  toast('Deleted','success');
+}
+function computeScore(p){
+  // Heuristic prospect quality score
+  let s = 30;
+  if(p.da>=50) s+=30;
+  else if(p.da>=30) s+=18;
+  else if(p.da>=15) s+=8;
+  const typeBoost = {local_business:10, news_local:25, blog:10, resource_page:20, directory:5, nonprofit:15, edu:30, gov:35, chamber:25, sponsorship:18, guest_post:15, HARO:12, broken_link:18};
+  s += typeBoost[p.type]||0;
+  if(p.email) s+=10;
+  if(p.target && p.anchor) s+=5;
+  return Math.min(100, Math.max(0, s));
+}
+
+/* ---------- AI EMAIL GENERATION ---------- */
+async function generateEmail(){
+  const site = document.getElementById('pm-site').value.trim();
+  const type = document.getElementById('pm-type').value;
+  if(!site){toast('Site required first','err'); return;}
+  const key = state.apiKeys[state.provider];
+  if(!key){
+    // Fallback to template
+    fillEmailFromTemplate(type);
+    return;
+  }
+  setBusy(true, 'Generating email…', `Using ${state.provider}`);
+  const prompt = `Write a short, personalized outreach email for a local SEO link-building campaign.
+
+OUR BUSINESS:
+- Name: ${state.biz.name||'(business)'}
+- Owner: ${state.biz.you||'(your name)'}
+- City: ${state.biz.city||'(city)'}
+- Industry: ${state.biz.cat||'(industry)'}
+- Website: ${state.biz.web||'(website)'}
+
+PROSPECT:
+- Site/domain: ${site}
+- Contact name: ${document.getElementById('pm-name').value||'(use generic "Hi there" if no name)'}
+- Type: ${type}
+- Target page on our site: ${document.getElementById('pm-target').value||'(our homepage)'}
+- Anchor text we want: ${document.getElementById('pm-anchor').value||'(natural anchor)'}
+- Notes: ${document.getElementById('pm-notes').value}
+
+REQUIREMENTS:
+- 4-6 short paragraphs, max 180 words
+- Specific to the prospect (mention their site by name)
+- Natural, conversational tone, NOT salesy
+- Clear value exchange — what's in it for them
+- One clear ask
+- Sign off with our name
+
+Return ONLY the email body. Start with "Subject: ..." on first line, then blank line, then the email text.`;
+  try {
+    const text = await askAI(prompt, key);
+    const lines = text.split('\n');
+    let subject = '';
+    let bodyStart = 0;
+    if(lines[0]?.toLowerCase().startsWith('subject:')){
+      subject = lines[0].replace(/^subject:\s*/i,'').trim();
+      bodyStart = 1;
+      while(bodyStart < lines.length && !lines[bodyStart].trim()) bodyStart++;
+    }
+    const body = lines.slice(bodyStart).join('\n').trim();
+    document.getElementById('em-subject').value = subject || `Quick question about ${site}`;
+    document.getElementById('em-body').value = body || text;
+    document.getElementById('m-email').classList.add('show');
+  } catch(e){
+    toast('AI failed — using template','err');
+    fillEmailFromTemplate(type);
+  }
+  setBusy(false);
+}
+async function askAI(prompt, key){
+  if(state.provider==='gemini'){
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7}})});
+    if(!r.ok) throw new Error('Gemini '+r.status);
+    const j = await r.json();
+    return j.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  }
+  if(state.provider==='openai'){
+    const r = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],temperature:0.7})});
+    if(!r.ok) throw new Error('OpenAI '+r.status);
+    const j = await r.json(); return j.choices?.[0]?.message?.content||'';
+  }
+  if(state.provider==='claude'){
+    const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok) throw new Error('Claude '+r.status);
+    const j = await r.json(); return j.content?.[0]?.text||'';
+  }
+  if(state.provider==='groq'){
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.7})});
+    if(!r.ok) throw new Error('Groq '+r.status);
+    const j = await r.json(); return j.choices?.[0]?.message?.content||'';
+  }
+  throw new Error('No provider');
+}
+function fillEmailFromTemplate(type){
+  const t = TEMPLATES.find(t=>t.id===type) || TEMPLATES[0];
+  const sub = sub_vars(t.subject);
+  const body = sub_vars(t.body);
+  document.getElementById('em-subject').value = sub;
+  document.getElementById('em-body').value = body;
+  document.getElementById('m-email').classList.add('show');
+}
+function sub_vars(text){
+  const site = document.getElementById('pm-site').value.trim();
+  const name = document.getElementById('pm-name').value.trim() || 'there';
+  return text
+    .replace(/\{biz\}/g, state.biz.name||'[Your Business]')
+    .replace(/\{you\}/g, state.biz.you||'[Your Name]')
+    .replace(/\{city\}/g, state.biz.city||'[City]')
+    .replace(/\{category\}/g, state.biz.cat||'[Category]')
+    .replace(/\{web\}/g, state.biz.web||'[website]')
+    .replace(/\{phone\}/g, state.biz.phone||'[phone]')
+    .replace(/\{their_org\}/g, site)
+    .replace(/\{their_site\}/g, site)
+    .replace(/\{name\}/g, name)
+    .replace(/\{their_page\}/g, site)
+    .replace(/\{their_page_topic\}/g, '[their topic]')
+    .replace(/\{our_topic\}/g, state.biz.cat||'[your topic]')
+    .replace(/\{target_url\}/g, document.getElementById('pm-target').value||state.biz.web||'[your URL]')
+    .replace(/\{specific_program_or_event\}/g, '[specific program]')
+    .replace(/\{specific_resource\}/g, '[specific resource]')
+    .replace(/\{what_it_covers\}/g, '[what your resource covers]')
+    .replace(/\{data_point\}/g, '[your unique data]')
+    .replace(/\{broken_link_anchor\}/g, '[broken link text]')
+    .replace(/\{recent_article\}/g, '[their recent article]')
+    .replace(/\{idea_1_title\}/g, '[Idea 1]').replace(/\{idea_1_summary\}/g, '[brief summary]')
+    .replace(/\{idea_2_title\}/g, '[Idea 2]').replace(/\{idea_2_summary\}/g, '[brief summary]')
+    .replace(/\{idea_3_title\}/g, '[Idea 3]').replace(/\{idea_3_summary\}/g, '[brief summary]')
+    .replace(/\{credibility_source\}/g, '[Publication]')
+    .replace(/\{story_hook\}/g, '[story angle]')
+    .replace(/\{data_or_quote_1\}/g, '[data point 1]').replace(/\{data_or_quote_2\}/g, '[data point 2]')
+    .replace(/\{hook\}/g, '[your story hook]')
+    .replace(/\{chamber_name\}/g, site)
+    .replace(/\{original_subject\}/g, '[original subject]')
+    .replace(/\{one_line_recap_of_original_email\}/g, '[brief recap]');
+}
+function copyEmail(){
+  const s = document.getElementById('em-subject').value;
+  const b = document.getElementById('em-body').value;
+  navigator.clipboard.writeText(`Subject: ${s}\n\n${b}`);
+  toast('Email copied','success');
+}
+function openMailto(){
+  const to = document.getElementById('pm-email').value;
+  const s = encodeURIComponent(document.getElementById('em-subject').value);
+  const b = encodeURIComponent(document.getElementById('em-body').value);
+  window.location.href = `mailto:${to}?subject=${s}&body=${b}`;
+}
+
+/* ---------- CSV ---------- */
+function exportCSV(){
+  const rows = [['campaign','site','name','email','type','da','score','status','target','anchor','notes','created','updated']];
+  const camps = Object.fromEntries(state.campaigns.map(c=>[c.id, c.name]));
+  state.prospects.forEach(p=>{
+    rows.push([camps[p.campaignId]||p.campaignId, p.site, p.name||'', p.email||'', p.type, p.da||'', p.score||'', p.status, p.target||'', p.anchor||'', p.notes||'', p.createdAt||'', p.updatedAt||'']);
+  });
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='outreach-prospects.csv'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('CSV exported','success');
+}
+function importCSV(){
+  if(!state.activeCampaign){toast('Create a campaign first','err'); return;}
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='.csv';
+  inp.onchange = e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const txt = ev.target.result;
+      const lines = txt.split('\n').filter(l=>l.trim());
+      if(lines.length<2){toast('Empty CSV','err'); return;}
+      const headers = parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+      let added = 0;
+      for(let i=1;i<lines.length;i++){
+        const vals = parseCSVLine(lines[i]);
+        const row = Object.fromEntries(headers.map((h,j)=>[h,vals[j]||'']));
+        if(!row.site && !row.domain && !row.url) continue;
+        const p = {
+          id:'p_'+Math.random().toString(36).slice(2,9),
+          campaignId: state.activeCampaign,
+          site: row.site||row.domain||row.url,
+          name: row.name||row.contact||'',
+          email: row.email||'',
+          type: row.type||'local_business',
+          da: parseInt(row.da||row.authority)||0,
+          score: parseInt(row.score)||0,
+          status: row.status||'research',
+          target: row.target||row.target_url||'',
+          anchor: row.anchor||'',
+          notes: row.notes||'',
+          history:[],
+          createdAt:'2026-05-29',
+          updatedAt:'2026-05-29',
+        };
+        if(!p.score) p.score = computeScore(p);
+        state.prospects.push(p);
+        added++;
+      }
+      saveState(); render();
+      toast(`Imported ${added} prospects`,'success');
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+function parseCSVLine(line){
+  const result = []; let cur = ''; let inQ = false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(c === '"'){ if(inQ && line[i+1] === '"'){ cur+='"'; i++; } else { inQ = !inQ; } }
+    else if(c === ',' && !inQ){ result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur); return result;
+}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function getCampProspects(){
+  if(!state.activeCampaign) return state.prospects;
+  return state.prospects.filter(p=>p.campaignId===state.activeCampaign);
+}
+function statsForProspects(prospects){
+  const byStatus = {};
+  STAGES.forEach(s=>{ byStatus[s.id] = prospects.filter(p=>p.status===s.id).length; });
+  const won = byStatus.won;
+  const active = prospects.length - byStatus.won - byStatus.lost;
+  const sent = prospects.filter(p=>['sent','opened','negotiating','won','lost'].includes(p.status)).length;
+  const opened = prospects.filter(p=>['opened','negotiating','won','lost'].includes(p.status)).length;
+  const replied = prospects.filter(p=>['opened','negotiating','won'].includes(p.status)).length;
+  const winRate = sent ? Math.round(won/sent*100) : null;
+  return {byStatus, won, active, sent, opened, replied, winRate, total:prospects.length};
+}
+
+function render(){
+  renderCampaigns();
+  const prospects = getCampProspects();
+  const s = statsForProspects(prospects);
+  document.getElementById('stat-won').textContent = s.won;
+  document.getElementById('stat-active').textContent = s.active;
+  document.getElementById('stat-rate').textContent = s.winRate===null?'—':s.winRate+'%';
+  if(state.view==='kanban') return renderKanban(prospects, s);
+  if(state.view==='list') return renderList(prospects);
+  if(state.view==='funnel') return renderFunnel(prospects, s);
+  if(state.view==='templates') return renderTemplates();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderKanban(prospects, s){
+  if(!state.campaigns.length){
+    document.getElementById('cbody').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><div class="et">Create your first campaign</div><div class="ed">Campaigns organize prospects into themed outreach pushes (e.g. "Q3 Resource Pages", "Local Sponsorships", "Broken Link Building"). Click <strong>+ New Campaign</strong> in the left panel to start.</div></div>`;
+    return;
+  }
+  document.getElementById('cbody').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Total Prospects</div><div class="v">${s.total}</div><div class="s">in pipeline</div></div>
+      <div class="kpi"><div class="l">Sent</div><div class="v">${s.sent}</div><div class="s">${s.total?Math.round(s.sent/s.total*100):0}% of pipeline</div></div>
+      <div class="kpi w"><div class="l">Opened/Replied</div><div class="v">${s.opened}</div><div class="s">${s.sent?Math.round(s.opened/s.sent*100):0}% reply rate</div></div>
+      <div class="kpi s"><div class="l">Links Won</div><div class="v">${s.won}</div><div class="s">${s.winRate!==null?s.winRate+'% win rate':'—'}</div></div>
+    </div>
+    <div class="kanban">
+      ${STAGES.map(stage=>{
+        const list = prospects.filter(p=>p.status===stage.id);
+        return `<div class="kcol">
+          <div class="kcol-hdr"><div class="kdot" style="background:${stage.color}"></div><h4>${escapeHtml(stage.name)}</h4><div class="kc">${list.length}</div></div>
+          <div class="kcol-body">
+            ${list.map(p=>{
+              const cls = p.status==='won'?'s':p.status==='lost'?'d':p.status==='opened'||p.status==='negotiating'?'w':'';
+              const sc = p.score||computeScore(p);
+              return `<div class="card ${cls}" onclick="openProspectModal('${p.id}')">
+                <div class="cn">${escapeHtml(p.site)}</div>
+                <div class="cd">${escapeHtml(p.name||p.email||p.type)}</div>
+                <div class="cm">${p.da?`DA${p.da}`:''}<span class="cscore ${sc>=70?'hi':''}">${sc}</span><span class="cdate">${escapeHtml(p.updatedAt||p.createdAt||'')}</span></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderList(prospects){
+  document.getElementById('cbody').innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)">
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--bg3)"><th style="padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Site</th><th style="padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Contact</th><th style="padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Type</th><th style="padding:9px 11px;text-align:center;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">DA</th><th style="padding:9px 11px;text-align:center;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Score</th><th style="padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Status</th><th style="padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--text2);font-family:var(--mono)">Updated</th></tr></thead>
+        <tbody>
+          ${prospects.length?prospects.map(p=>{
+            const stage = STAGES.find(s=>s.id===p.status);
+            return `<tr onclick="openProspectModal('${p.id}')" style="cursor:pointer;border-bottom:1px solid var(--border)" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'"><td style="padding:9px 11px;font-weight:700"><a href="${/^https?:/.test(p.site)?p.site:'https://'+p.site}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none">${escapeHtml(p.site)}</a></td><td style="padding:9px 11px">${escapeHtml(p.name||p.email||'—')}</td><td style="padding:9px 11px;font-family:var(--mono);font-size:11px;color:var(--text2)">${escapeHtml(p.type)}</td><td style="padding:9px 11px;text-align:center;font-family:var(--mono);font-weight:700">${p.da||'—'}</td><td style="padding:9px 11px;text-align:center;font-family:var(--mono);font-weight:700;color:${(p.score||0)>=70?'var(--success)':(p.score||0)>=40?'var(--warn)':'var(--text2)'}">${p.score||'—'}</td><td style="padding:9px 11px"><span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono);background:${stage?.color||'#5b6b88'};color:#fff">${stage?.name||p.status}</span></td><td style="padding:9px 11px;font-family:var(--mono);font-size:10.5px;color:var(--text3)">${escapeHtml(p.updatedAt||p.createdAt||'—')}</td></tr>`;
+          }).join(''):'<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--text3)">No prospects — add some from the left panel</td></tr>'}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+function renderFunnel(prospects, s){
+  const stages = STAGES.filter(st=>st.id!=='lost');
+  const max = Math.max(...stages.map(st=>s.byStatus[st.id]||0), 1);
+  document.getElementById('cbody').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Total prospects</div><div class="v">${s.total}</div><div class="s">across funnel</div></div>
+      <div class="kpi w"><div class="l">Reply rate</div><div class="v">${s.sent?Math.round(s.opened/s.sent*100):0}%</div><div class="s">${s.opened}/${s.sent} sent</div></div>
+      <div class="kpi s"><div class="l">Win rate</div><div class="v">${s.winRate===null?'—':s.winRate+'%'}</div><div class="s">${s.won} links won</div></div>
+      <div class="kpi d"><div class="l">Lost</div><div class="v">${s.byStatus.lost}</div><div class="s">no link / declined</div></div>
+    </div>
+    <div class="section" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm)">
+      <h3 style="font-size:13px;font-weight:800;margin-bottom:16px">Outreach Funnel</h3>
+      ${stages.map(stage=>{
+        const c = s.byStatus[stage.id]||0;
+        const pct = Math.round(c/max*100);
+        return `<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:5px"><div style="width:14px;height:14px;border-radius:50%;background:${stage.color}"></div><div style="font-size:12.5px;font-weight:700">${escapeHtml(stage.name)}</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto">${c} prospect${c===1?'':'s'}</div></div><div style="height:24px;background:var(--bg);border-radius:6px;overflow:hidden"><div style="height:100%;background:${stage.color};width:${pct}%;transition:width .5s"></div></div></div>`;
+      }).join('')}
+      ${s.byStatus.lost?`<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:#dc2626"></div><div style="font-size:12.5px;font-weight:700">Lost</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto">${s.byStatus.lost} prospects · ${s.total?Math.round(s.byStatus.lost/s.total*100):0}% of total</div></div></div>`:''}
+    </div>
+  `;
+}
+
+function renderTemplates(){
+  document.getElementById('cbody').innerHTML = `
+    <div style="margin-bottom:14px;font-size:12.5px;color:var(--text2);background:var(--bg2);padding:11px 14px;border-radius:8px;border-left:3px solid var(--accent);line-height:1.55">Use these as starting points. The <strong>AI Generator</strong> button (in the prospect modal) creates personalized variations using your prospect details.</div>
+    ${TEMPLATES.map(t=>`<div class="section">
+      <div class="section-hdr" style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)"><h3 style="font-size:12.5px;font-weight:700;flex:1">${escapeHtml(t.name)}</h3><button class="cb-btn" onclick="copyTemplate('${t.id}')">Copy</button></div>
+      <div style="padding:14px"><div style="font-size:11px;color:var(--text3);font-family:var(--mono);font-weight:700;margin-bottom:5px;text-transform:uppercase">Subject</div><div style="font-size:12.5px;font-weight:600;margin-bottom:10px;font-family:var(--font);background:var(--bg);padding:7px 10px;border-radius:5px">${escapeHtml(t.subject)}</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono);font-weight:700;margin-bottom:5px;text-transform:uppercase">Body</div><div style="font-size:12px;line-height:1.55;font-family:var(--font);background:var(--bg);padding:11px 14px;border-radius:5px;white-space:pre-wrap">${escapeHtml(t.body)}</div></div>
+    </div>`).join('')}
+  `;
+}
+function copyTemplate(id){
+  const t = TEMPLATES.find(x=>x.id===id);
+  navigator.clipboard.writeText(`Subject: ${t.subject}\n\n${t.body}`);
+  toast('Template copied','success');
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML = `<div class="section" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm)">
+    <h3 style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--accent)">Local Link Building Playbook</h3>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <h4 style="font-size:13px;font-weight:700;margin-top:12px;color:var(--text)">1. Local Sponsorships ($50-$5000)</h4>
+      <p>Sponsor local sports teams, school events, nonprofits, festivals. Almost every sponsored organization lists sponsors with links. High-trust, naturally-relevant links. ROI: ~$50-$500 per link.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">2. Chamber of Commerce</h4>
+      <p>Join your local chamber ($200-$500/yr). Member directory link + networking access. Often includes featured listings.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">3. Local News / Press</h4>
+      <p>Pitch local angles — community impact, unique offerings, local events you're hosting. Tools like HARO/Help a Reporter Out, Qwoted, SourceBottle for journalist requests.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">4. Resource Page Outreach</h4>
+      <p>Google: <code>"your topic" + "resources" inurl:resources [your city]</code>. Find pages curating resources in your industry, pitch your content as an addition.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">5. Broken Link Building</h4>
+      <p>Find broken external links on local sites in your industry, suggest your relevant content as a replacement. Use Check My Links extension or Screaming Frog.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">6. Guest Posts on Local Blogs</h4>
+      <p>Local lifestyle blogs, neighborhood news sites, industry blogs in your service area. Avoid low-quality guest post networks — Google's algorithms detect them.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">7. Educational Partnerships</h4>
+      <p>Offer scholarships, internships, expert content for .edu sites. .edu backlinks remain among the highest-trust signals.</p>
+
+      <h4 style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text)">Outreach Best Practices</h4>
+      <ul style="padding-left:22px">
+        <li>Personalize the first 1-2 lines specifically to their site/article</li>
+        <li>Keep emails under 180 words — busy people don't read long pitches</li>
+        <li>Lead with what's in it for them, not what you want</li>
+        <li>One follow-up after 5-7 days, then stop</li>
+        <li>Track everything — outreach is a numbers game (typically 5-15% reply, 1-5% win rate)</li>
+        <li>Avoid spam triggers: "guest post", "link exchange", "PBN"</li>
+      </ul>
+    </div>
+  </div>`;
+}
+
+/* ---------- BOOT ---------- */
+fillBiz();
+renderCampaigns();
+render();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

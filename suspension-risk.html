@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Suspension Risk Analyzer - Identify & Prevent Google Business Profile Suspensions</title>
+<meta name="description" content="50+ check audit against known Google Business Profile suspension triggers: keyword stuffing, virtual office detection, address spoofing, duplicate listings, fake reviews, category abuse, photo policy. Risk score, prevention plan, AI-powered remediation steps.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#dc2626; --accent-h:#b91c1c; --accent-soft:rgba(220,38,38,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#ef4444; --accent-h:#f87171; --accent-soft:rgba(239,68,68,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--amber));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(220,38,38,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.risk strong{color:var(--accent);font-size:14px}
+.hdr-stat.crit strong{color:var(--danger)}
+.hdr-stat.high strong{color:var(--amber)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT — INPUT */
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.lh{padding:10px 14px 4px;font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+
+.fsec{margin:6px 11px 11px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:7px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f textarea{font-family:var(--mono);min-height:50px;resize:vertical;line-height:1.45}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.4}
+
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);cursor:pointer;padding:3px 0}
+.chk input{margin:0}
+
+#left-footer{margin-top:auto;padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px;position:sticky;bottom:0}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px}
+.tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:16px;background:var(--bg)}
+
+/* RISK GAUGE */
+.gauge-wrap{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px;display:flex;align-items:center;gap:22px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.gauge{width:140px;height:140px;flex-shrink:0;position:relative}
+.gauge svg{transform:rotate(-90deg);width:100%;height:100%}
+.gauge .rb{stroke:var(--bg3)}
+.gauge .rf{transition:stroke-dashoffset .8s,stroke .3s;stroke:var(--success)}
+.gauge.r-low .rf{stroke:var(--success)}
+.gauge.r-med .rf{stroke:var(--amber)}
+.gauge.r-high .rf{stroke:var(--accent)}
+.gauge.r-crit .rf{stroke:var(--danger);animation:pulse-stroke 1.5s ease-in-out infinite}
+@keyframes pulse-stroke{0%,100%{opacity:1}50%{opacity:.6}}
+.gauge-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);text-align:center}
+.gauge-val .n{font-size:36px;font-weight:900;line-height:1}
+.gauge-val .l{font-size:9.5px;font-weight:700;color:var(--text2);margin-top:3px;letter-spacing:.6px;text-transform:uppercase}
+.gauge-info{flex:1;min-width:0}
+.gauge-info h1{font-size:20px;font-weight:800;margin-bottom:3px;letter-spacing:-.3px}
+.gauge-info .level{font-size:14px;font-weight:700;margin:3px 0 6px}
+.gauge-info .level.low{color:var(--success)}
+.gauge-info .level.med{color:var(--amber)}
+.gauge-info .level.high{color:var(--accent)}
+.gauge-info .level.crit{color:var(--danger);text-shadow:0 0 8px rgba(220,38,38,.4)}
+.gauge-info p{font-size:12px;color:var(--text2);line-height:1.55}
+
+/* CATEGORY CARDS */
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.ccard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
+.ccard:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.ccard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--success)}
+.ccard.r-med::before{background:var(--amber)}
+.ccard.r-high::before{background:var(--accent)}
+.ccard.r-crit::before{background:var(--danger)}
+.ccard .ch{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ccard .ci{font-size:18px}
+.ccard .cn{font-size:12px;font-weight:700;flex:1}
+.ccard .cv{font-family:var(--mono);font-weight:800;font-size:18px;line-height:1}
+.ccard.r-low .cv{color:var(--success)}
+.ccard.r-med .cv{color:var(--amber)}
+.ccard.r-high .cv{color:var(--accent)}
+.ccard.r-crit .cv{color:var(--danger)}
+.ccard .cm{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+
+/* TRIGGER LIST */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:13px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-hdr .badge.danger{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+
+.trig{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.trig:last-child{border-bottom:none}
+.trig:hover{background:var(--bg3)}
+.trig .ic{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;color:#fff}
+.trig.r-crit .ic{background:var(--danger)}
+.trig.r-high .ic{background:var(--amber)}
+.trig.r-med .ic{background:var(--blue)}
+.trig.r-low .ic{background:var(--success)}
+.trig.r-na .ic{background:var(--text3)}
+.trig .body{flex:1;min-width:0}
+.trig .title{font-size:13px;font-weight:700;color:var(--text);line-height:1.4}
+.trig .title .sev{display:inline-block;font-size:9.5px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase}
+.trig .title .sev.crit{background:rgba(220,38,38,.13);color:var(--danger)}
+.trig .title .sev.high{background:rgba(217,119,6,.13);color:var(--amber)}
+.trig .title .sev.med{background:rgba(37,99,235,.13);color:var(--blue)}
+.trig .title .sev.low{background:rgba(22,163,74,.13);color:var(--success)}
+.trig .desc{font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:4px}
+.trig .evidence{font-size:11px;color:var(--text);font-family:var(--mono);background:var(--bg);border-left:3px solid var(--accent);padding:7px 10px;border-radius:5px;margin-top:6px}
+.trig .fix{font-size:11.5px;color:var(--text);background:rgba(22,163,74,.04);border:1px dashed rgba(22,163,74,.3);padding:7px 10px;border-radius:5px;margin-top:6px;line-height:1.55}
+.trig .fix strong{color:var(--success)}
+.trig .ai-fix{margin-top:7px;background:var(--bg);border:1px solid var(--border);padding:8px 11px;border-radius:5px;font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre-wrap}
+.trig .ai-fix .lbl{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.trig .actions{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.trig .actions button{padding:4px 9px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:4px}
+.trig .actions button:hover{border-color:var(--accent);color:var(--accent)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .gauge-wrap{flex-direction:column}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div><div class="logo-name">Suspension<span>Risk</span></div></div>
+    <span class="logo-tag">GBP</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat risk">Risk: <strong id="stat-risk">—</strong></div>
+  <div class="hdr-stat crit"><strong id="stat-crit">0</strong> critical</div>
+  <div class="hdr-stat high"><strong id="stat-high">0</strong> high</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="gbp-audit.html" class="hdr-link" style="border-color:rgba(217,119,6,.4);color:var(--amber)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/></svg>
+    GBP Audit
+  </a>
+  <a href="nap-checker.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+    NAP
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT — INPUT -->
+  <div id="left">
+    <div class="lh">GBP Profile Details</div>
+    <div class="fsec">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Identity</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <div class="f"><label>Business Name (as on GBP) *</label><input id="b-name" oninput="saveInputs()" placeholder="Acme Plumbing"></div>
+        <div class="f"><label>Legal/Storefront Name (if different)</label><input id="b-legal" oninput="saveInputs()" placeholder="Acme Plumbing LLC"></div>
+        <div class="f"><label>Primary Category</label><input id="b-cat" oninput="saveInputs()" placeholder="Plumber"></div>
+        <div class="f"><label>Secondary Categories (comma sep)</label><input id="b-cat2" oninput="saveInputs()" placeholder="Water damage, Drain cleaning"></div>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Address</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <div class="f"><label>Business Type</label><select id="b-type" onchange="saveInputs()">
+          <option value="brick">Brick & Mortar (storefront)</option>
+          <option value="sab">Service Area only (hide address)</option>
+          <option value="hybrid">Hybrid (storefront + SAB)</option>
+        </select></div>
+        <div class="f"><label>Street Address</label><input id="b-addr" oninput="saveInputs()"></div>
+        <div class="row2">
+          <div class="f"><label>City</label><input id="b-city" oninput="saveInputs()"></div>
+          <div class="f"><label>ZIP/Postal</label><input id="b-zip" oninput="saveInputs()"></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="b-virtual" onchange="saveInputs()"> Virtual office / coworking / mailbox?</label>
+        <label class="chk"><input type="checkbox" id="b-staffed" checked onchange="saveInputs()"> Address is staffed during business hours?</label>
+        <label class="chk"><input type="checkbox" id="b-signage" checked onchange="saveInputs()"> Permanent signage visible at this address?</label>
+        <label class="chk"><input type="checkbox" id="b-residential" onchange="saveInputs()"> Residential address?</label>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Contact</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <div class="f"><label>Phone (as on GBP)</label><input id="b-phone" oninput="saveInputs()"></div>
+        <div class="f"><label>Website</label><input id="b-web" oninput="saveInputs()"></div>
+        <label class="chk"><input type="checkbox" id="b-tollfree" onchange="saveInputs()"> Phone is toll-free (800/888) as primary?</label>
+        <label class="chk"><input type="checkbox" id="b-trackingnum" onchange="saveInputs()"> Phone is a tracking/forwarding number (not main line)?</label>
+        <label class="chk"><input type="checkbox" id="b-sharedphone" onchange="saveInputs()"> Phone is shared with other GBPs?</label>
+        <label class="chk"><input type="checkbox" id="b-otherbiz" onchange="saveInputs()"> Other businesses also operate at this address?</label>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>History</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <label class="chk"><input type="checkbox" id="b-suspended" onchange="saveInputs()"> Previously suspended in last 12 months?</label>
+        <label class="chk"><input type="checkbox" id="b-multi-gbp" onchange="saveInputs()"> Multiple GBPs at same address?</label>
+        <label class="chk"><input type="checkbox" id="b-recent-address" onchange="saveInputs()"> Address changed in last 6 months?</label>
+        <label class="chk"><input type="checkbox" id="b-recent-name" onchange="saveInputs()"> Name changed in last 6 months?</label>
+        <label class="chk"><input type="checkbox" id="b-bulk-edits" onchange="saveInputs()"> Made many edits in last 30 days?</label>
+      </div>
+    </div>
+    <div class="fsec collapsed">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Reviews</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <label class="chk"><input type="checkbox" id="b-review-burst" onchange="saveInputs()"> Recent burst of reviews (10+ in 1 week)?</label>
+        <label class="chk"><input type="checkbox" id="b-review-incentive" onchange="saveInputs()"> Offered discounts/freebies for reviews?</label>
+        <label class="chk"><input type="checkbox" id="b-review-gating" onchange="saveInputs()"> Asked only happy customers to leave reviews?</label>
+        <label class="chk"><input type="checkbox" id="b-review-employee" onchange="saveInputs()"> Employees/family have left reviews?</label>
+      </div>
+    </div>
+    <div class="fsec collapsed">
+      <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Photos & Content</h4><span class="toggle">▼</span></div>
+      <div class="fsec-body">
+        <label class="chk"><input type="checkbox" id="b-stock-photos" onchange="saveInputs()"> Used stock photos as primary cover?</label>
+        <label class="chk"><input type="checkbox" id="b-logo-cover" onchange="saveInputs()"> Logo used as cover photo?</label>
+        <label class="chk"><input type="checkbox" id="b-keywords-name" onchange="saveInputs()"> Service keywords added to business name?</label>
+        <label class="chk"><input type="checkbox" id="b-keywords-desc" onchange="saveInputs()"> Description has keyword stuffing?</label>
+        <label class="chk"><input type="checkbox" id="b-fake-attributes" onchange="saveInputs()"> Set attributes that don't apply?</label>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="syncFromTools()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)">↻ Sync from other tools</button>
+      <button class="btn-go" onclick="runAudit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Run Risk Audit
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportReport()">Report</button>
+        <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="tab" data-tab="critical" onclick="setTab('critical')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Critical <span class="count" id="tc-crit">0</span>
+      </button>
+      <button class="tab" data-tab="all" onclick="setTab('all')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+        All Triggers <span class="count" id="tc-all">0</span>
+      </button>
+      <button class="tab" data-tab="plan" onclick="setTab('plan')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Prevention Plan
+      </button>
+      <div class="cb-sp"></div>
+      <button class="cb-btn primary" onclick="aiSuggestAll()" id="btn-ai-all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        AI Fix Plan for All Critical
+      </button>
+    </div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Fill profile details and run the risk audit</span>
+  </div>
+  <div class="ft-item"><span id="ft-prov">AI: <strong id="ft-ai-n">not configured</strong></span></div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * GBP SUSPENSION RISK ANALYZER
+ * 50+ checks against known suspension triggers + AI remediation plan
+ * ========================================================================== */
+
+/* ---------- CATEGORIES & TRIGGERS ---------- */
+const CATEGORIES = [
+  {id:'name', label:'Name & Identity', icon:'🏷'},
+  {id:'addr', label:'Address & Location', icon:'📍'},
+  {id:'phone', label:'Phone & Contact', icon:'📞'},
+  {id:'category', label:'Categories', icon:'📂'},
+  {id:'reviews', label:'Reviews', icon:'⭐'},
+  {id:'photos', label:'Photos', icon:'📷'},
+  {id:'history', label:'History & Edits', icon:'📜'},
+  {id:'website', label:'Website Signals', icon:'🌐'},
+];
+
+/* Each trigger:
+   id, cat, sev (crit/high/med/low), title, desc (why it triggers suspension), fix,
+   check: function(state) → 'r-crit'|'r-high'|'r-med'|'r-low'|'r-na' */
+const TRIGGERS = [
+  // NAME
+  {id:'name-stuff', cat:'name', sev:'crit', title:'Keyword stuffing in business name', desc:'Adding service keywords beyond your legal/storefront name is the #1 cause of GBP suspensions. Example: "Boston Best 24/7 Emergency Plumber Co" instead of "Acme Plumbing".', fix:'Match the name on GBP exactly to your legal/storefront name. Strip all descriptive keywords.',
+    check: s=>{
+      if(!s.name) return 'r-na';
+      if(s.keywordsName) return 'r-crit';
+      const STOPWORDS = ['emergency','24/7','24 hour','best','top','cheap','affordable','near me','licensed','insured','professional','expert','#1','number one','service'];
+      const t = s.name.toLowerCase();
+      const hits = STOPWORDS.filter(w=>t.includes(w));
+      if(hits.length>=2) return 'r-crit';
+      if(hits.length===1) return 'r-high';
+      // Check if name has more words than legal name suggests
+      if(s.legal && s.name.split(/\s+/).length > s.legal.split(/\s+/).length+2) return 'r-high';
+      return 'r-low';
+    }
+  },
+  {id:'name-mismatch', cat:'name', sev:'high', title:'Name doesn\'t match storefront/legal name', desc:'Suspensions trigger when the GBP name differs from what\'s on your signage, business cards, and legal entity.', fix:'Use the exact same name across GBP, your storefront, website, business license, and citations.',
+    check: s=>{ if(!s.name || !s.legal) return 'r-na'; if(s.name.toLowerCase() === s.legal.toLowerCase()) return 'r-low'; if(s.legal.toLowerCase().includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(s.legal.toLowerCase())) return 'r-med'; return 'r-high'; }
+  },
+  {id:'name-location', cat:'name', sev:'high', title:'City/neighborhood added to name', desc:'Adding "Boston" or "Downtown" to a name that doesn\'t legally include it is a guideline violation. Only allowed if the storefront actually displays it.', fix:'Remove city names unless they appear on your physical signage.',
+    check: s=>{ if(!s.name||!s.city) return 'r-na'; if(s.name.toLowerCase().includes(s.city.toLowerCase()) && !(s.legal||'').toLowerCase().includes(s.city.toLowerCase())) return 'r-high'; return 'r-low'; }
+  },
+
+  // ADDRESS
+  {id:'addr-virtual', cat:'addr', sev:'crit', title:'Virtual office / mailbox / coworking address', desc:'Google bans virtual offices, Regus-style coworking spaces (unless you have a private staffed office), UPS/PMB addresses, and PO boxes for GBP.', fix:'Use a real, staffed location. For SAB, hide the address entirely instead of using a virtual one.',
+    check: s=> s.virtual ? 'r-crit' : 'r-low'
+  },
+  {id:'addr-unstaffed', cat:'addr', sev:'crit', title:'Address not staffed during business hours', desc:'Brick-and-mortar listings require the address to be staffed during stated business hours. Unstaffed = listed business hours = guideline violation.', fix:'Either staff the location during all stated hours, or switch the GBP to Service Area Business mode and hide the address.',
+    check: s=> (s.type==='brick'||s.type==='hybrid') && !s.staffed ? 'r-crit' : 'r-low'
+  },
+  {id:'addr-no-signage', cat:'addr', sev:'high', title:'No permanent signage at address', desc:'Google requires permanent signage with the business name visible at any address shown on GBP.', fix:'Install permanent exterior signage with the exact GBP business name before the next reinstatement attempt.',
+    check: s=> (s.type==='brick'||s.type==='hybrid') && !s.signage ? 'r-high' : 'r-low'
+  },
+  {id:'addr-residential', cat:'addr', sev:'high', title:'Residential address publicly listed', desc:'Showing a residential address on a SAB profile is a guideline violation. SABs must hide the address.', fix:'Hide the address in GBP > Info > Address. Show only the service area instead.',
+    check: s=> s.residential && s.type==='sab' && s.addr ? 'r-high' : (s.residential && s.type!=='sab' ? 'r-med' : 'r-low')
+  },
+  {id:'addr-multi-biz', cat:'addr', sev:'med', title:'Multiple businesses at same address', desc:'OK if the businesses are legally distinct (separate entities, separate operations). Risky if they share staff/operations.', fix:'Document the legal separation: separate licenses, separate phone lines, separate entrances/suite numbers if possible.',
+    check: s=> s.otherBiz ? 'r-med' : 'r-low'
+  },
+  {id:'addr-multi-gbp', cat:'addr', sev:'crit', title:'Multiple GBPs at same address', desc:'Hard violation unless the businesses are legally distinct entities (different EINs, different licenses).', fix:'Delete duplicate GBPs immediately. If they\'re legally distinct businesses, document the separation and request reinstatement.',
+    check: s=> s.multiGbp ? 'r-crit' : 'r-low'
+  },
+  {id:'addr-sab-shown', cat:'addr', sev:'high', title:'SAB with visible address', desc:'Service Area Businesses must hide their address in GBP. Showing it triggers automatic suspension.', fix:'In GBP > Info > Address, uncheck "Show address on Maps".',
+    check: s=> s.type==='sab' && s.addr ? 'r-high' : 'r-low'
+  },
+  {id:'addr-recent-change', cat:'addr', sev:'med', title:'Recent address change without citation updates', desc:'Address changes trigger automatic re-review. If your website + top citations still show the old address, suspension risk spikes.', fix:'Update website footer + top 20 citations (Yelp, BBB, Yellow Pages, etc.) to the new address BEFORE editing GBP.',
+    check: s=> s.recentAddress ? 'r-med' : 'r-low'
+  },
+
+  // PHONE
+  {id:'phone-tracking', cat:'phone', sev:'high', title:'Tracking/forwarding number as primary', desc:'Google flags numbers that ring to a different geographic area or look like call-tracking services. Suspensions often hit when the tracking number doesn\'t match the website\'s main number.', fix:'Use your main local line as the primary on GBP. Add tracking numbers as additional only.',
+    check: s=> s.trackingNum ? 'r-high' : 'r-low'
+  },
+  {id:'phone-tollfree', cat:'phone', sev:'med', title:'Toll-free number as primary', desc:'Toll-free numbers (800/888) as the ONLY phone can hurt local relevance and trigger suspensions for SABs.', fix:'Use a local-area-code number as primary. Keep toll-free as a secondary contact.',
+    check: s=> s.tollfree ? 'r-med' : 'r-low'
+  },
+  {id:'phone-shared', cat:'phone', sev:'crit', title:'Phone shared across multiple GBPs', desc:'Same phone on multiple GBPs is treated as duplicate listing. One or both get suspended.', fix:'Each GBP must have a unique phone number. Add a second line if you operate multiple locations.',
+    check: s=> s.sharedPhone ? 'r-crit' : 'r-low'
+  },
+  {id:'phone-area-mismatch', cat:'phone', sev:'med', title:'Phone area code doesn\'t match location', desc:'A Boston (617) business with a NYC (212) primary number raises automated red flags.', fix:'Match the area code of your primary number to the business city.',
+    check: s=>{ if(!s.phone||!s.city) return 'r-na'; const digits = s.phone.replace(/\D/g,''); if(digits.length<10) return 'r-na'; const ac = digits.slice(-10,-7);
+      // We can't deterministically check city/area code mapping here — use heuristic: warn user manually
+      return 'r-na';
+    }
+  },
+
+  // CATEGORY
+  {id:'cat-no-primary', cat:'category', sev:'crit', title:'No primary category set', desc:'Profiles without a primary category cannot rank in the local pack.', fix:'Set the most specific primary category that matches your business.',
+    check: s=> !s.primaryCat ? 'r-crit' : 'r-low'
+  },
+  {id:'cat-too-broad', cat:'category', sev:'med', title:'Primary category too generic', desc:'"Service Business" or "Business Center" lose to specific competitors like "Emergency Plumber" or "Family Dentist".', fix:'Use the most specific category available. Browse GBP\'s 4,000+ categories.',
+    check: s=>{
+      if(!s.primaryCat) return 'r-na';
+      const generic = ['service','business','company','establishment','professional','contractor service','consultant','agency'];
+      const t = s.primaryCat.toLowerCase();
+      return generic.some(g=>t===g || t==='general '+g)?'r-med':'r-low';
+    }
+  },
+  {id:'cat-too-many', cat:'category', sev:'med', title:'Too many secondary categories (>9)', desc:'Stuffing 10+ categories looks spammy. Google allows up to 9, and only relevant ones strengthen your profile.', fix:'Keep 3-9 secondary categories, all directly relevant to services you actually provide.',
+    check: s=> (s.secondaryCats?.length||0) > 9 ? 'r-med' : 'r-low'
+  },
+  {id:'cat-irrelevant', cat:'category', sev:'high', title:'Secondary categories unrelated to business', desc:'Adding "Doctor" to a plumbing business to capture medical searches is a guideline violation.', fix:'Every secondary category must reflect a real service you actually provide.',
+    check: s=> s.fakeAttributes ? 'r-high' : 'r-low'
+  },
+
+  // REVIEWS
+  {id:'rev-burst', cat:'reviews', sev:'high', title:'Suspicious review velocity', desc:'A burst of 10+ reviews in a single week (especially after a long period of none) triggers Google\'s review filter and can flag the profile.', fix:'Spread review requests evenly. Aim for steady drip, not bursts.',
+    check: s=> s.reviewBurst ? 'r-high' : 'r-low'
+  },
+  {id:'rev-incentive', cat:'reviews', sev:'crit', title:'Incentivized reviews', desc:'Offering discounts, freebies, or contests in exchange for reviews violates BOTH Google guidelines AND FTC rules.', fix:'Never offer anything in exchange for reviews. Ask without expectation.',
+    check: s=> s.reviewIncentive ? 'r-crit' : 'r-low'
+  },
+  {id:'rev-gating', cat:'reviews', sev:'crit', title:'Review gating', desc:'Asking only happy customers to leave Google reviews while directing unhappy ones to a private feedback form is a guideline violation.', fix:'Ask EVERY customer to leave a review. Address unhappy ones publicly with empathy and a fix.',
+    check: s=> s.reviewGating ? 'r-crit' : 'r-low'
+  },
+  {id:'rev-employee', cat:'reviews', sev:'high', title:'Employee/family reviews', desc:'Reviews from employees, family members, or anyone with a conflict of interest are removed when detected and damage the profile\'s trust score.', fix:'Disclose all conflicts of interest. Ask only real customers for reviews.',
+    check: s=> s.reviewEmployee ? 'r-high' : 'r-low'
+  },
+
+  // PHOTOS
+  {id:'photo-stock', cat:'photos', sev:'med', title:'Stock photos as cover/profile', desc:'Google rewards real, original photos. Stock imagery on the cover dilutes trust signals and is often filtered.', fix:'Use real photos of your storefront, team, and work. Stock is OK for blog content but not cover/profile.',
+    check: s=> s.stockPhotos ? 'r-med' : 'r-low'
+  },
+  {id:'photo-logo-cover', cat:'photos', sev:'low', title:'Logo as cover photo', desc:'Logos are best used as the round profile avatar, not the cover. Use a real business photo as cover instead.', fix:'Replace cover with a 1200×675 photo of your storefront or in-action work.',
+    check: s=> s.logoCover ? 'r-low' : 'r-low'
+  },
+
+  // HISTORY
+  {id:'hist-suspended', cat:'history', sev:'crit', title:'Previously suspended in last 12 months', desc:'Recently reinstated profiles are under heightened scrutiny. Any new violation triggers immediate re-suspension.', fix:'Document every edit. Avoid edits that look spammy. Keep all support tickets and reinstatement emails.',
+    check: s=> s.suspended ? 'r-crit' : 'r-low'
+  },
+  {id:'hist-recent-name', cat:'history', sev:'med', title:'Recent name change', desc:'Name changes trigger re-verification. If the new name doesn\'t match website + citations, suspension risk is high.', fix:'Update the legal name on website + top citations FIRST, then change GBP.',
+    check: s=> s.recentName ? 'r-med' : 'r-low'
+  },
+  {id:'hist-bulk-edits', cat:'history', sev:'med', title:'Many edits in last 30 days', desc:'Bulk edits in a short window look like ownership transfer or spam manipulation. Google may auto-suspend pending review.', fix:'Make one or two thoughtful edits, then wait 7-14 days before the next change.',
+    check: s=> s.bulkEdits ? 'r-med' : 'r-low'
+  },
+
+  // WEBSITE
+  {id:'web-mismatch-nap', cat:'website', sev:'high', title:'GBP NAP doesn\'t match website', desc:'Mismatch between GBP name/address/phone and website footer is a top automated-suspension trigger.', fix:'Match exactly: same name, same address format, same phone format on website footer + GBP.',
+    check: s=>{
+      const cf = (typeof CF !== 'undefined') ? CF : null;
+      // we'll cross-check from nap state if available
+      try {
+        const nap = JSON.parse(localStorage.getItem('nap_state_v1')||'null');
+        if(!nap?.ref?.name) return 'r-na';
+        if(norm(nap.ref.name) !== norm(s.name||'')) return 'r-high';
+        const phoneR = (nap.ref.phone||'').replace(/\D/g,'').slice(-10);
+        const phoneG = (s.phone||'').replace(/\D/g,'').slice(-10);
+        if(phoneR && phoneG && phoneR !== phoneG) return 'r-high';
+        return 'r-low';
+      } catch(e){ return 'r-na'; }
+    }
+  },
+  {id:'web-stuffing-desc', cat:'website', sev:'high', title:'Description has keyword stuffing', desc:'GBP descriptions stuffed with city + service keywords + competitor names are flagged as spam content.', fix:'Write naturally. Lead with services + USPs + year founded. ~750 chars max, read-aloud test should sound human.',
+    check: s=> s.keywordsDesc ? 'r-high' : 'r-low'
+  },
+  {id:'web-fake-attr', cat:'website', sev:'med', title:'Attributes don\'t match reality', desc:'Setting attributes you don\'t actually offer (wheelchair accessible when you\'re not, women-owned when you\'re not) is a guideline violation.', fix:'Only set attributes that are 100% accurate to your business. Audit these monthly.',
+    check: s=> s.fakeAttributes ? 'r-med' : 'r-low'
+  },
+];
+
+function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'').trim();}
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'sr_state_v1';
+const defaultState = {
+  inputs: {name:'', legal:'', primaryCat:'', secondaryCats:[], type:'brick', addr:'', city:'', zip:'', virtual:false, staffed:true, signage:true, residential:false, phone:'', web:'', tollfree:false, trackingNum:false, sharedPhone:false, otherBiz:false, suspended:false, multiGbp:false, recentAddress:false, recentName:false, bulkEdits:false, reviewBurst:false, reviewIncentive:false, reviewGating:false, reviewEmployee:false, stockPhotos:false, logoCover:false, keywordsName:false, keywordsDesc:false, fakeAttributes:false},
+  results: [], // [{trigger.id, level, ...}]
+  score: 0,
+  aiFixes: {},
+  view: 'overview',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+
+/* ---------- INPUTS ---------- */
+function saveInputs(){
+  const i = state.inputs;
+  i.name = document.getElementById('b-name').value;
+  i.legal = document.getElementById('b-legal').value;
+  i.primaryCat = document.getElementById('b-cat').value;
+  i.secondaryCats = document.getElementById('b-cat2').value.split(',').map(s=>s.trim()).filter(Boolean);
+  i.type = document.getElementById('b-type').value;
+  i.addr = document.getElementById('b-addr').value;
+  i.city = document.getElementById('b-city').value;
+  i.zip = document.getElementById('b-zip').value;
+  i.phone = document.getElementById('b-phone').value;
+  i.web = document.getElementById('b-web').value;
+  ['virtual','staffed','signage','residential','tollfree','trackingNum','sharedPhone','otherBiz','suspended','multiGbp','recentAddress','recentName','bulkEdits','reviewBurst','reviewIncentive','reviewGating','reviewEmployee','stockPhotos','logoCover','keywordsName','keywordsDesc','fakeAttributes'].forEach(k=>{
+    const id = 'b-'+k.toLowerCase().replace(/([A-Z])/g,'-$1').replace('-burst','-burst').replace('-incentive','-incentive').replace('-gating','-gating').replace('-employee','-employee');
+    const map = {virtual:'b-virtual',staffed:'b-staffed',signage:'b-signage',residential:'b-residential',tollfree:'b-tollfree',trackingNum:'b-trackingnum',sharedPhone:'b-sharedphone',otherBiz:'b-otherbiz',suspended:'b-suspended',multiGbp:'b-multi-gbp',recentAddress:'b-recent-address',recentName:'b-recent-name',bulkEdits:'b-bulk-edits',reviewBurst:'b-review-burst',reviewIncentive:'b-review-incentive',reviewGating:'b-review-gating',reviewEmployee:'b-review-employee',stockPhotos:'b-stock-photos',logoCover:'b-logo-cover',keywordsName:'b-keywords-name',keywordsDesc:'b-keywords-desc',fakeAttributes:'b-fake-attributes'};
+    const el = document.getElementById(map[k]);
+    if(el) i[k] = el.checked;
+  });
+  saveState();
+}
+
+function fillInputs(){
+  const i = state.inputs;
+  document.getElementById('b-name').value = i.name||'';
+  document.getElementById('b-legal').value = i.legal||'';
+  document.getElementById('b-cat').value = i.primaryCat||'';
+  document.getElementById('b-cat2').value = (i.secondaryCats||[]).join(', ');
+  document.getElementById('b-type').value = i.type||'brick';
+  document.getElementById('b-addr').value = i.addr||'';
+  document.getElementById('b-city').value = i.city||'';
+  document.getElementById('b-zip').value = i.zip||'';
+  document.getElementById('b-phone').value = i.phone||'';
+  document.getElementById('b-web').value = i.web||'';
+  const map = {virtual:'b-virtual',staffed:'b-staffed',signage:'b-signage',residential:'b-residential',tollfree:'b-tollfree',trackingNum:'b-trackingnum',sharedPhone:'b-sharedphone',otherBiz:'b-otherbiz',suspended:'b-suspended',multiGbp:'b-multi-gbp',recentAddress:'b-recent-address',recentName:'b-recent-name',bulkEdits:'b-bulk-edits',reviewBurst:'b-review-burst',reviewIncentive:'b-review-incentive',reviewGating:'b-review-gating',reviewEmployee:'b-review-employee',stockPhotos:'b-stock-photos',logoCover:'b-logo-cover',keywordsName:'b-keywords-name',keywordsDesc:'b-keywords-desc',fakeAttributes:'b-fake-attributes'};
+  Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.checked = !!i[k];});
+}
+
+function syncFromTools(){
+  let added = 0;
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.find(x=>x.id===cf.activeBizId) || cf?.businesses?.[0];
+    if(b){
+      state.inputs.name = state.inputs.name || b.name;
+      state.inputs.phone = state.inputs.phone || b.phone;
+      state.inputs.addr = state.inputs.addr || b.addr;
+      state.inputs.city = state.inputs.city || b.city;
+      state.inputs.zip = state.inputs.zip || b.zip;
+      state.inputs.web = state.inputs.web || b.website;
+      state.inputs.primaryCat = state.inputs.primaryCat || b.category;
+      added++;
+    }
+  } catch(e){}
+  try {
+    const gbp = JSON.parse(localStorage.getItem('gbp_state_v1')||'null');
+    if(gbp?.biz?.name){
+      state.inputs.name = state.inputs.name || gbp.biz.name;
+      state.inputs.primaryCat = state.inputs.primaryCat || gbp.biz.cat;
+      state.inputs.type = state.inputs.type || gbp.biz.type;
+      added++;
+    }
+  } catch(e){}
+  try {
+    const rev = JSON.parse(localStorage.getItem('rr_state_v1')||'null');
+    if(rev?.brand?.name && !state.inputs.name){ state.inputs.name = rev.brand.name; added++; }
+  } catch(e){}
+  saveState(); fillInputs();
+  if(added) toast(`Synced from ${added} tool${added===1?'':'s'}`,'success'); else toast('No data found','info');
+}
+
+/* ---------- RUN AUDIT ---------- */
+function runAudit(){
+  saveInputs();
+  if(!state.inputs.name){ toast('Set business name first','err'); return; }
+  state.results = TRIGGERS.map(t=>{
+    const level = t.check(state.inputs);
+    return {id: t.id, level, ...t};
+  });
+  // Score: weighted by severity, only counting active triggers
+  const sevW = {crit:25, high:12, med:5, low:1};
+  let risk = 0;
+  state.results.forEach(r=>{
+    if(r.level==='r-crit') risk += sevW.crit;
+    else if(r.level==='r-high') risk += sevW.high;
+    else if(r.level==='r-med') risk += sevW.med;
+    else if(r.level==='r-low') risk += 0; // baseline
+  });
+  state.score = Math.min(100, risk);
+  saveState(); renderAll();
+  toast(`Audit complete — risk score ${state.score}`,'success');
+}
+
+function clearAll(){
+  if(!confirm('Clear all inputs and results?')) return;
+  state = clone(defaultState); saveState(); fillInputs(); renderAll();
+  toast('Cleared','success');
+}
+
+/* ---------- AI FIX ---------- */
+async function aiSuggestForTrigger(triggerId){
+  const r = state.results.find(x=>x.id===triggerId); if(!r) return;
+  const ai = await getAI();
+  if(!ai){ toast('Configure AI in any tool first','err'); return; }
+  toast('Asking AI...','info');
+  const prompt = `You are a Google Business Profile policy expert. The following suspension trigger has been detected for ${state.inputs.name||'a business'} (${state.inputs.primaryCat||'general'}, ${state.inputs.city||''}):
+
+TRIGGER: ${r.title}
+WHY IT TRIGGERS SUSPENSION: ${r.desc}
+SEVERITY: ${r.sev}
+BUSINESS TYPE: ${state.inputs.type}
+
+Give a step-by-step remediation plan (60-180 words):
+1. Immediate action this week
+2. Documentation to gather
+3. Edits to make in GBP (in what order)
+4. What to do if Google still suspends
+5. One specific gotcha to avoid
+
+Don't echo the trigger. Don't include disclaimers. Plain text, no markdown headers.`;
+  try {
+    const ans = await ai.ask(prompt);
+    state.aiFixes[triggerId] = ans.trim();
+    saveState(); renderAll();
+  } catch(e){ toast('AI failed: '+e.message,'err'); }
+}
+
+async function aiSuggestAll(){
+  const ai = await getAI();
+  if(!ai){ toast('Configure AI in any tool first','err'); return; }
+  const crit = state.results.filter(r=>r.level==='r-crit' && !state.aiFixes[r.id]);
+  if(!crit.length){ toast('No critical triggers to suggest for (or all already done)','info'); return; }
+  document.getElementById('btn-ai-all').disabled = true;
+  let done = 0;
+  for(const r of crit){
+    document.getElementById('ft-status').textContent = `AI ${done+1}/${crit.length}…`;
+    await aiSuggestForTrigger(r.id);
+    done++;
+    await new Promise(r=>setTimeout(r,400));
+  }
+  document.getElementById('btn-ai-all').disabled = false;
+  document.getElementById('ft-status').textContent = `AI suggestions complete (${done})`;
+  toast(`AI suggested for ${done} criticals`,'success');
+}
+
+async function getAI(){
+  // Find first available AI provider key across known tools
+  const KEYS = ['ai_state_v1','gbp_state_v1','rr_state_v1','ps_state_v1','kw_state_v1','sm_state_v1'];
+  for(const k of KEYS){
+    try {
+      const s = JSON.parse(localStorage.getItem(k)||'null');
+      const prov = s?.ai?.provider;
+      const keys = s?.ai?.keys?.[prov];
+      if(!keys?.key) continue;
+      const label = ({gemini:'Gemini',openai:'OpenAI',claude:'Claude',groq:'Groq',openrouter:'OpenRouter'})[prov];
+      document.getElementById('ft-ai-n').textContent = label;
+      return {
+        prov, label,
+        async ask(prompt){
+          if(prov==='gemini'){
+            const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+            if(!r.ok) throw new Error('Gemini '+r.status);
+            const j = await r.json(); return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          } else if(prov==='openai'){
+            const r = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.5})});
+            if(!r.ok) throw new Error('OpenAI '+r.status);
+            const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+          } else if(prov==='claude'){
+            const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:500, messages:[{role:'user',content:prompt}]})});
+            if(!r.ok) throw new Error('Claude '+r.status);
+            const j = await r.json(); return j.content?.[0]?.text || '';
+          } else if(prov==='groq'){
+            const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.5})});
+            if(!r.ok) throw new Error('Groq '+r.status);
+            const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+          } else if(prov==='openrouter'){
+            const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`,'HTTP-Referer':'https://sr.local','X-Title':'SuspensionRisk'}, body:JSON.stringify({model:keys.model||'meta-llama/llama-3.3-70b-instruct:free', messages:[{role:'user',content:prompt}]})});
+            if(!r.ok) throw new Error('OpenRouter '+r.status);
+            const j = await r.json(); return j.choices?.[0]?.message?.content || '';
+          }
+        }
+      };
+    } catch(e){}
+  }
+  return null;
+}
+
+/* ---------- RENDER ---------- */
+function setTab(t){ state.view=t; saveState(); document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); renderCenter(); }
+
+function renderAll(){
+  const crit = state.results.filter(r=>r.level==='r-crit').length;
+  const high = state.results.filter(r=>r.level==='r-high').length;
+  document.getElementById('stat-risk').textContent = state.score?state.score:'—';
+  document.getElementById('stat-crit').textContent = crit;
+  document.getElementById('stat-high').textContent = high;
+  document.getElementById('tc-crit').textContent = crit;
+  document.getElementById('tc-all').textContent = state.results.length;
+  renderCenter();
+}
+
+function renderCenter(){
+  const body = document.getElementById('cbody');
+  if(!state.results.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div><div class="et">GBP Suspension Risk Analyzer</div><div class="ed">Fill in your GBP profile details on the left, then run the risk audit. I check ${TRIGGERS.length} known suspension triggers from Google's policies + community-documented patterns, and give you a prioritized prevention plan.</div></div></div>`;
+    return;
+  }
+  if(state.view==='overview') return renderOverview(body);
+  if(state.view==='critical') return renderTriggers(body, 'crit');
+  if(state.view==='all') return renderTriggers(body, 'all');
+  if(state.view==='plan') return renderPlan(body);
+}
+
+function renderOverview(body){
+  const score = state.score;
+  const level = score<=10?'low':score<=30?'med':score<=60?'high':'crit';
+  const levelText = level==='low'?'LOW RISK':level==='med'?'MEDIUM RISK':level==='high'?'HIGH RISK':'CRITICAL RISK';
+  const r=46, C=2*Math.PI*r, off = C - (Math.min(100,score)/100)*C;
+  const cats = CATEGORIES.map(c=>{
+    const items = state.results.filter(r=>r.cat===c.id);
+    const sevs = items.map(i=>i.level);
+    const lvl = sevs.includes('r-crit')?'r-crit':sevs.includes('r-high')?'r-high':sevs.includes('r-med')?'r-med':'r-low';
+    const cnt = items.filter(i=>i.level!=='r-low'&&i.level!=='r-na').length;
+    return {...c, lvl, cnt, total:items.length};
+  });
+  body.innerHTML = `
+    <div class="gauge-wrap">
+      <div class="gauge ${level==='low'?'r-low':level==='med'?'r-med':level==='high'?'r-high':'r-crit'}">
+        <svg viewBox="0 0 100 100"><circle class="rb" cx="50" cy="50" r="${r}" stroke-width="9" fill="none"/><circle class="rf" cx="50" cy="50" r="${r}" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg>
+        <div class="gauge-val"><div class="n">${score}</div><div class="l">RISK SCORE</div></div>
+      </div>
+      <div class="gauge-info">
+        <h1>${escapeHtml(state.inputs.name||'Your Business')}</h1>
+        <div class="level ${level}">${levelText}</div>
+        <p>${score<=10?'Your profile looks clean — no major suspension triggers detected. Maintain monthly audits and avoid bulk edits.':score<=30?'Some risk signals present. Address the high-priority triggers below to reduce exposure.':score<=60?'Significant suspension risk. Critical issues need immediate attention.':'Profile is at serious risk of suspension. Address critical triggers TODAY before Google\'s next automated review.'}</p>
+      </div>
+    </div>
+
+    <div class="cats">
+      ${cats.map(c=>{
+        const lvlText = c.lvl==='r-crit'?'CRITICAL':c.lvl==='r-high'?'HIGH':c.lvl==='r-med'?'MEDIUM':'CLEAN';
+        return `<div class="ccard ${c.lvl}" onclick="setTab('all');setTimeout(()=>document.getElementById('cat-${c.id}')?.scrollIntoView({behavior:'smooth',block:'start'}),50)">
+          <div class="ch"><div class="ci">${c.icon}</div><div class="cn">${c.label}</div></div>
+          <div class="cv">${lvlText}</div>
+          <div class="cm">${c.cnt}/${c.total} triggers</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="section">
+      <div class="section-hdr"><h3>Critical Triggers</h3><span class="badge danger">${state.results.filter(r=>r.level==='r-crit').length}</span></div>
+      <div>${(()=>{const c = state.results.filter(r=>r.level==='r-crit'); return c.length?c.slice(0,6).map(r=>renderTrigger(r)).join(''):'<div style="padding:30px;text-align:center;color:var(--success);font-size:13px">🛡 No critical suspension triggers detected.</div>';})()}</div>
+    </div>
+  `;
+}
+
+function renderTriggers(body, filter){
+  let items = state.results.slice();
+  if(filter==='crit') items = items.filter(r=>r.level==='r-crit');
+  // sort: critical, high, med, low, na
+  const order = {'r-crit':0,'r-high':1,'r-med':2,'r-low':3,'r-na':4};
+  items.sort((a,b)=>(order[a.level]||0)-(order[b.level]||0));
+
+  // group by category
+  const html = CATEGORIES.map(c=>{
+    const inCat = items.filter(r=>r.cat===c.id);
+    if(!inCat.length) return '';
+    return `<div class="section" id="cat-${c.id}"><div class="section-hdr"><h3>${c.icon} ${c.label}</h3><span class="badge">${inCat.length}</span></div><div>${inCat.map(renderTrigger).join('')}</div></div>`;
+  }).join('');
+  body.innerHTML = html || '<div style="padding:30px;text-align:center;color:var(--text3)">No triggers match this filter.</div>';
+}
+
+function renderTrigger(r){
+  const ai = state.aiFixes[r.id];
+  return `<div class="trig ${r.level}">
+    <div class="ic">${r.level==='r-crit'?'!':r.level==='r-high'?'⚠':r.level==='r-med'?'·':'✓'}</div>
+    <div class="body">
+      <div class="title">${escapeHtml(r.title)}<span class="sev ${r.sev}">${r.sev}</span></div>
+      <div class="desc">${escapeHtml(r.desc)}</div>
+      ${r.level!=='r-low' && r.level!=='r-na' ? `<div class="fix"><strong>Fix:</strong> ${escapeHtml(r.fix)}</div>` : ''}
+      ${ai ? `<div class="ai-fix"><div class="lbl"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> AI 5-step plan</div>${escapeHtml(ai)}</div>`:''}
+      ${r.level==='r-crit' || r.level==='r-high' ? `<div class="actions"><button onclick="aiSuggestForTrigger('${r.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI Fix Plan</button></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPlan(body){
+  // 4-week prevention plan grouped by priority
+  const groups = [
+    {title:'Week 1 — Stop the bleeding (Critical)', items: state.results.filter(r=>r.level==='r-crit')},
+    {title:'Week 2-3 — Reduce exposure (High)', items: state.results.filter(r=>r.level==='r-high')},
+    {title:'Week 4 — Polish (Medium)', items: state.results.filter(r=>r.level==='r-med')},
+    {title:'Maintenance — Low risk monitoring', items: state.results.filter(r=>r.level==='r-low').slice(0,5)},
+  ];
+  body.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:12px;font-size:12.5px;line-height:1.7;color:var(--text2)">
+      <strong style="color:var(--text)">How to use this plan:</strong> Address critical items FIRST — don't touch GBP edits until those are stable. Google's automated suspension system often acts within 24-72 hours of edits, so fix the underlying issues (website, citations, attributes) BEFORE editing the GBP itself. Document every change with screenshots.
+    </div>
+    ${groups.filter(g=>g.items.length).map(g=>`<div class="section"><div class="section-hdr"><h3>${escapeHtml(g.title)}</h3><span class="badge">${g.items.length}</span></div><div>${g.items.map(renderTrigger).join('')}</div></div>`).join('')}
+  `;
+}
+
+/* ---------- EXPORTS ---------- */
+function exportCSV(){
+  if(!state.results.length){ toast('Run audit first','err'); return; }
+  const rows = [['category','trigger_id','severity','risk_level','title','description','fix','ai_plan']];
+  state.results.forEach(r=>rows.push([r.cat, r.id, r.sev, r.level, r.title, r.desc, r.fix, state.aiFixes[r.id]||'']));
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`suspension-risk-${(state.inputs.name||'audit').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+
+function exportReport(){
+  const score = state.score;
+  const level = score<=10?'LOW':score<=30?'MEDIUM':score<=60?'HIGH':'CRITICAL';
+  const color = score<=10?'#16a34a':score<=30?'#d97706':score<=60?'#dc2626':'#991b1b';
+  const css = `*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;padding:34px;box-shadow:0 4px 16px rgba(15,26,46,.1)}h1{font-size:22px;font-weight:800}h2{font-size:16px;font-weight:700;margin:24px 0 10px}.sub{font-size:12px;color:#5b6b88}.gauge{display:flex;gap:22px;align-items:center;background:#f3f6fb;border-radius:14px;padding:22px;margin:14px 0}.gn{font-size:72px;font-weight:900;font-family:'JetBrains Mono',monospace;color:${color}}.gl{font-size:18px;font-weight:800;color:${color}}.t{padding:12px 14px;border-bottom:1px solid #e9eef7;display:flex;gap:11px}.t .ic{width:24px;height:24px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}.t.crit .ic{background:#dc2626}.t.high .ic{background:#d97706}.t.med .ic{background:#2563eb}.t .ti{font-weight:700}.t .ti .sev{display:inline-block;font-size:9.5px;font-family:'JetBrains Mono',monospace;padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase}.sev.crit{background:#fee2e2;color:#dc2626}.sev.high{background:#fef3c7;color:#d97706}.sev.med{background:#dbeafe;color:#2563eb}.t .td{font-size:11.5px;color:#5b6b88;margin-top:3px}.t .tf{background:#f0fdf4;border-left:3px solid #16a34a;padding:7px 10px;border-radius:5px;margin-top:6px;font-size:11.5px}@media print{body{padding:0;background:#fff}.wrap{box-shadow:none;border-radius:0}}`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>GBP Suspension Risk Report — ${escapeHtml(state.inputs.name||'Business')}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="wrap">
+<h1>GBP Suspension Risk Assessment</h1><div class="sub">${escapeHtml(state.inputs.name||'')} · ${escapeHtml(state.inputs.city||'')} · ${new Date().toLocaleDateString()}</div>
+<div class="gauge"><div class="gn">${score}</div><div><div class="gl">${level} RISK</div><div class="sub">${score<=10?'Profile looks clean — no major triggers.':score<=30?'Address high-priority triggers below.':score<=60?'Significant risk — critical issues need attention.':'Profile is at serious suspension risk — act today.'}</div></div></div>
+<h2>Critical Triggers (${state.results.filter(r=>r.level==='r-crit').length})</h2>
+${state.results.filter(r=>r.level==='r-crit').map(r=>`<div class="t crit"><div class="ic">!</div><div><div class="ti">${escapeHtml(r.title)}<span class="sev crit">crit</span></div><div class="td">${escapeHtml(r.desc)}</div><div class="tf"><strong>Fix:</strong> ${escapeHtml(r.fix)}</div>${state.aiFixes[r.id]?`<div class="tf" style="background:#eff6ff;border-color:#2563eb;margin-top:4px"><strong>AI plan:</strong> ${escapeHtml(state.aiFixes[r.id])}</div>`:''}</div></div>`).join('') || '<p style="color:#5b6b88">No critical triggers detected. 🛡</p>'}
+<h2>High-Priority Triggers (${state.results.filter(r=>r.level==='r-high').length})</h2>
+${state.results.filter(r=>r.level==='r-high').map(r=>`<div class="t high"><div class="ic">⚠</div><div><div class="ti">${escapeHtml(r.title)}<span class="sev high">high</span></div><div class="td">${escapeHtml(r.desc)}</div><div class="tf"><strong>Fix:</strong> ${escapeHtml(r.fix)}</div></div></div>`).join('') || '<p style="color:#5b6b88">No high-priority triggers.</p>'}
+<h2>Medium Triggers (${state.results.filter(r=>r.level==='r-med').length})</h2>
+${state.results.filter(r=>r.level==='r-med').map(r=>`<div class="t med"><div class="ic">·</div><div><div class="ti">${escapeHtml(r.title)}<span class="sev med">med</span></div><div class="td">${escapeHtml(r.desc)}</div></div></div>`).join('') || '<p style="color:#5b6b88">No medium triggers.</p>'}
+<div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by GBP Suspension Risk Analyzer · ${new Date().toLocaleString()}<br>Mukesh Kr · techie1418@gmail.com</div>
+</div><script src="global-nav.js"><\/script>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`suspension-risk-${(state.inputs.name||'biz').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.html`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Report exported','success');
+}
+
+/* ---------- BOOT ---------- */
+fillInputs();
+renderAll();
+getAI(); // populate footer label if available
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

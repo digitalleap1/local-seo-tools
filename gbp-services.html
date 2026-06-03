@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Services List Manager - Build and Optimize Your Google Business Services</title>
+<meta name="description" content="Manage the GBP Services list — structured service items with descriptions and pricing that appear on your Business Profile. AI-generated descriptions, keyword optimization, pricing strategy, bulk import/export, and direct paste-ready format for GBP Manager.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#4285f4; --accent-h:#1a73e8; --accent-soft:rgba(66,133,244,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#60a5fa; --accent-h:#93c5fd; --accent-soft:rgba(96,165,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--font);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.primary strong{color:var(--accent);font-size:14px}
+.hdr-stat.success strong{color:var(--success)}
+.hdr-stat.warn strong{color:var(--warn)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.f .hint{font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cb-btn.primary:hover{background:var(--accent-h)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-body{padding:14px}
+
+.svc-row{padding:12px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:start;font-size:12.5px}
+.svc-row:last-child{border-bottom:none}
+.svc-row .num{font-size:11px;font-family:var(--mono);font-weight:800;color:var(--text3);min-width:22px}
+.svc-row .info .name{font-weight:700;font-size:13.5px;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.svc-row .info .name .price{font-size:11.5px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(22,163,74,.1);color:var(--success);border:1px solid rgba(22,163,74,.2)}
+.svc-row .info .name .cat{font-size:9.5px;font-family:var(--mono);font-weight:700;padding:1.5px 6px;border-radius:3px;background:var(--bg3);color:var(--text2)}
+.svc-row .info .desc{font-size:12px;line-height:1.55;color:var(--text2);margin-top:4px}
+.svc-row .info .meta{font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.svc-row .info .meta span{padding:1px 5px;background:var(--bg3);border-radius:3px}
+.svc-row .actions{display:flex;flex-direction:column;gap:4px}
+.svc-row .actions button{padding:4px 9px;font-size:10.5px;font-weight:700;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;white-space:nowrap}
+.svc-row .actions button:hover{border-color:var(--accent);color:var(--accent)}
+.svc-row .actions button.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+.svc-form{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--bg)}
+.svc-form .full{grid-column:1/-1}
+.svc-form input,.svc-form select,.svc-form textarea{padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--font);resize:vertical}
+.svc-form input:focus,.svc-form select:focus,.svc-form textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.svc-form .row{display:flex;gap:8px;flex-wrap:wrap;grid-column:1/-1;align-items:center}
+.svc-form .row button{padding:9px 16px;border-radius:6px;font-size:12px;font-weight:800;background:var(--accent);color:#fff;border:none}
+.svc-form .row button:hover{background:var(--accent-h)}
+.svc-form .row button.sec{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.svc-form .row button.sec:hover{border-color:var(--accent);color:var(--accent)}
+
+.cat-pill{padding:7px 13px;border-radius:18px;background:var(--bg3);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.cat-pill:hover{border-color:var(--accent);color:var(--accent)}
+.cat-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.empty{padding:30px;text-align:center;color:var(--text3)}
+.empty svg{width:48px;height:48px;opacity:.3;margin-bottom:10px}
+.empty .et{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.empty .ed{font-size:12px;line-height:1.55}
+
+.kw-suggest{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.kw-suggest span{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:3px;background:var(--bg3);color:var(--text2);cursor:pointer}
+.kw-suggest span:hover{background:var(--accent);color:#fff}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .svc-form{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">☰</button>
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <div><div class="logo-name">GBP<span>Services</span></div></div>
+    <span class="logo-tag">MANAGER</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat primary">Services: <strong id="stat-total">0</strong></div>
+  <div class="hdr-stat success">Priced: <strong id="stat-priced">0</strong></div>
+  <div class="hdr-stat warn">No Desc: <strong id="stat-nodesc">0</strong></div>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="gbp-categories.html" class="hdr-link" style="border-color:rgba(66,133,244,.4);color:var(--accent)">Categories</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Business Settings</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business Info</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name</label><input id="i-name" oninput="saveBiz()" placeholder="Acme Plumbing"></div>
+          <div class="f"><label>Primary category</label><input id="i-category" oninput="saveBiz()" placeholder="Plumber"></div>
+          <div class="f"><label>City / area</label><input id="i-city" oninput="saveBiz()" placeholder="Austin, TX"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Pricing Strategy</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Currency</label><select id="i-currency" onchange="saveBiz()"><option value="$">$ USD</option><option value="€">€ EUR</option><option value="£">£ GBP</option><option value="₹">₹ INR</option><option value="C$">C$ CAD</option><option value="A$">A$ AUD</option></select></div>
+          <div class="f"><label>Pricing mode</label><select id="i-pricing-mode" onchange="saveBiz()"><option value="exact">Exact (e.g., $99)</option><option value="from">"From" (e.g., $99+)</option><option value="range">Range (e.g., $99-$149)</option><option value="none">No prices shown</option></select><div class="hint">"From" prices reduce sticker shock; "Range" sets expectations; "None" requires call-for-quote</div></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Description Generator</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>AI Provider</label><select id="i-prov"><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="claude">Claude</option><option value="groq">Groq</option></select></div>
+          <div class="f"><label>API key</label><input type="password" id="i-key" placeholder="sk-…"></div>
+          <div class="f"><label>Brand tone</label><select id="i-tone" onchange="saveBiz()"><option value="professional">Professional</option><option value="friendly">Friendly & approachable</option><option value="premium">Premium / upscale</option><option value="urgent">Urgent / emergency</option><option value="local">Hometown / community</option></select></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Quick Templates</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Load template for</label><select id="i-template"><option value="">Select…</option><option value="plumber">Plumber</option><option value="electrician">Electrician</option><option value="hvac">HVAC</option><option value="dentist">Dentist</option><option value="hair_salon">Hair Salon</option><option value="lawyer">Law Firm</option><option value="auto_repair">Auto Repair</option><option value="restaurant">Restaurant</option><option value="gym">Gym</option><option value="cleaning">Cleaning Service</option></select></div>
+          <button class="btn-sub" onclick="loadTemplate()">Load Template</button>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="addService()">+ Add Service</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportTxt()">Export</button>
+        <button class="btn-sub" onclick="importPrompt()">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="list" onclick="setTab('list')">Services List</button>
+      <button class="tab" data-tab="add" onclick="setTab('add')">Add / Edit</button>
+      <button class="tab" data-tab="paste" onclick="setTab('paste')">Paste-Ready</button>
+      <button class="tab" data-tab="bulk" onclick="setTab('bulk')">Bulk Import</button>
+      <button class="tab" data-tab="audit" onclick="setTab('audit')">Audit</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Best Practices</button>
+      <div class="cb-sp"></div>
+      <button class="cb-btn" onclick="sortByCategory()">Sort by Category</button>
+      <button class="cb-btn" onclick="aiGenerateAll()">AI: Generate Missing Descs</button>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Building your GBP services list — paste directly into Google Business Profile Manager</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='gbpsv_state_v1';
+
+const TEMPLATES={
+  plumber:{cats:['Emergency Services','Drain & Sewer','Water Heaters','Pipe Repair','Fixture Install','Maintenance'],services:[
+    {cat:'Emergency Services',name:'Emergency Plumbing'},{cat:'Emergency Services',name:'24/7 Burst Pipe Repair'},{cat:'Emergency Services',name:'Water Leak Detection'},
+    {cat:'Drain & Sewer',name:'Drain Cleaning'},{cat:'Drain & Sewer',name:'Sewer Line Repair'},{cat:'Drain & Sewer',name:'Hydro Jetting'},{cat:'Drain & Sewer',name:'Camera Inspection'},
+    {cat:'Water Heaters',name:'Water Heater Installation'},{cat:'Water Heaters',name:'Tankless Water Heater Install'},{cat:'Water Heaters',name:'Water Heater Repair'},
+    {cat:'Pipe Repair',name:'Pipe Repair'},{cat:'Pipe Repair',name:'Repiping'},{cat:'Pipe Repair',name:'Slab Leak Repair'},
+    {cat:'Fixture Install',name:'Faucet Installation'},{cat:'Fixture Install',name:'Toilet Installation'},{cat:'Fixture Install',name:'Garbage Disposal Install'},
+    {cat:'Maintenance',name:'Annual Plumbing Maintenance'},{cat:'Maintenance',name:'Backflow Testing'},
+  ]},
+  electrician:{cats:['Emergency','Installation','Repair','Panels & Wiring','Smart Home','Commercial'],services:[
+    {cat:'Emergency',name:'Emergency Electrical Service'},{cat:'Emergency',name:'Power Outage Diagnosis'},
+    {cat:'Installation',name:'Ceiling Fan Installation'},{cat:'Installation',name:'Outlet Installation'},{cat:'Installation',name:'Light Fixture Installation'},{cat:'Installation',name:'EV Charger Installation'},
+    {cat:'Repair',name:'Outlet Repair'},{cat:'Repair',name:'Circuit Breaker Repair'},{cat:'Repair',name:'Wiring Repair'},
+    {cat:'Panels & Wiring',name:'Electrical Panel Upgrade'},{cat:'Panels & Wiring',name:'Whole House Rewiring'},{cat:'Panels & Wiring',name:'Generator Installation'},
+    {cat:'Smart Home',name:'Smart Switch Installation'},{cat:'Smart Home',name:'Home Automation Wiring'},
+    {cat:'Commercial',name:'Commercial Electrical Service'},
+  ]},
+  hvac:{cats:['Installation','Repair','Maintenance','Indoor Air Quality','Commercial'],services:[
+    {cat:'Installation',name:'AC Installation'},{cat:'Installation',name:'Furnace Installation'},{cat:'Installation',name:'Heat Pump Installation'},{cat:'Installation',name:'Ductless Mini-Split Install'},
+    {cat:'Repair',name:'AC Repair'},{cat:'Repair',name:'Furnace Repair'},{cat:'Repair',name:'Heat Pump Repair'},{cat:'Repair',name:'Emergency HVAC Service'},
+    {cat:'Maintenance',name:'AC Tune-Up'},{cat:'Maintenance',name:'Furnace Tune-Up'},{cat:'Maintenance',name:'Annual HVAC Maintenance Plan'},{cat:'Maintenance',name:'Duct Cleaning'},
+    {cat:'Indoor Air Quality',name:'Humidifier Installation'},{cat:'Indoor Air Quality',name:'Air Purifier Installation'},{cat:'Indoor Air Quality',name:'Air Quality Testing'},
+    {cat:'Commercial',name:'Commercial HVAC Service'},
+  ]},
+  dentist:{cats:['Preventive','Restorative','Cosmetic','Orthodontics','Surgical','Emergency'],services:[
+    {cat:'Preventive',name:'Dental Cleaning'},{cat:'Preventive',name:'Dental Exam'},{cat:'Preventive',name:'Dental X-Rays'},{cat:'Preventive',name:'Fluoride Treatment'},{cat:'Preventive',name:'Sealants'},
+    {cat:'Restorative',name:'Tooth Filling'},{cat:'Restorative',name:'Dental Crown'},{cat:'Restorative',name:'Dental Bridge'},{cat:'Restorative',name:'Root Canal'},{cat:'Restorative',name:'Dentures'},
+    {cat:'Cosmetic',name:'Teeth Whitening'},{cat:'Cosmetic',name:'Porcelain Veneers'},{cat:'Cosmetic',name:'Composite Bonding'},
+    {cat:'Orthodontics',name:'Invisalign'},{cat:'Orthodontics',name:'Traditional Braces'},
+    {cat:'Surgical',name:'Tooth Extraction'},{cat:'Surgical',name:'Dental Implants'},{cat:'Surgical',name:'Wisdom Tooth Removal'},
+    {cat:'Emergency',name:'Emergency Dental Care'},
+  ]},
+  hair_salon:{cats:['Haircuts','Color','Treatments','Extensions','Special Occasion'],services:[
+    {cat:'Haircuts',name:'Women\'s Haircut'},{cat:'Haircuts',name:'Men\'s Haircut'},{cat:'Haircuts',name:'Kids Haircut'},{cat:'Haircuts',name:'Beard Trim'},
+    {cat:'Color',name:'Single Process Color'},{cat:'Color',name:'Highlights'},{cat:'Color',name:'Balayage'},{cat:'Color',name:'Color Correction'},{cat:'Color',name:'Gray Coverage'},
+    {cat:'Treatments',name:'Deep Conditioning Treatment'},{cat:'Treatments',name:'Keratin Treatment'},{cat:'Treatments',name:'Scalp Treatment'},
+    {cat:'Extensions',name:'Hair Extensions'},{cat:'Extensions',name:'Tape-In Extensions'},
+    {cat:'Special Occasion',name:'Bridal Hair'},{cat:'Special Occasion',name:'Updo / Formal Style'},{cat:'Special Occasion',name:'Blowout'},
+  ]},
+  lawyer:{cats:['Consultations','Litigation','Document Prep','Family Matters','Business','Criminal Defense'],services:[
+    {cat:'Consultations',name:'Free Initial Consultation'},
+    {cat:'Litigation',name:'Personal Injury Litigation'},{cat:'Litigation',name:'Civil Litigation'},
+    {cat:'Document Prep',name:'Will Preparation'},{cat:'Document Prep',name:'Trust Preparation'},{cat:'Document Prep',name:'Power of Attorney'},{cat:'Document Prep',name:'Contract Review'},
+    {cat:'Family Matters',name:'Divorce Representation'},{cat:'Family Matters',name:'Child Custody'},{cat:'Family Matters',name:'Adoption'},
+    {cat:'Business',name:'Business Formation'},{cat:'Business',name:'Contract Drafting'},{cat:'Business',name:'Trademark Registration'},
+    {cat:'Criminal Defense',name:'DUI Defense'},{cat:'Criminal Defense',name:'Criminal Defense'},
+  ]},
+  auto_repair:{cats:['Maintenance','Engine','Brakes','Suspension','Electrical','Diagnostic'],services:[
+    {cat:'Maintenance',name:'Oil Change'},{cat:'Maintenance',name:'Tire Rotation'},{cat:'Maintenance',name:'Tune-Up'},{cat:'Maintenance',name:'Filter Replacement'},
+    {cat:'Engine',name:'Engine Repair'},{cat:'Engine',name:'Engine Rebuild'},{cat:'Engine',name:'Timing Belt Replacement'},
+    {cat:'Brakes',name:'Brake Pad Replacement'},{cat:'Brakes',name:'Brake Rotor Replacement'},{cat:'Brakes',name:'Brake Fluid Flush'},
+    {cat:'Suspension',name:'Shock Replacement'},{cat:'Suspension',name:'Alignment'},
+    {cat:'Electrical',name:'Battery Replacement'},{cat:'Electrical',name:'Alternator Repair'},{cat:'Electrical',name:'Starter Repair'},
+    {cat:'Diagnostic',name:'Check Engine Light Diagnostic'},{cat:'Diagnostic',name:'A/C Diagnostic'},{cat:'Diagnostic',name:'Pre-Purchase Inspection'},
+  ]},
+  restaurant:{cats:['Dining','Special Events','Take-Out','Catering'],services:[
+    {cat:'Dining',name:'Lunch'},{cat:'Dining',name:'Dinner'},{cat:'Dining',name:'Brunch'},{cat:'Dining',name:'Happy Hour'},
+    {cat:'Special Events',name:'Private Dining'},{cat:'Special Events',name:'Wedding Receptions'},{cat:'Special Events',name:'Corporate Events'},
+    {cat:'Take-Out',name:'Takeout'},{cat:'Take-Out',name:'Delivery'},{cat:'Take-Out',name:'Curbside Pickup'},
+    {cat:'Catering',name:'Drop-Off Catering'},{cat:'Catering',name:'Full-Service Catering'},
+  ]},
+  gym:{cats:['Memberships','Group Classes','Personal Training','Specialty Programs','Recovery'],services:[
+    {cat:'Memberships',name:'Monthly Membership'},{cat:'Memberships',name:'Annual Membership'},{cat:'Memberships',name:'Family Plan'},{cat:'Memberships',name:'Day Pass'},
+    {cat:'Group Classes',name:'HIIT Class'},{cat:'Group Classes',name:'Yoga Class'},{cat:'Group Classes',name:'Spin Class'},{cat:'Group Classes',name:'Pilates Class'},{cat:'Group Classes',name:'CrossFit Class'},
+    {cat:'Personal Training',name:'1-on-1 Personal Training'},{cat:'Personal Training',name:'Small Group Training'},{cat:'Personal Training',name:'Online Coaching'},
+    {cat:'Specialty Programs',name:'Weight Loss Program'},{cat:'Specialty Programs',name:'Senior Fitness'},{cat:'Specialty Programs',name:'Youth Fitness'},
+    {cat:'Recovery',name:'Sauna'},{cat:'Recovery',name:'Massage Therapy'},{cat:'Recovery',name:'Stretching Sessions'},
+  ]},
+  cleaning:{cats:['Residential','Commercial','Deep Cleaning','Specialty','Recurring'],services:[
+    {cat:'Residential',name:'House Cleaning'},{cat:'Residential',name:'Apartment Cleaning'},{cat:'Residential',name:'Move-Out Cleaning'},
+    {cat:'Commercial',name:'Office Cleaning'},{cat:'Commercial',name:'Retail Cleaning'},{cat:'Commercial',name:'Medical Facility Cleaning'},
+    {cat:'Deep Cleaning',name:'Deep Cleaning'},{cat:'Deep Cleaning',name:'Spring Cleaning'},{cat:'Deep Cleaning',name:'Post-Construction Cleaning'},
+    {cat:'Specialty',name:'Window Cleaning'},{cat:'Specialty',name:'Carpet Cleaning'},{cat:'Specialty',name:'Upholstery Cleaning'},
+    {cat:'Recurring',name:'Weekly Cleaning'},{cat:'Recurring',name:'Bi-Weekly Cleaning'},{cat:'Recurring',name:'Monthly Cleaning'},
+  ]},
+};
+
+const defaultState={
+  biz:{name:'',category:'',city:'',currency:'$',pricingMode:'from',tone:'professional'},
+  services:[],
+  editing:null,
+  view:'list',
+  filterCat:''
+};
+let state=loadState();
+
+// Auto-inherit
+(function(){
+  if(!state.biz.name){
+    try{
+      const gbp=JSON.parse(localStorage.getItem('gbp_state_v1')||'{}');
+      if(gbp.business?.name)state.biz.name=gbp.business.name;
+      if(gbp.business?.category)state.biz.category=gbp.business.category;
+      if(gbp.business?.city)state.biz.city=gbp.business.city;
+    }catch(e){}
+  }
+  if(!state.biz.category){
+    try{
+      const cat=JSON.parse(localStorage.getItem('gbpcat_state_v1')||'{}');
+      if(cat.primary)state.biz.category=cat.primary;
+    }catch(e){}
+  }
+})();
+
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+function uid(){return 's'+Math.random().toString(36).slice(2,9)}
+
+function saveBiz(){
+  state.biz.name=document.getElementById('i-name').value;
+  state.biz.category=document.getElementById('i-category').value;
+  state.biz.city=document.getElementById('i-city').value;
+  state.biz.currency=document.getElementById('i-currency').value;
+  state.biz.pricingMode=document.getElementById('i-pricing-mode').value;
+  state.biz.tone=document.getElementById('i-tone').value;
+  saveState();
+}
+function loadBiz(){
+  document.getElementById('i-name').value=state.biz.name||'';
+  document.getElementById('i-category').value=state.biz.category||'';
+  document.getElementById('i-city').value=state.biz.city||'';
+  document.getElementById('i-currency').value=state.biz.currency||'$';
+  document.getElementById('i-pricing-mode').value=state.biz.pricingMode||'from';
+  document.getElementById('i-tone').value=state.biz.tone||'professional';
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function addService(){state.editing={id:null,name:'',category:'',description:'',price:'',duration:''};state.view='add';saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='add'));render();}
+function editService(id){const s=state.services.find(x=>x.id===id);if(!s)return;state.editing=clone(s);state.view='add';saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='add'));render();}
+function deleteService(id){if(!confirm('Delete this service?'))return;state.services=state.services.filter(s=>s.id!==id);saveState();render();updateStats();toast('Deleted','success');}
+function duplicateService(id){const s=state.services.find(x=>x.id===id);if(!s)return;const copy=clone(s);copy.id=uid();copy.name+=' (copy)';state.services.push(copy);saveState();render();updateStats();toast('Duplicated','success');}
+
+function saveServiceFromForm(){
+  const e=state.editing;
+  e.name=document.getElementById('f-name').value.trim();
+  e.category=document.getElementById('f-cat').value.trim();
+  e.description=document.getElementById('f-desc').value.trim();
+  e.price=document.getElementById('f-price').value.trim();
+  e.duration=document.getElementById('f-dur').value.trim();
+  if(!e.name){toast('Name required','err');return;}
+  if(!e.id){e.id=uid();state.services.push(clone(e));}
+  else{const i=state.services.findIndex(s=>s.id===e.id);if(i>=0)state.services[i]=clone(e);}
+  state.editing=null;state.view='list';saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='list'));render();updateStats();toast('Saved','success');
+}
+
+function cancelEdit(){state.editing=null;state.view='list';saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='list'));render();}
+
+function sortByCategory(){state.services.sort((a,b)=>(a.category||'zzz').localeCompare(b.category||'zzz')||a.name.localeCompare(b.name));saveState();render();toast('Sorted','success');}
+
+function loadTemplate(){
+  const k=document.getElementById('i-template').value;if(!k)return;
+  const t=TEMPLATES[k];if(!t)return;
+  if(state.services.length && !confirm(`This will add ${t.services.length} services from the ${k} template. Continue?`))return;
+  t.services.forEach(svc=>{state.services.push({id:uid(),name:svc.name,category:svc.cat,description:'',price:'',duration:''});});
+  saveState();render();updateStats();toast(`Loaded ${t.services.length} services`,'success');
+}
+
+function aiGenerateDesc(serviceId){
+  const s=state.services.find(x=>x.id===serviceId);if(!s){return;}
+  const prov=document.getElementById('i-prov').value;
+  const key=document.getElementById('i-key').value.trim();
+  if(!key){toast('Add API key in left panel','err');return;}
+  generateDescription(s).then(desc=>{s.description=desc;saveState();render();toast('Generated','success');}).catch(e=>{toast('AI failed: '+e.message,'err');});
+}
+
+async function aiGenerateAll(){
+  const prov=document.getElementById('i-prov').value;
+  const key=document.getElementById('i-key').value.trim();
+  if(!key){toast('Add API key in left panel','err');return;}
+  const missing=state.services.filter(s=>!s.description);
+  if(!missing.length){toast('All have descriptions','success');return;}
+  toast(`Generating ${missing.length} descriptions…`);
+  let n=0;
+  for(const s of missing){
+    try{s.description=await generateDescription(s);n++;saveState();render();}catch(e){console.error(e);}
+  }
+  toast(`Generated ${n} descriptions`,'success');
+}
+
+async function generateDescription(s){
+  const prov=document.getElementById('i-prov').value;
+  const key=document.getElementById('i-key').value.trim();
+  const tone=state.biz.tone||'professional';
+  const biz=state.biz.name||'our business';
+  const cat=state.biz.category||'';
+  const city=state.biz.city||'';
+  const prompt=`Write a Google Business Profile service description for "${s.name}" offered by ${biz}${cat?' (a '+cat+')':''}${city?' in '+city:''}. Tone: ${tone}. Max 300 characters. Focus on benefit + key feature. Include the city naturally if possible. No buzzwords. No "we offer" — start with action or benefit. Return only the description text, no quotes or commentary.`;
+  if(prov==='openai'){
+    const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:200})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Error');return (d.choices[0].message.content||'').trim().replace(/^"|"$/g,'');
+  }
+  if(prov==='claude'){
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Error');return (d.content[0].text||'').trim().replace(/^"|"$/g,'');
+  }
+  if(prov==='groq'){
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:200})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Error');return (d.choices[0].message.content||'').trim().replace(/^"|"$/g,'');
+  }
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Error');
+  return (d.candidates[0].content.parts[0].text||'').trim().replace(/^"|"$/g,'');
+}
+
+function formatPrice(price){
+  if(!price)return '';
+  const mode=state.biz.pricingMode;
+  const cur=state.biz.currency||'$';
+  if(mode==='none')return '';
+  if(mode==='from')return `From ${cur}${price}`;
+  if(mode==='range'){
+    const parts=String(price).split(/[-–]/);
+    if(parts.length>=2)return `${cur}${parts[0].trim()}–${cur}${parts[1].trim()}`;
+    return `${cur}${price}`;
+  }
+  return `${cur}${price}`;
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=state.services.length;
+  document.getElementById('stat-priced').textContent=state.services.filter(s=>s.price).length;
+  document.getElementById('stat-nodesc').textContent=state.services.filter(s=>!s.description).length;
+}
+
+function getCategories(){
+  const set=new Set();
+  state.services.forEach(s=>{if(s.category)set.add(s.category);});
+  return Array.from(set);
+}
+
+function render(){
+  if(state.view==='list')return renderList();
+  if(state.view==='add')return renderForm();
+  if(state.view==='paste')return renderPaste();
+  if(state.view==='bulk')return renderBulk();
+  if(state.view==='audit')return renderAudit();
+  if(state.view==='guide')return renderGuide();
+}
+
+function renderList(){
+  if(!state.services.length){
+    document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-body empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="et">No services yet</div>
+      <div class="ed">Click <strong>+ Add Service</strong> in the left panel or load a template to get started fast. The GBP Services list is critical — most businesses display 8-20 services, organized into 3-6 categories.</div>
+    </div></div>`;
+    return;
+  }
+  const cats=getCategories();
+  let html='';
+  if(cats.length){
+    html+=`<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"><div class="cat-pill ${!state.filterCat?'active':''}" onclick="state.filterCat='';saveState();render()">All (${state.services.length})</div>`;
+    cats.forEach(c=>{const n=state.services.filter(s=>s.category===c).length;html+=`<div class="cat-pill ${state.filterCat===c?'active':''}" onclick="state.filterCat='${escapeHtml(c).replace(/'/g,'\\\'')}';saveState();render()">${escapeHtml(c)} (${n})</div>`;});
+    html+=`</div>`;
+  }
+  const list=state.filterCat?state.services.filter(s=>s.category===state.filterCat):state.services;
+  html+=`<div class="section"><div class="section-hdr"><h3>Services List</h3><span class="badge">${list.length} services</span></div><div>`;
+  list.forEach((s,i)=>{
+    const len=(s.description||'').length;
+    const lenColor=!s.description?'var(--warn)':len<60?'var(--warn)':len>300?'var(--danger)':'var(--success)';
+    html+=`<div class="svc-row">
+      <div class="num">${i+1}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(s.name)}${s.price?`<span class="price">${escapeHtml(formatPrice(s.price))}</span>`:''}${s.category?`<span class="cat">${escapeHtml(s.category)}</span>`:''}</div>
+        ${s.description?`<div class="desc">${escapeHtml(s.description)}</div>`:'<div class="desc" style="color:var(--warn);font-style:italic">No description set</div>'}
+        <div class="meta">
+          <span style="color:${lenColor}">${len} / 300 chars</span>
+          ${s.duration?`<span>⏱ ${escapeHtml(s.duration)}</span>`:''}
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="editService('${s.id}')">Edit</button>
+        <button onclick="aiGenerateDesc('${s.id}')">AI Desc</button>
+        <button onclick="duplicateService('${s.id}')">Copy</button>
+        <button class="danger" onclick="deleteService('${s.id}')">Delete</button>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  document.getElementById('cbody').innerHTML=html;
+}
+
+function renderForm(){
+  if(!state.editing){state.editing={id:null,name:'',category:'',description:'',price:'',duration:''};}
+  const e=state.editing;
+  const cats=getCategories();
+  const cat=state.biz.category||'business';
+  const keywords=suggestKeywords(e.name,cat);
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>${e.id?'Edit Service':'New Service'}</h3></div><div class="svc-form">
+    <div class="full"><label style="font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Service Name *</label><input id="f-name" value="${escapeHtml(e.name)}" placeholder="e.g., Drain Cleaning, Brake Pad Replacement"></div>
+    <div><label style="font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Category</label><input id="f-cat" value="${escapeHtml(e.category)}" placeholder="e.g., Emergency, Repair, Maintenance" list="cat-list"><datalist id="cat-list">${cats.map(c=>`<option value="${escapeHtml(c)}">`).join('')}</datalist></div>
+    <div><label style="font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Price ${state.biz.pricingMode==='range'?'(e.g., 99-149)':''}</label><input id="f-price" value="${escapeHtml(e.price)}" placeholder="${state.biz.pricingMode==='range'?'99-149':'99'}"></div>
+    <div class="full"><label style="font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Description (max 300 chars)</label><textarea id="f-desc" rows="4" placeholder="What this service includes + benefit. Include city name naturally for SEO.">${escapeHtml(e.description)}</textarea>
+      ${keywords.length?`<div class="kw-suggest">Suggest: ${keywords.map(k=>`<span onclick="addKeyword('${escapeHtml(k).replace(/'/g,'\\\'')}')">+${escapeHtml(k)}</span>`).join('')}</div>`:''}
+    </div>
+    <div><label style="font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Duration (optional)</label><input id="f-dur" value="${escapeHtml(e.duration)}" placeholder="30 min, 1 hour, 2 weeks"></div>
+    <div></div>
+    <div class="row full">
+      <button onclick="saveServiceFromForm()">${e.id?'Update Service':'Add Service'}</button>
+      <button class="sec" onclick="cancelEdit()">Cancel</button>
+      <div style="flex:1"></div>
+      ${e.name?`<button class="sec" onclick="genFormDesc()">AI: Generate Description</button>`:''}
+    </div>
+  </div></div>`;
+}
+function addKeyword(k){const ta=document.getElementById('f-desc');const cur=ta.value;if(cur.toLowerCase().includes(k.toLowerCase()))return;ta.value=(cur+' '+k).trim();ta.focus();}
+function genFormDesc(){const e=state.editing;e.name=document.getElementById('f-name').value;if(!e.name){toast('Enter service name first','err');return;}generateDescription(e).then(desc=>{document.getElementById('f-desc').value=desc;toast('Generated','success');}).catch(er=>{toast('Failed: '+er.message,'err');});}
+
+function suggestKeywords(name,cat){
+  if(!name)return [];
+  const city=state.biz.city||'';
+  const out=[];
+  if(city)out.push(`in ${city}`);
+  if(name.toLowerCase().includes('emergency'))out.push('24/7','same-day','fast response');
+  if(name.toLowerCase().includes('install'))out.push('licensed','warranty','professional');
+  if(name.toLowerCase().includes('repair'))out.push('expert','quality','reliable');
+  out.push('free estimate','licensed & insured');
+  return out.slice(0,5);
+}
+
+function renderPaste(){
+  if(!state.services.length){document.getElementById('cbody').innerHTML='<div class="section"><div class="section-body empty"><div class="et">No services yet</div></div></div>';return;}
+  const grouped={};
+  state.services.forEach(s=>{const c=s.category||'(uncategorized)';if(!grouped[c])grouped[c]=[];grouped[c].push(s);});
+  let html=`<div class="section"><div class="section-hdr"><h3>Paste-Ready Format</h3><span class="badge">For GBP Manager</span></div><div class="section-body" style="font-size:12px;color:var(--text2);line-height:1.55">
+    <p style="margin-bottom:11px"><strong>How to use:</strong> Open Google Business Profile Manager → Edit Profile → Services. Add each category, then paste service name + description below into matching rows. GBP currently doesn't support bulk import, so this is the fastest manual workflow.</p>
+    </div></div>`;
+  Object.entries(grouped).forEach(([cat,items])=>{
+    html+=`<div class="section"><div class="section-hdr"><h3>${escapeHtml(cat)}</h3><span class="badge">${items.length} services</span><button class="cb-btn" onclick="copyGroup('${escapeHtml(cat).replace(/'/g,'\\\'')}')">Copy Group</button></div><div class="section-body" style="font-family:var(--mono);font-size:11.5px;line-height:1.6;white-space:pre-wrap;background:var(--bg);max-height:380px;overflow-y:auto">${items.map(s=>{const price=s.price?` ${formatPrice(s.price)}`:'';const desc=s.description?'\n  '+s.description:'';return escapeHtml(`▸ ${s.name}${price}${desc}`);}).join('\n\n')}</div></div>`;
+  });
+  document.getElementById('cbody').innerHTML=html;
+}
+function copyGroup(cat){const items=state.services.filter(s=>(s.category||'(uncategorized)')===cat);const txt=items.map(s=>{const p=s.price?' '+formatPrice(s.price):'';return `${s.name}${p}\n${s.description||''}`;}).join('\n\n');navigator.clipboard.writeText(txt);toast('Copied','success');}
+
+function renderBulk(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Bulk Import</h3></div><div class="section-body" style="display:flex;flex-direction:column;gap:11px">
+    <div style="font-size:12.5px;color:var(--text2);line-height:1.6">Paste services one per line. Format: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono)">Service Name | Category | Price | Description</code><br>Category, price, and description are optional. Use | as separator.</div>
+    <textarea id="bulk-in" rows="14" style="padding:11px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);resize:vertical">Emergency Plumbing | Emergency | 89 | 24/7 emergency plumber response anywhere in Austin
+Drain Cleaning | Drain & Sewer | 149 | Professional drain cleaning with camera inspection</textarea>
+    <div style="display:flex;gap:8px">
+      <button class="cb-btn primary" onclick="bulkParse()">Import All</button>
+      <button class="cb-btn" onclick="document.getElementById('bulk-in').value=''">Clear</button>
+      <div style="flex:1"></div>
+      <button class="cb-btn" onclick="bulkExport()">Export Current as Bulk Format</button>
+    </div>
+  </div></div>`;
+}
+function bulkParse(){
+  const lines=document.getElementById('bulk-in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0;
+  lines.forEach(l=>{const parts=l.split('|').map(p=>p.trim());if(!parts[0])return;state.services.push({id:uid(),name:parts[0],category:parts[1]||'',price:parts[2]||'',description:parts[3]||'',duration:''});n++;});
+  saveState();render();updateStats();toast(`Imported ${n}`,'success');
+}
+function bulkExport(){const lines=state.services.map(s=>`${s.name} | ${s.category||''} | ${s.price||''} | ${s.description||''}`);document.getElementById('bulk-in').value=lines.join('\n');toast('Loaded','success');}
+
+function renderAudit(){
+  const svcs=state.services;
+  const checks=[
+    {label:'Total services ≥ 8',pass:svcs.length>=8,detail:`${svcs.length} services. GBP shows up to 30; aim for 8-20.`},
+    {label:'All services have descriptions',pass:svcs.length>0 && svcs.every(s=>s.description),detail:`${svcs.filter(s=>!s.description).length} missing descriptions`},
+    {label:'All descriptions ≥ 60 chars',pass:svcs.length>0 && svcs.every(s=>(s.description||'').length>=60),detail:`${svcs.filter(s=>(s.description||'').length<60).length} too short`},
+    {label:'No descriptions exceed 300 chars',pass:svcs.every(s=>(s.description||'').length<=300),detail:`${svcs.filter(s=>(s.description||'').length>300).length} over limit`},
+    {label:'Organized into categories',pass:svcs.length>0 && getCategories().length>=2,detail:`${getCategories().length} categories used`},
+    {label:'At least 50% have pricing',pass:svcs.length>0 && svcs.filter(s=>s.price).length>=Math.ceil(svcs.length/2),detail:`${svcs.filter(s=>s.price).length} of ${svcs.length} priced`},
+    {label:'City mentioned in descriptions',pass:state.biz.city && svcs.filter(s=>s.description?.toLowerCase().includes(state.biz.city.toLowerCase())).length>=Math.ceil(svcs.length/4),detail:state.biz.city?`${svcs.filter(s=>s.description?.toLowerCase().includes(state.biz.city.toLowerCase())).length} mention "${state.biz.city}"`:'No city set'},
+    {label:'No duplicate service names',pass:new Set(svcs.map(s=>s.name.toLowerCase())).size===svcs.length,detail:'Duplicates dilute relevance'},
+    {label:'No "we offer" / "our services" language',pass:svcs.every(s=>!(s.description||'').toLowerCase().match(/\b(we offer|our services)\b/)),detail:'Cliché openers reduce conversion'},
+  ];
+  const pass=checks.filter(c=>c.pass).length;
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Services List Audit</h3><span class="badge" style="background:${pass===checks.length?'rgba(22,163,74,.15)':'rgba(245,158,11,.15)'};color:${pass===checks.length?'var(--success)':'var(--warn)'}">${pass}/${checks.length} pass</span></div><div>${checks.map(c=>`<div style="padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center"><span style="font-size:17px">${c.pass?'✓':'⚠'}</span><div><div style="font-weight:700;font-size:12.5px">${escapeHtml(c.label)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${escapeHtml(c.detail)}</div></div><span style="font-size:10px;font-family:var(--mono);font-weight:800;padding:3px 8px;border-radius:4px;background:${c.pass?'rgba(22,163,74,.1)':'rgba(245,158,11,.1)'};color:${c.pass?'var(--success)':'var(--warn)'}">${c.pass?'PASS':'FIX'}</span></div>`).join('')}</div></div>`;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>GBP Services Best Practices</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Why Services List Matters</h4>
+    <p>The Services list is structured data Google reads to understand what your business does. It shows on your GBP, influences ranking for service-specific queries, and feeds into Google's "Services" filter in Search & Maps.</p>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Count & Categories</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>8-20 services is the sweet spot.</strong> Below 8 looks bare. Over 30 is overwhelming.</li>
+      <li><strong>3-6 categories.</strong> Organize related services. Categories show in GBP as collapsible sections.</li>
+      <li><strong>Pre-defined vs custom:</strong> Google offers pre-defined services per category. Use these first, then add custom services for unique offerings.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Writing Descriptions</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Max 300 characters.</strong> GBP cuts off after.</li>
+      <li><strong>Aim for 100-200 chars.</strong> Long enough to inform, short enough to read.</li>
+      <li><strong>Lead with the benefit, not "we offer."</strong> Bad: "We offer professional drain cleaning." Good: "Clear stubborn drains with high-pressure jetting."</li>
+      <li><strong>Mention city naturally.</strong> "Servicing Austin and Round Rock" or "Austin's trusted plumber for…" — improves geo relevance.</li>
+      <li><strong>Include trust signals.</strong> "Licensed", "warranty", "free estimate", "24/7" — short and specific.</li>
+      <li><strong>No keyword stuffing.</strong> One natural mention of the service name + city is enough.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Pricing Strategy</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>"From" prices reduce sticker shock.</strong> $89+ feels accessible vs $89.</li>
+      <li><strong>Ranges build trust.</strong> $99-$249 shows you're transparent about variability.</li>
+      <li><strong>No prices forces calls.</strong> Higher-touch sales, but lower conversion from listing.</li>
+      <li><strong>Pick a strategy and apply consistently.</strong> Mixing styles looks unprofessional.</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">SEO Optimization</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Service names should match what customers search for: "AC Repair" not "HVAC System Diagnostic Service"</li>
+      <li>Include service names in your <a href="gbp-posts.html" style="color:var(--accent)">GBP posts</a> regularly</li>
+      <li>Link to a service page on your website that uses the same naming</li>
+      <li>Mirror your services in <a href="schema-generator.html" style="color:var(--accent)">LocalBusiness schema</a> on your site</li>
+      <li>Reference these services in <a href="voice-faq.html" style="color:var(--accent)">FAQ content</a> ("Do you offer X?")</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Updating Services</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Add new services as you launch them — Google indexes changes quickly</li>
+      <li>Remove discontinued services immediately (incorrect info = poor user experience)</li>
+      <li>Review pricing quarterly — outdated pricing creates customer disputes</li>
+      <li>Refresh descriptions seasonally (mention "winter HVAC tune-up" or "holiday catering")</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Common Mistakes</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Listing services you don't actually offer (Google can detect from reviews + Q&amp;A mentions)</li>
+      <li>Generic descriptions that could fit any competitor</li>
+      <li>Using the same description for multiple services</li>
+      <li>Going negative ("We don't do X") — wastes character count</li>
+      <li>Failing to localize ("emergency plumber" vs "Austin emergency plumber")</li>
+    </ul>
+  </div></div>`;
+}
+
+function exportTxt(){
+  if(!state.services.length){toast('No services','err');return;}
+  const grouped={};state.services.forEach(s=>{const c=s.category||'(uncategorized)';if(!grouped[c])grouped[c]=[];grouped[c].push(s);});
+  const lines=[`${state.biz.name||'Business'} - GBP Services`,state.biz.category||'',state.biz.city||'','',''];
+  Object.entries(grouped).forEach(([cat,items])=>{lines.push(`== ${cat} ==`);items.forEach(s=>{lines.push(`▸ ${s.name}${s.price?' '+formatPrice(s.price):''}`);if(s.description)lines.push(`  ${s.description}`);lines.push('');});});
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='gbp-services.txt';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Exported','success');
+}
+function importPrompt(){const t=prompt('Paste services (one per line, format: Name | Category | Price | Description)');if(!t)return;const lines=t.split('\n').map(l=>l.trim()).filter(Boolean);lines.forEach(l=>{const parts=l.split('|').map(p=>p.trim());if(parts[0])state.services.push({id:uid(),name:parts[0],category:parts[1]||'',price:parts[2]||'',description:parts[3]||'',duration:''});});saveState();render();updateStats();toast('Imported','success');}
+
+loadBiz();
+render();
+updateStats();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

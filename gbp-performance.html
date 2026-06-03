@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Performance Importer - Parse Google Business Profile Insights CSV Exports</title>
+<meta name="description" content="Import GBP Performance / Insights CSV exports from Google Business Profile. Trend analysis: calls, direction requests, website clicks, search queries, photo views. Maps vs Search channel breakdown. Actionable recommendations.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0891b2; --accent-h:#0e7490; --accent-soft:rgba(8,145,178,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#06b6d4; --accent-h:#22d3ee; --accent-soft:rgba(6,182,212,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(8,145,178,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--blue);border:1px solid var(--blue);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.views strong{color:var(--accent)}
+.hdr-stat.calls strong{color:var(--success)}
+.hdr-stat.dir strong{color:var(--purple)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT — IMPORT + FILTERS */
+#left{width:300px;min-width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.import-area{background:var(--bg);border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:18px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.import-area:hover{border-color:var(--accent);background:var(--accent-soft)}
+.import-area.dragover{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.02)}
+.import-area svg{width:32px;height:32px;color:var(--text3);margin-bottom:8px}
+.import-area .it{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:3px}
+.import-area .id{font-size:11px;color:var(--text2);line-height:1.5}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase}
+.f input,.f select{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.import-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto}
+.import-row{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;display:flex;align-items:center;gap:8px;font-size:11px}
+.import-row .il-name{flex:1;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.import-row .il-meta{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+.import-row button{width:20px;height:20px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-size:11px}
+.import-row button:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.scard.up::before{background:var(--success)}
+.scard.down::before{background:var(--danger)}
+.scard-label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px}
+.scard-val{font-size:24px;font-weight:800;color:var(--text);margin-top:4px;font-family:var(--mono);line-height:1.1}
+.scard-sub{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:var(--mono);display:flex;gap:6px;align-items:center}
+.scard-trend{font-family:var(--mono);font-weight:800;font-size:11px;padding:1px 6px;border-radius:3px}
+.scard-trend.up{background:rgba(22,163,74,.13);color:var(--success)}
+.scard-trend.down{background:rgba(220,38,38,.13);color:var(--danger)}
+.scard-trend.same{background:var(--bg3);color:var(--text3)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.chart-wrap{position:relative;height:280px;padding:10px 16px 16px}
+
+table.gtable{width:100%;border-collapse:collapse;font-size:11.5px}
+table.gtable thead{background:var(--bg);position:sticky;top:0;z-index:5}
+table.gtable th{padding:8px 10px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.gtable th.right{text-align:right}
+table.gtable td{padding:8px 10px;border-bottom:1px solid var(--border)}
+table.gtable td.right{text-align:right;font-family:var(--mono);font-weight:600}
+table.gtable tr:hover{background:var(--bg3)}
+
+.rec-item{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:11px;align-items:flex-start}
+.rec-item:last-child{border-bottom:none}
+.rec-item .ic{width:26px;height:26px;border-radius:7px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.rec-item.high .ic{background:var(--danger)}
+.rec-item.med .ic{background:var(--amber)}
+.rec-item.low .ic{background:var(--blue)}
+.rec-item .body{flex:1}
+.rec-item .title{font-size:13px;font-weight:700;color:var(--text)}
+.rec-item .desc{font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:4px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+.progress-line{height:3px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));width:0;transition:width .3s}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:300px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+    </div>
+    <div><div class="logo-name">GBP<span>Performance</span></div></div>
+    <span class="logo-tag">INSIGHTS</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat views"><strong id="stat-views">0</strong> total views</div>
+  <div class="hdr-stat calls"><strong id="stat-calls">0</strong> calls</div>
+  <div class="hdr-stat dir"><strong id="stat-dir">0</strong> directions</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="gbp-audit.html" class="hdr-link" style="border-color:rgba(217,119,6,.4);color:var(--amber)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/></svg>
+    GBP Audit
+  </a>
+  <a href="pack-tracker.html" class="hdr-link" style="border-color:rgba(217,119,6,.4);color:var(--amber)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Pack Tracker
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Import & Filter</h3></div>
+    <div id="left-body">
+      <div class="import-area" id="drop-area" onclick="document.getElementById('file-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="it">Drop CSV files here</div>
+        <div class="id">Or click to browse. Drop multiple Google Business Profile Performance CSV exports — they'll merge.</div>
+      </div>
+      <input type="file" id="file-input" accept=".csv" multiple style="display:none" onchange="handleFiles(this.files)">
+
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Imported Files</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="imports-list" class="import-list"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Date Range</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="row2">
+            <div class="f"><label>From</label><input type="date" id="f-from" oninput="saveFilters()"></div>
+            <div class="f"><label>To</label><input type="date" id="f-to" oninput="saveFilters()"></div>
+          </div>
+          <div class="f"><label>Compare to previous</label><select id="f-compare" onchange="saveFilters()">
+            <option value="">No comparison</option>
+            <option value="prev_period">Previous period (same length)</option>
+            <option value="prev_year">Same period last year</option>
+          </select></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-sub" onclick="exportCSV()">CSV (aggregated)</button>
+      <button class="btn-sub" onclick="exportReport()">HTML Report</button>
+      <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear all</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="tab" data-tab="trends" onclick="setTab('trends')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+        Trends
+      </button>
+      <button class="tab" data-tab="queries" onclick="setTab('queries')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search Queries
+      </button>
+      <button class="tab" data-tab="recs" onclick="setTab('recs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Recommendations
+      </button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg>
+        How to Export
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready — drop GBP CSV exports</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * GBP PERFORMANCE IMPORTER
+ * Parses Google Business Profile Insights/Performance CSV exports
+ * ========================================================================== */
+
+/* GBP Performance CSV formats (last 2 years of exports):
+ * Recent (2024+): Date,Calls,Bookings,Directions,Website clicks,Messages,Conversations,Food orders,Food menu clicks
+ * Search interactions: Date,Search keyword,Impressions
+ * Older format: Total searches, Direct searches, Discovery searches, Branded searches columns
+ * Photo views: Date,Owner-uploaded photo views,Customer-uploaded photo views
+ */
+
+const STORE_KEY = 'gp_state_v1';
+const defaultState = {
+  imports: [],       // [{id, name, type, rowCount, fromDate, toDate, data, addedAt}]
+  filters: {from:'', to:'', compare:''},
+  view: 'overview',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){ toast('Storage full','err'); } }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function pct(d){return (d*100).toFixed(1)+'%';}
+
+/* ---------- CSV PARSER ---------- */
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  return lines.map(parseCSVLine);
+}
+function parseCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(inQ){ if(c==='"' && line[i+1]==='"'){cur+='"';i++;} else if(c==='"'){inQ=false;} else cur+=c; }
+    else { if(c===','){out.push(cur);cur='';} else if(c==='"' && !cur){inQ=true;} else cur+=c; }
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+
+/* ---------- FILE DROP ---------- */
+const dropArea = document.getElementById('drop-area');
+['dragenter','dragover'].forEach(ev=>dropArea.addEventListener(ev, e=>{e.preventDefault(); dropArea.classList.add('dragover');}));
+['dragleave','drop'].forEach(ev=>dropArea.addEventListener(ev, e=>{e.preventDefault(); dropArea.classList.remove('dragover');}));
+dropArea.addEventListener('drop', e=>handleFiles(e.dataTransfer.files));
+
+async function handleFiles(files){
+  if(!files?.length) return;
+  document.getElementById('ft-status').textContent = `Importing ${files.length} file(s)...`;
+  let done = 0;
+  for(const f of files){
+    const text = await f.text();
+    const parsed = parseGBPExport(text, f.name);
+    if(parsed){
+      state.imports.push({id:uid(), name:f.name, ...parsed, addedAt:Date.now()});
+      done++;
+    }
+  }
+  saveState();
+  if(done){
+    // Auto-set date range to encompass everything
+    setAutoDateRange();
+    renderAll();
+    toast(`Imported ${done} file(s)`,'success');
+  } else {
+    toast('No recognizable GBP CSV format found','err');
+  }
+  document.getElementById('ft-status').textContent = 'Ready';
+}
+
+function parseGBPExport(text, filename){
+  const rows = parseCSV(text);
+  if(rows.length < 2) return null;
+  const header = rows[0].map(h=>h.toLowerCase().trim());
+  const body = rows.slice(1);
+
+  // Identify export type
+  // Type 1: Date + interaction columns (calls/directions/etc.)
+  const hasDate = header.includes('date');
+  const hasCalls = header.find(h=>h.includes('call'));
+  const hasDirections = header.find(h=>h.includes('direction'));
+  const hasWebsite = header.find(h=>h.includes('website') && h.includes('click'));
+  const hasMessages = header.find(h=>h.includes('message')||h.includes('conversation'));
+  const hasBookings = header.find(h=>h.includes('booking'));
+  const hasFood = header.find(h=>h.includes('food'));
+  // Type 2: Search keywords + impressions
+  const hasKeyword = header.find(h=>h.includes('keyword')||h.includes('search query'));
+  const hasImpressions = header.find(h=>h.includes('impression'));
+  // Type 3: Older photo views
+  const hasPhotos = header.find(h=>h.includes('photo'));
+
+  if(hasDate && (hasCalls || hasDirections || hasWebsite || hasBookings)){
+    // Daily actions export
+    const dateIdx = header.indexOf('date');
+    const data = body.map(r=>{
+      const row = {date: r[dateIdx]};
+      header.forEach((h, i)=>{
+        if(h==='date') return;
+        const v = parseInt((r[i]||'0').replace(/,/g,''))||0;
+        const k = mapField(h);
+        if(k) row[k] = (row[k]||0)+v;
+      });
+      return row;
+    }).filter(r=>r.date);
+    const dates = data.map(r=>r.date).filter(Boolean).sort();
+    return {type:'daily_actions', data, rowCount:data.length, fromDate:dates[0]||'', toDate:dates[dates.length-1]||''};
+  }
+  if(hasKeyword && hasImpressions){
+    const kwIdx = header.findIndex(h=>h.includes('keyword')||h.includes('search query'));
+    const impIdx = header.findIndex(h=>h.includes('impression'));
+    const data = body.map(r=>({keyword:r[kwIdx]||'', impressions: parseInt((r[impIdx]||'0').replace(/,/g,''))||0})).filter(r=>r.keyword);
+    return {type:'search_queries', data, rowCount:data.length, fromDate:'', toDate:''};
+  }
+  if(hasDate && hasPhotos){
+    const dateIdx = header.indexOf('date');
+    const data = body.map(r=>{
+      const row = {date:r[dateIdx]};
+      header.forEach((h,i)=>{
+        if(h==='date') return;
+        const k = h.includes('owner')?'photoViewsOwner':h.includes('customer')?'photoViewsCustomer':'photoViews';
+        row[k] = (row[k]||0)+(parseInt((r[i]||'0').replace(/,/g,''))||0);
+      });
+      return row;
+    }).filter(r=>r.date);
+    const dates = data.map(r=>r.date).sort();
+    return {type:'photo_views', data, rowCount:data.length, fromDate:dates[0]||'', toDate:dates[dates.length-1]||''};
+  }
+  return null;
+}
+
+function mapField(h){
+  if(h.includes('call')) return 'calls';
+  if(h.includes('direction')) return 'directions';
+  if(h.includes('website')||h.includes('site click')) return 'websiteClicks';
+  if(h.includes('message')||h.includes('conversation')) return 'messages';
+  if(h.includes('booking')) return 'bookings';
+  if(h.includes('food order')) return 'foodOrders';
+  if(h.includes('food menu')) return 'foodMenuClicks';
+  if(h.includes('search') && h.includes('view')) return 'searchViews';
+  if(h.includes('map') && h.includes('view')) return 'mapsViews';
+  if(h.includes('view') && !h.includes('photo')) return 'totalViews';
+  if(h.includes('photo')) return h.includes('owner')?'photoViewsOwner':h.includes('customer')?'photoViewsCustomer':'photoViews';
+  return null;
+}
+
+function setAutoDateRange(){
+  const allDates = state.imports.flatMap(imp=>(imp.data||[]).map(r=>r.date).filter(Boolean));
+  if(!allDates.length) return;
+  allDates.sort();
+  state.filters.from = state.filters.from || allDates[0];
+  state.filters.to = state.filters.to || allDates[allDates.length-1];
+  document.getElementById('f-from').value = state.filters.from;
+  document.getElementById('f-to').value = state.filters.to;
+  saveState();
+}
+
+function saveFilters(){
+  state.filters.from = document.getElementById('f-from').value;
+  state.filters.to = document.getElementById('f-to').value;
+  state.filters.compare = document.getElementById('f-compare').value;
+  saveState(); renderAll();
+}
+
+function delImport(id){
+  state.imports = state.imports.filter(i=>i.id!==id);
+  saveState(); renderAll();
+}
+function clearAll(){
+  if(!confirm('Clear all imported files?')) return;
+  state.imports = []; saveState(); renderAll();
+  toast('Cleared','success');
+}
+
+/* ---------- AGGREGATE ---------- */
+function aggregate(filterFrom, filterTo){
+  // Merge all daily_actions data across imports, summed per date
+  const dateMap = {};
+  state.imports.filter(i=>i.type==='daily_actions').forEach(imp=>{
+    (imp.data||[]).forEach(row=>{
+      const d = row.date;
+      if(filterFrom && d<filterFrom) return;
+      if(filterTo && d>filterTo) return;
+      if(!dateMap[d]) dateMap[d] = {date:d};
+      Object.entries(row).forEach(([k,v])=>{ if(k==='date') return; dateMap[d][k] = (dateMap[d][k]||0) + v; });
+    });
+  });
+  const sorted = Object.values(dateMap).sort((a,b)=>a.date.localeCompare(b.date));
+  return sorted;
+}
+
+function totals(rows){
+  const out = {calls:0, directions:0, websiteClicks:0, messages:0, bookings:0, foodOrders:0, photoViews:0, totalViews:0, searchViews:0, mapsViews:0};
+  rows.forEach(r=>Object.keys(out).forEach(k=>{out[k] += r[k]||0;}));
+  return out;
+}
+
+function aggQueries(){
+  const qmap = {};
+  state.imports.filter(i=>i.type==='search_queries').forEach(imp=>{
+    (imp.data||[]).forEach(r=>{ qmap[r.keyword] = (qmap[r.keyword]||0)+(r.impressions||0); });
+  });
+  return Object.entries(qmap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({keyword:k, impressions:v}));
+}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderCenter();}
+
+function renderAll(){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  const tot = totals(rows);
+  document.getElementById('stat-views').textContent = (tot.totalViews||tot.searchViews+tot.mapsViews||0).toLocaleString();
+  document.getElementById('stat-calls').textContent = tot.calls.toLocaleString();
+  document.getElementById('stat-dir').textContent = tot.directions.toLocaleString();
+  renderImports();
+  renderCenter();
+}
+
+function renderImports(){
+  const wrap = document.getElementById('imports-list');
+  if(!state.imports.length){ wrap.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px;text-align:center">No imports yet.</div>'; return; }
+  wrap.innerHTML = state.imports.map(i=>`<div class="import-row"><div><div class="il-name">${escapeHtml(i.name)}</div><div class="il-meta">${i.type} · ${i.rowCount} rows${i.fromDate?' · '+i.fromDate.slice(0,10)+'→'+i.toDate.slice(0,10):''}</div></div><button onclick="delImport('${i.id}')">×</button></div>`).join('');
+}
+
+let charts = [];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+function renderCenter(){
+  destroyCharts();
+  const body = document.getElementById('cbody');
+  if(state.view==='guide') return renderGuide(body);
+  if(!state.imports.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg><div><div class="et">GBP Performance Importer</div><div class="ed">Drop your Google Business Profile Performance CSV exports here. Supports daily actions (calls, directions, website clicks, bookings, messages), search keyword exports, and photo view exports. Multi-file imports merge automatically.</div></div></div>`;
+    return;
+  }
+  if(state.view==='overview') return renderOverview(body);
+  if(state.view==='trends') return renderTrends(body);
+  if(state.view==='queries') return renderQueries(body);
+  if(state.view==='recs') return renderRecs(body);
+}
+
+function renderOverview(body){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  const tot = totals(rows);
+  // Comparison
+  let prev = null;
+  if(state.filters.compare && state.filters.from && state.filters.to){
+    const fromD = new Date(state.filters.from); const toD = new Date(state.filters.to);
+    const days = Math.ceil((toD-fromD)/(24*3600*1000));
+    let prevFrom, prevTo;
+    if(state.filters.compare==='prev_period'){
+      prevTo = new Date(fromD); prevTo.setDate(prevTo.getDate()-1);
+      prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate()-days);
+    } else if(state.filters.compare==='prev_year'){
+      prevFrom = new Date(fromD); prevFrom.setFullYear(prevFrom.getFullYear()-1);
+      prevTo = new Date(toD); prevTo.setFullYear(prevTo.getFullYear()-1);
+    }
+    if(prevFrom && prevTo){
+      const prevRows = aggregate(prevFrom.toISOString().slice(0,10), prevTo.toISOString().slice(0,10));
+      prev = totals(prevRows);
+    }
+  }
+  function trend(cur, p){
+    if(!p) return {dir:'same', text:'', cls:''};
+    if(p===0 && cur>0) return {dir:'up', text:'+∞', cls:'up'};
+    if(p===0) return {dir:'same', text:'—', cls:'same'};
+    const delta = Math.round((cur-p)/p*100);
+    return {dir:delta>0?'up':delta<0?'down':'same', text:(delta>0?'+':'')+delta+'%', cls:delta>0?'up':delta<0?'down':'same'};
+  }
+  body.innerHTML = `
+    <div class="summary">
+      <div class="scard ${trend(tot.calls, prev?.calls).cls}"><div class="scard-label">Calls</div><div class="scard-val">${tot.calls.toLocaleString()}</div><div class="scard-sub">${prev?`vs ${(prev.calls||0).toLocaleString()} · <span class="scard-trend ${trend(tot.calls,prev.calls).cls}">${trend(tot.calls,prev.calls).text}</span>`:'across '+rows.length+' days'}</div></div>
+      <div class="scard ${trend(tot.directions, prev?.directions).cls}"><div class="scard-label">Direction Requests</div><div class="scard-val">${tot.directions.toLocaleString()}</div><div class="scard-sub">${prev?`vs ${(prev.directions||0).toLocaleString()} · <span class="scard-trend ${trend(tot.directions,prev.directions).cls}">${trend(tot.directions,prev.directions).text}</span>`:'highest-intent action'}</div></div>
+      <div class="scard ${trend(tot.websiteClicks, prev?.websiteClicks).cls}"><div class="scard-label">Website Clicks</div><div class="scard-val">${tot.websiteClicks.toLocaleString()}</div><div class="scard-sub">${prev?`vs ${(prev.websiteClicks||0).toLocaleString()} · <span class="scard-trend ${trend(tot.websiteClicks,prev.websiteClicks).cls}">${trend(tot.websiteClicks,prev.websiteClicks).text}</span>`:''}</div></div>
+      <div class="scard"><div class="scard-label">Messages</div><div class="scard-val">${tot.messages.toLocaleString()}</div><div class="scard-sub">${prev?`vs ${(prev.messages||0).toLocaleString()}`:''}</div></div>
+      <div class="scard"><div class="scard-label">Bookings</div><div class="scard-val">${tot.bookings.toLocaleString()}</div></div>
+      <div class="scard"><div class="scard-label">Total Actions</div><div class="scard-val">${(tot.calls+tot.directions+tot.websiteClicks+tot.messages+tot.bookings).toLocaleString()}</div><div class="scard-sub">summed engagement</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Daily Actions Trend</h3></div><div class="chart-wrap"><canvas id="ch-trend"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Action Mix</h3></div><div class="chart-wrap"><canvas id="ch-mix"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color = isDark?'#7e95b8':'#5b6b88';
+    const ctx = document.getElementById('ch-trend')?.getContext('2d');
+    if(ctx) charts.push(new Chart(ctx, {type:'line', data:{labels:rows.map(r=>r.date), datasets:[
+      {label:'Calls', data:rows.map(r=>r.calls||0), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.1)', tension:0.25},
+      {label:'Directions', data:rows.map(r=>r.directions||0), borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.1)', tension:0.25},
+      {label:'Website clicks', data:rows.map(r=>r.websiteClicks||0), borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.1)', tension:0.25},
+    ]}, options:{plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}}));
+    const ctx2 = document.getElementById('ch-mix')?.getContext('2d');
+    if(ctx2){
+      const labels = ['Calls','Directions','Website','Messages','Bookings','Food orders'];
+      const data = [tot.calls, tot.directions, tot.websiteClicks, tot.messages, tot.bookings, tot.foodOrders];
+      charts.push(new Chart(ctx2, {type:'doughnut', data:{labels, datasets:[{data, backgroundColor:['#16a34a','#7c3aed','#2563eb','#db2777','#d97706','#f59e0b']}]}, options:{plugins:{legend:{position:'bottom'}}}}));
+    }
+  }, 50);
+}
+
+function renderTrends(body){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  // Aggregate by week
+  const weekMap = {};
+  rows.forEach(r=>{
+    const d = new Date(r.date);
+    const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay()+6)%7));
+    const wk = monday.toISOString().slice(0,10);
+    if(!weekMap[wk]) weekMap[wk] = {week:wk, calls:0, directions:0, websiteClicks:0, messages:0, bookings:0};
+    weekMap[wk].calls += r.calls||0;
+    weekMap[wk].directions += r.directions||0;
+    weekMap[wk].websiteClicks += r.websiteClicks||0;
+    weekMap[wk].messages += r.messages||0;
+    weekMap[wk].bookings += r.bookings||0;
+  });
+  const weeks = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week));
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Weekly Performance</h3><span class="badge">${weeks.length} weeks</span></div><div class="chart-wrap"><canvas id="ch-weekly"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Day-of-Week Patterns</h3></div><div class="chart-wrap"><canvas id="ch-dow"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Weekly Detail</h3></div><div style="padding:0;max-height:400px;overflow-y:auto"><table class="gtable"><thead><tr><th>Week of</th><th class="right">Calls</th><th class="right">Directions</th><th class="right">Website</th><th class="right">Messages</th><th class="right">Total</th></tr></thead><tbody>
+      ${weeks.slice().reverse().map(w=>`<tr><td style="font-family:var(--mono)">${w.week}</td><td class="right">${w.calls.toLocaleString()}</td><td class="right">${w.directions.toLocaleString()}</td><td class="right">${w.websiteClicks.toLocaleString()}</td><td class="right">${w.messages.toLocaleString()}</td><td class="right" style="color:var(--accent)">${(w.calls+w.directions+w.websiteClicks+w.messages).toLocaleString()}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color = isDark?'#7e95b8':'#5b6b88';
+    const ctx = document.getElementById('ch-weekly')?.getContext('2d');
+    if(ctx) charts.push(new Chart(ctx, {type:'bar', data:{labels:weeks.map(w=>w.week), datasets:[
+      {label:'Calls', data:weeks.map(w=>w.calls), backgroundColor:'#16a34a'},
+      {label:'Directions', data:weeks.map(w=>w.directions), backgroundColor:'#7c3aed'},
+      {label:'Website', data:weeks.map(w=>w.websiteClicks), backgroundColor:'#2563eb'},
+    ]}, options:{plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true}, y:{stacked:true, beginAtZero:true}}}}));
+    // Day of week
+    const dowMap = {0:{calls:0,dir:0,web:0,n:0},1:{calls:0,dir:0,web:0,n:0},2:{calls:0,dir:0,web:0,n:0},3:{calls:0,dir:0,web:0,n:0},4:{calls:0,dir:0,web:0,n:0},5:{calls:0,dir:0,web:0,n:0},6:{calls:0,dir:0,web:0,n:0}};
+    rows.forEach(r=>{const d = new Date(r.date).getDay(); dowMap[d].calls+=r.calls||0; dowMap[d].dir+=r.directions||0; dowMap[d].web+=r.websiteClicks||0; dowMap[d].n++;});
+    const dowLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const ctx2 = document.getElementById('ch-dow')?.getContext('2d');
+    if(ctx2) charts.push(new Chart(ctx2, {type:'bar', data:{labels:dowLabels, datasets:[
+      {label:'Avg Calls', data:dowLabels.map((_,i)=>dowMap[i].n?Math.round(dowMap[i].calls/dowMap[i].n):0), backgroundColor:'#16a34a'},
+      {label:'Avg Directions', data:dowLabels.map((_,i)=>dowMap[i].n?Math.round(dowMap[i].dir/dowMap[i].n):0), backgroundColor:'#7c3aed'},
+    ]}, options:{plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}}));
+  }, 50);
+}
+
+function renderQueries(body){
+  const queries = aggQueries();
+  if(!queries.length){
+    body.innerHTML = `<div class="empty"><div class="et">No search query data</div><div class="ed">Import the GBP Search Keywords / Queries CSV (separate export from daily actions).</div></div>`;
+    return;
+  }
+  const total = queries.reduce((s,q)=>s+q.impressions, 0);
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Top Search Queries</h3><span class="badge">${queries.length} unique · ${total.toLocaleString()} impressions</span></div><div style="padding:0;max-height:600px;overflow-y:auto"><table class="gtable">
+      <thead><tr><th>#</th><th>Query</th><th class="right">Impressions</th><th class="right">% of total</th></tr></thead><tbody>
+      ${queries.slice(0,200).map((q,i)=>`<tr><td style="font-family:var(--mono);color:var(--text3)">${i+1}</td><td><strong>${escapeHtml(q.keyword)}</strong></td><td class="right">${q.impressions.toLocaleString()}</td><td class="right" style="color:var(--accent)">${pct(q.impressions/total)}</td></tr>`).join('')}
+      </tbody></table>
+    </div></div>
+  `;
+}
+
+function renderRecs(body){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  const tot = totals(rows);
+  const recs = [];
+  // 1. Call-to-website ratio
+  if(tot.calls && tot.websiteClicks){
+    const ratio = tot.calls / tot.websiteClicks;
+    if(ratio < 0.3) recs.push({prio:'high', title:'Website clicks far outnumber calls', desc:`${tot.websiteClicks.toLocaleString()} clicks vs ${tot.calls.toLocaleString()} calls means visitors are researching on your site. Add prominent click-to-call CTAs above the fold and a sticky mobile "Call Now" button.`});
+    if(ratio > 5) recs.push({prio:'med', title:'Calls dominate website clicks', desc:`Your audience prefers phone. Make sure your website still does the heavy lifting on E-E-A-T — your reviews and credentials need to be obvious to anyone who DOES visit.`});
+  }
+  // 2. Directions / calls implies storefront expectation
+  if(tot.directions > tot.calls * 0.5 && tot.directions > 20){
+    recs.push({prio:'med', title:`${tot.directions.toLocaleString()} direction requests`, desc:`Strong storefront intent. Make sure your physical location reflects what the GBP promises — signage, hours, parking, and visible branding all need to deliver on the click.`});
+  }
+  // 3. Bookings present but low
+  if(tot.bookings && tot.bookings < tot.calls*0.1){
+    recs.push({prio:'med', title:'Booking flow underused vs calls', desc:`Bookings are ${tot.bookings} but you have ${tot.calls} calls. Either bookings are hidden in GBP, or your booking provider needs more prominent placement.`});
+  }
+  // 4. Messages
+  if(tot.messages === 0){
+    recs.push({prio:'low', title:'No messages received', desc:`Either you have GBP messaging disabled, or no one is using it. If enabled, messaging is fast — Google flags slow responders. Either disable, or enable with autoresponder + 24h SLA.`});
+  } else if(tot.messages > tot.calls){
+    recs.push({prio:'med', title:'Messages exceed calls', desc:`Customers prefer text. Make sure you respond within 24h — Google penalizes slow responses on messaging.`});
+  }
+  // 5. Trend
+  if(rows.length >= 14){
+    const half = Math.floor(rows.length/2);
+    const first = totals(rows.slice(0, half));
+    const second = totals(rows.slice(half));
+    const callsDelta = first.calls ? (second.calls-first.calls)/first.calls : 0;
+    if(callsDelta < -0.2){ recs.push({prio:'high', title:`Calls dropped ${Math.round(-callsDelta*100)}% in second half`, desc:`Significant decline. Possible causes: review velocity slowing, ranking drop, GBP edit triggered re-review, competitor outranking, seasonality. Check the Pack Tracker.`}); }
+    if(callsDelta > 0.3){ recs.push({prio:'low', title:`Calls up ${Math.round(callsDelta*100)}% in second half`, desc:`Whatever you're doing is working — document it. Push a 5-star review request cadence to lock in the gains.`}); }
+  }
+  // 6. Day of week
+  const dowMap = [0,1,2,3,4,5,6].map(()=>({calls:0, n:0}));
+  rows.forEach(r=>{const d = new Date(r.date).getDay(); dowMap[d].calls += r.calls||0; dowMap[d].n++;});
+  const avgs = dowMap.map(d=>d.n?d.calls/d.n:0);
+  const max = Math.max(...avgs);
+  const worst = avgs.indexOf(Math.min(...avgs.filter(x=>x>0)));
+  if(max > 0){
+    const best = avgs.indexOf(max);
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    if(worst!==best) recs.push({prio:'low', title:`Best day: ${days[best]} · Worst day: ${days[worst]}`, desc:`Concentrate paid efforts (Local Service Ads, social pushes) toward your busy days. Use slow days for review-gen + post creation.`});
+  }
+  // 7. Queries
+  const queries = aggQueries();
+  if(queries.length){
+    const branded = queries.filter(q=>{
+      const b = JSON.parse(localStorage.getItem('cf_state_v1')||'null')?.businesses?.[0]?.name?.toLowerCase()||'';
+      return b && q.keyword.toLowerCase().includes(b);
+    });
+    const brandedPct = branded.length ? branded.reduce((s,q)=>s+q.impressions,0) / queries.reduce((s,q)=>s+q.impressions,0) : 0;
+    if(brandedPct > 0.7) recs.push({prio:'med', title:`${Math.round(brandedPct*100)}% of impressions are branded queries`, desc:`Heavy branded skew = limited reach to new customers. Optimize for non-branded local queries (e.g. "plumber near me") via more content, GBP posts, and citations.`});
+    if(brandedPct < 0.1 && queries.length>20) recs.push({prio:'low', title:`Low branded query share (${Math.round(brandedPct*100)}%)`, desc:`Most discovery is from non-branded queries. Lock in brand by encouraging customers to mention your name in reviews and on social.`});
+  }
+  if(!recs.length){
+    recs.push({prio:'low', title:'No urgent recommendations', desc:'Performance metrics look balanced. Keep monitoring weekly trends and maintain review velocity.'});
+  }
+  body.innerHTML = `<div class="section"><div class="section-hdr"><h3>Data-Driven Recommendations</h3><span class="badge">${recs.length}</span></div><div>
+    ${recs.map(r=>`<div class="rec-item ${r.prio}"><div class="ic">${r.prio==='high'?'!':r.prio==='med'?'·':'i'}</div><div class="body"><div class="title">${escapeHtml(r.title)}</div><div class="desc">${escapeHtml(r.desc)}</div></div></div>`).join('')}
+  </div></div>`;
+}
+
+function renderGuide(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>How to Export GBP Performance Data</h3></div><div style="padding:14px;font-size:13px;line-height:1.7">
+      <h4 style="font-size:14px;font-weight:700">Step-by-step (current GBP UI, 2024+)</h4>
+      <ol style="padding-left:20px;margin-top:10px;color:var(--text2)">
+        <li>Sign in to <a href="https://business.google.com" target="_blank" rel="noopener" style="color:var(--accent)">business.google.com</a>.</li>
+        <li>Search for your business in the top bar, click to open it.</li>
+        <li>Click <strong>Performance</strong> from the left menu.</li>
+        <li>Set your date range (top right) — up to 6 months.</li>
+        <li>Click the <strong>Export</strong> icon (top right of any chart).</li>
+        <li>Choose CSV format. Save the file.</li>
+        <li>Drop it into this tool's import area.</li>
+      </ol>
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">What to export</h4>
+      <p style="color:var(--text2)">Three different exports are recommended for full coverage:</p>
+      <ul style="padding-left:20px;margin-top:6px;color:var(--text2)">
+        <li><strong>Calls, Directions, Bookings, Website clicks, Messages</strong> (one combined CSV with daily breakdown)</li>
+        <li><strong>Search keywords / Searches showing your profile</strong> (separate keyword export)</li>
+        <li><strong>Photo views</strong> (if you care about photo performance)</li>
+      </ul>
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">Tips</h4>
+      <ul style="padding-left:20px;margin-top:6px;color:var(--text2)">
+        <li>GBP keeps only the last <strong>6 months</strong> in the UI. Export monthly to build a historical archive.</li>
+        <li>Multi-location accounts: export each location separately, then import all CSVs — they'll merge correctly.</li>
+        <li>Data refreshes daily but typically lags 24-48 hours. Don't trust "today's" numbers — they're incomplete.</li>
+        <li>Keep your CSV files — Google has changed column names twice in the past 3 years; old exports are still your only backup.</li>
+      </ul>
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">Supported CSV formats</h4>
+      <p style="color:var(--text2)">This tool auto-detects:</p>
+      <ul style="padding-left:20px;margin-top:6px;color:var(--text2);font-size:12px;font-family:var(--mono)">
+        <li>Date, Calls, Bookings, Directions, Website clicks, Messages...</li>
+        <li>Date, Owner-uploaded photo views, Customer-uploaded photo views</li>
+        <li>Search keyword, Impressions</li>
+      </ul>
+    </div></div>
+  `;
+}
+
+/* ---------- EXPORT ---------- */
+function exportCSV(){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  if(!rows.length){ toast('No data','err'); return; }
+  const all = ['date','calls','directions','websiteClicks','messages','bookings','foodOrders'];
+  const csv = [all.join(',')].concat(rows.map(r=>all.map(k=>r[k]||0).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`gbp-performance-${state.filters.from||'export'}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+
+function exportReport(){
+  const rows = aggregate(state.filters.from, state.filters.to);
+  if(!rows.length){toast('No data','err'); return;}
+  const tot = totals(rows);
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>GBP Performance Report</title><style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;padding:34px;box-shadow:0 4px 16px rgba(15,26,46,.1)}h1{font-size:22px;font-weight:800}h2{font-size:16px;font-weight:700;margin:22px 0 10px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.c{background:#f3f6fb;border-radius:10px;padding:12px;border-left:4px solid #0891b2}.cn{font-size:10px;color:#5b6b88;font-weight:700;text-transform:uppercase}.cv{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11.5px}th{background:#f3f6fb;text-align:left;padding:8px;font-size:10px;text-transform:uppercase;color:#5b6b88}td{padding:8px;border-bottom:1px solid #e9eef7}td.r{text-align:right;font-family:monospace}</style></head><body><div class="wrap"><h1>GBP Performance Report</h1><p style="color:#5b6b88">${state.filters.from} → ${state.filters.to} · ${rows.length} days</p><div class="grid"><div class="c"><div class="cn">Calls</div><div class="cv">${tot.calls.toLocaleString()}</div></div><div class="c"><div class="cn">Directions</div><div class="cv">${tot.directions.toLocaleString()}</div></div><div class="c"><div class="cn">Website</div><div class="cv">${tot.websiteClicks.toLocaleString()}</div></div><div class="c"><div class="cn">Messages</div><div class="cv">${tot.messages.toLocaleString()}</div></div></div><h2>Daily Detail</h2><table><thead><tr><th>Date</th><th class="r">Calls</th><th class="r">Directions</th><th class="r">Website</th><th class="r">Messages</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.date}</td><td class="r">${(r.calls||0).toLocaleString()}</td><td class="r">${(r.directions||0).toLocaleString()}</td><td class="r">${(r.websiteClicks||0).toLocaleString()}</td><td class="r">${(r.messages||0).toLocaleString()}</td></tr>`).join('')}</tbody></table><div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by GBP Performance Importer · ${new Date().toLocaleString()}</div></div><script src="global-nav.js"><\/script>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`gbp-perf-report.html`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Report exported','success');
+}
+
+/* ---------- BOOT ---------- */
+document.getElementById('f-from').value = state.filters.from||'';
+document.getElementById('f-to').value = state.filters.to||'';
+document.getElementById('f-compare').value = state.filters.compare||'';
+renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

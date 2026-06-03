@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local SEO Health Monitor - Score Trends, Snapshots & Regression Alerts</title>
+<meta name="description" content="Track local SEO health over time. Capture snapshots from your toolkit, visualize score trends, detect regressions automatically, and review pillar-by-pillar history for accountability and trend spotting.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#16a34a; --accent-h:#15803d; --accent-soft:rgba(22,163,74,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#22c55e; --accent-h:#4ade80; --accent-soft:rgba(34,197,94,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.curr strong{color:var(--accent);font-size:14px}
+.hdr-stat.snaps strong{color:var(--blue)}
+.hdr-stat.delta strong{color:var(--success)}
+.hdr-stat.delta strong.neg{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.snap-list{display:flex;flex-direction:column;gap:5px}
+.snap-row{padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;font-size:11.5px;cursor:pointer;transition:all .12s}
+.snap-row:hover{border-color:var(--accent);transform:translateX(2px)}
+.snap-row.active{border-color:var(--accent);background:var(--accent-soft)}
+.snap-row .date{font-weight:700;font-family:var(--mono);font-size:11px}
+.snap-row .score{font-family:var(--mono);font-weight:800;font-size:12px;color:var(--text)}
+.snap-row .score.s{color:var(--success)}.snap-row .score.w{color:var(--warn)}.snap-row .score.d{color:var(--danger)}
+.snap-row button{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:2px 5px;font-weight:700}
+.snap-row button:hover{color:var(--danger)}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.score-banner{display:grid;grid-template-columns:auto 1fr;gap:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-sm);margin-bottom:14px;align-items:center}
+.score-circle{position:relative;width:140px;height:140px}
+.score-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-circle .bg{stroke:var(--bg3);stroke-width:11;fill:none}
+.score-circle .fg{stroke:var(--accent);stroke-width:11;fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s}
+.score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-text .v{font-size:36px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1}
+.score-text .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:700;text-transform:uppercase}
+.banner-info h2{font-size:20px;font-weight:800;margin-bottom:5px}
+.banner-info .sub{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.banner-info .deltas{display:flex;gap:18px;flex-wrap:wrap}
+.banner-info .delta{display:flex;flex-direction:column;gap:1px}
+.banner-info .delta .l{font-size:10px;font-family:var(--mono);font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.banner-info .delta .v{font-size:18px;font-weight:900;font-family:var(--mono);color:var(--text)}
+.banner-info .delta .v.pos{color:var(--success)}
+.banner-info .delta .v.neg{color:var(--danger)}
+.banner-info .delta .v.zero{color:var(--text3)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:22px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.chart-wrap{position:relative;height:280px;padding:14px}
+
+.pillar-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:11px;padding:11px 14px;border-bottom:1px solid var(--border);align-items:center;font-size:12px}
+.pillar-row:last-child{border-bottom:none}
+.pillar-row .pname{font-weight:700}
+.pillar-row .pbar-wrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.pillar-row .pbar{height:100%;border-radius:4px;transition:width .3s}
+.pillar-row .pscore{font-family:var(--mono);font-weight:800;font-size:13px;text-align:right;color:var(--text)}
+.pillar-row .pdelta{font-family:var(--mono);font-weight:800;font-size:11px;text-align:right}
+.pillar-row .pdelta.pos{color:var(--success)}
+.pillar-row .pdelta.neg{color:var(--danger)}
+.pillar-row .pdelta.zero{color:var(--text3)}
+
+.alert-row{padding:10px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr auto;gap:11px;align-items:start;font-size:12px}
+.alert-row:last-child{border-bottom:none}
+.alert-row .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;margin-top:1px}
+.alert-row.regression .icon{background:rgba(220,38,38,.15);color:var(--danger)}
+.alert-row.improve .icon{background:rgba(22,163,74,.15);color:var(--success)}
+.alert-row .body .title{font-size:12.5px;font-weight:700}
+.alert-row .body .desc{font-size:11.5px;color:var(--text2);line-height:1.45;margin-top:2px}
+.alert-row .meta{font-family:var(--mono);font-size:11px;font-weight:800;text-align:right}
+.alert-row.regression .meta{color:var(--danger)}
+.alert-row.improve .meta{color:var(--success)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .score-banner{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+    <div><div class="logo-name">Health<span>Monitor</span></div></div>
+    <span class="logo-tag">TRENDS</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat curr">Current: <strong id="stat-curr">—</strong></div>
+  <div class="hdr-stat snaps">Snapshots: <strong id="stat-snaps">0</strong></div>
+  <div class="hdr-stat delta">30d Δ: <strong id="stat-delta">—</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="white-label-report.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">Report</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Snapshots</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Capture Now</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Label (optional)</label><input id="i-label" placeholder="After GBP cleanup"></div>
+          <div class="f"><label>Note (optional)</label><input id="i-note" placeholder="What changed since last snapshot"></div>
+          <div class="f hint">Captures current scores from all your tools (citations, GBP, reviews, rankings, etc.) into a dated snapshot for trend analysis.</div>
+          <button class="btn-sub" onclick="captureSnapshot()">📸 Capture Snapshot</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Saved Snapshots</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="snap-list" id="snap-list"></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Alert Thresholds</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Regression alert (Δ score)</label><input type="number" id="i-thr-reg" value="-5" oninput="saveThresholds()"></div>
+          <div class="f"><label>Improvement alert (Δ score)</label><input type="number" id="i-thr-imp" value="5" oninput="saveThresholds()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="captureSnapshot()">📸 New Snapshot</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportJSON()">JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="trends" onclick="setTab('trends')">Trends</button>
+      <button class="tab" data-tab="pillars" onclick="setTab('pillars')">Pillar History</button>
+      <button class="tab" data-tab="alerts" onclick="setTab('alerts')">Alerts</button>
+      <button class="tab" data-tab="compare" onclick="setTab('compare')">Compare</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Capture snapshots periodically to track local SEO trends</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='hm_state_v1';
+const defaultState={
+  snapshots:[], // {id, date, label, note, overall, pillars:{cit,nap,sch,gbp,rev,geo,gap,bs,sr,agg}}
+  thrReg:-5, thrImp:5,
+  view:'overview', activeSnap:null
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+function saveThresholds(){state.thrReg=parseFloat(document.getElementById('i-thr-reg').value)||-5;state.thrImp=parseFloat(document.getElementById('i-thr-imp').value)||5;saveState();}
+
+const PILLAR_DEFS=[
+  {id:'cit', name:'Citations',     color:'#0d9488', weight:1.3},
+  {id:'nap', name:'NAP',           color:'#14b8a6', weight:1.2},
+  {id:'gbp', name:'GBP Audit',     color:'#4285f4', weight:1.3},
+  {id:'sch', name:'Schema',        color:'#0891b2', weight:0.8},
+  {id:'rev', name:'Reviews',       color:'#db2777', weight:1.0},
+  {id:'geo', name:'Geo Rankings',  color:'#7c3aed', weight:1.2},
+  {id:'gap', name:'Comp Gap',      color:'#a78bfa', weight:1.0},
+  {id:'bs',  name:'Brand SERP',    color:'#ec4899', weight:1.0},
+  {id:'sr',  name:'GBP Safety',    color:'#f59e0b', weight:0.8},
+  {id:'agg', name:'Aggregators',   color:'#16a34a', weight:0.9},
+];
+
+/* Capture pillar scores from various tools */
+function computePillars(){
+  const p={};
+  // Citations
+  try{const d=JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    if(d?.businesses?.length){const b=d.businesses[0];const cits=Object.values(b.citations||{});const found=cits.filter(c=>c.status==='found'||c.status==='partial').length;const scanned=cits.filter(c=>c.status&&c.status!=='running').length;if(scanned)p.cit=Math.round(found/scanned*100);}
+  }catch(e){}
+  // NAP
+  try{const d=JSON.parse(localStorage.getItem('nap_state_v1')||'null');
+    if(d?.citations?.length){const ref=d.ref||{};let ok=0;d.citations.forEach(c=>{const phR=(ref.phone||'').replace(/\D/g,'').slice(-10);const phC=(c.phone||'').replace(/\D/g,'').slice(-10);if(!phR||!phC||phR===phC)ok++;});p.nap=Math.round(ok/d.citations.length*100);}
+  }catch(e){}
+  // Schema
+  try{const d=JSON.parse(localStorage.getItem('sch_state_v1')||'null');
+    if(d?.name){let pts=0,max=0;['name','phone','url','addr','city','postal'].forEach(f=>{max+=2;if(d[f])pts+=2;});['desc','logo','email','region','country','lat','lng'].forEach(f=>{max++;if(d[f])pts++;});p.sch=Math.round(pts/max*100);}
+  }catch(e){}
+  // GBP
+  try{const d=JSON.parse(localStorage.getItem('gbp_state_v1')||'null');
+    if(d?.biz?.name && Object.keys(d.answers||{}).length){const ans=Object.values(d.answers);const pass=ans.filter(v=>v==='pass').length;const fail=ans.filter(v=>v==='fail').length;if(pass+fail)p.gbp=Math.round(pass/(pass+fail)*100);}
+  }catch(e){}
+  // Reviews
+  try{const d=JSON.parse(localStorage.getItem('rr_state_v1')||'null');
+    if(d?.reviews?.length){const total=d.reviews.length;const replied=d.reviews.filter(r=>r.reply).length;const sumStars=d.reviews.reduce((s,r)=>s+(r.stars||0),0);const avg=sumStars/total;p.rev=Math.min(100, Math.round(avg/5*60+replied/total*40));}
+  }catch(e){}
+  // Geo
+  try{const d=JSON.parse(localStorage.getItem('gg_state_v1')||'null');
+    if(d?.results && Object.keys(d.results).length){let total=0,kw=0;Object.values(d.results).forEach(r=>{const done=r.points?.filter(p=>p.status==='done')||[];const solv=done.length?Math.round(done.reduce((s,p)=>s+(p.rank?Math.max(0,(21-p.rank)/20):0),0)/done.length*100):0;total+=solv;kw++;});if(kw)p.geo=Math.round(total/kw);}
+  }catch(e){}
+  // Gap
+  try{const d=JSON.parse(localStorage.getItem('cg_state_v1')||'null');
+    if(d?.you?.name){const yc=d.you.citations||{};const compCits=(d.competitors||[]).map(c=>c.citations||{});const dirIds=new Set();compCits.forEach(c=>Object.keys(c).forEach(id=>{if(c[id].status==='found'||c[id].status==='partial')dirIds.add(id);}));const yourFound=Object.values(yc).filter(c=>c.status==='found'||c.status==='partial').length;const gaps=Array.from(dirIds).filter(id=>!(yc[id]?.status==='found'||yc[id]?.status==='partial'));if(yourFound+gaps.length)p.gap=Math.round(yourFound/(yourFound+gaps.length)*100);}
+  }catch(e){}
+  // Brand SERP
+  try{const d=JSON.parse(localStorage.getItem('bs_state_v1')||'null');if(d?.results?.audit)p.bs=d.results.audit.score;}catch(e){}
+  // Suspension
+  try{const d=JSON.parse(localStorage.getItem('sr_state_v1')||'null');if(d?.score!==undefined)p.sr=Math.max(0,100-(d.score||0));}catch(e){}
+  // Aggregators
+  try{const d=JSON.parse(localStorage.getItem('agg_state_v1')||'null');if(d?.submissions){const subs=Object.values(d.submissions);const live=subs.filter(s=>s.status==='live').length;p.agg=Math.round(live/7*100);}}catch(e){}
+  return p;
+}
+
+function computeOverall(pillars){
+  const vals=PILLAR_DEFS.filter(d=>pillars[d.id]!==undefined).map(d=>({score:pillars[d.id], w:d.weight}));
+  if(!vals.length) return null;
+  let weighted=0, totalW=0;
+  vals.forEach(({score, w})=>{weighted+=score*w;totalW+=w;});
+  return Math.round(weighted/totalW);
+}
+
+function captureSnapshot(){
+  const pillars=computePillars();
+  const overall=computeOverall(pillars);
+  if(overall===null){toast('No pillar data — use tools first','err');return;}
+  const snap={
+    id:'s_'+Math.random().toString(36).slice(2,9),
+    date:'2026-05-29',
+    timestamp:Date.now(),
+    label:document.getElementById('i-label').value.trim(),
+    note:document.getElementById('i-note').value.trim(),
+    overall, pillars
+  };
+  state.snapshots.push(snap);
+  state.activeSnap=snap.id;
+  document.getElementById('i-label').value='';
+  document.getElementById('i-note').value='';
+  saveState();render();
+  toast(`Snapshot captured (${overall}/100)`,'success');
+}
+
+function deleteSnap(id, ev){
+  ev?.stopPropagation();
+  if(!confirm('Delete this snapshot?'))return;
+  state.snapshots=state.snapshots.filter(s=>s.id!==id);
+  if(state.activeSnap===id)state.activeSnap=null;
+  saveState();render();
+}
+function selectSnap(id){state.activeSnap=id;saveState();render();}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function renderSnapList(){
+  const list=document.getElementById('snap-list');
+  if(!state.snapshots.length){list.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:10px;font-family:var(--mono)">No snapshots yet</div>';return;}
+  list.innerHTML=state.snapshots.slice().reverse().map(s=>{
+    const cls=s.overall>=80?'s':s.overall>=60?'w':'d';
+    return `<div class="snap-row ${state.activeSnap===s.id?'active':''}" onclick="selectSnap('${s.id}')"><div><div class="date">${escapeHtml(s.date)}</div>${s.label?`<div style="font-size:9.5px;color:var(--text3);font-family:var(--mono)">${escapeHtml(s.label)}</div>`:''}</div><div class="score ${cls}">${s.overall}</div><button onclick="deleteSnap('${s.id}',event)">✕</button></div>`;
+  }).join('');
+}
+
+let chart;
+function render(){
+  renderSnapList();
+  const snaps=state.snapshots.slice().sort((a,b)=>a.timestamp-b.timestamp);
+  const latest=snaps[snaps.length-1];
+  document.getElementById('stat-curr').textContent=latest?latest.overall+'/100':'—';
+  document.getElementById('stat-snaps').textContent=snaps.length;
+  // 30-day delta
+  let delta='—';let deltaCls='';
+  if(snaps.length>=2){
+    const recent30=snaps.filter(s=>Date.now()-s.timestamp<30*24*60*60*1000);
+    if(recent30.length>=2){
+      const d=recent30[recent30.length-1].overall - recent30[0].overall;
+      delta=(d>=0?'+':'')+d;
+      deltaCls=d<0?'neg':'';
+    }
+  }
+  const dEl=document.getElementById('stat-delta');dEl.textContent=delta;dEl.className=deltaCls;
+  document.getElementById('i-thr-reg').value=state.thrReg;
+  document.getElementById('i-thr-imp').value=state.thrImp;
+
+  if(state.view==='overview') return renderOverview(snaps);
+  if(state.view==='trends') return renderTrends(snaps);
+  if(state.view==='pillars') return renderPillarsHist(snaps);
+  if(state.view==='alerts') return renderAlerts(snaps);
+  if(state.view==='compare') return renderCompare(snaps);
+}
+
+function renderOverview(snaps){
+  if(!snaps.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <div class="et">Local SEO Health Monitor</div>
+      <div class="ed">Capture snapshots of your local SEO scores over time to track trends, identify improvements, and catch regressions before they hurt rankings. Click <strong>📸 New Snapshot</strong> to capture your current state. Capture weekly or monthly for best trend visibility.</div>
+    </div>`;
+    return;
+  }
+  const latest=snaps[snaps.length-1];
+  const prev=snaps[snaps.length-2];
+  const overallDelta=prev?latest.overall-prev.overall:0;
+  const col=latest.overall>=80?'#16a34a':latest.overall>=60?'#d97706':'#dc2626';
+  const dash=2*Math.PI*60;const off=dash*(1-latest.overall/100);
+  // Pillar deltas
+  const pillarDeltas=PILLAR_DEFS.map(def=>{
+    const curr=latest.pillars[def.id];
+    const prevVal=prev?.pillars?.[def.id];
+    return {def, curr, prev:prevVal, delta:curr&&prevVal!==undefined?curr-prevVal:null};
+  });
+  document.getElementById('cbody').innerHTML=`
+    <div class="score-banner">
+      <div class="score-circle"><svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="60" class="bg"/><circle cx="70" cy="70" r="60" class="fg" style="stroke:${col};stroke-dasharray:${dash};stroke-dashoffset:${off}"/></svg><div class="score-text"><div class="v" style="color:${col}">${latest.overall}</div><div class="l">/ 100</div></div></div>
+      <div class="banner-info">
+        <h2>${escapeHtml(latest.label||'Latest Snapshot')}</h2>
+        <div class="sub">Captured ${escapeHtml(latest.date)}${latest.note?' · '+escapeHtml(latest.note):''}</div>
+        <div class="deltas">
+          ${prev?`<div class="delta"><div class="l">vs prev</div><div class="v ${overallDelta>0?'pos':overallDelta<0?'neg':'zero'}">${overallDelta>0?'+':''}${overallDelta}</div></div>`:''}
+          <div class="delta"><div class="l">Active pillars</div><div class="v">${Object.keys(latest.pillars).length}/${PILLAR_DEFS.length}</div></div>
+          <div class="delta"><div class="l">Snapshots</div><div class="v">${snaps.length}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Pillar Scores</h3><button class="cb-btn" onclick="setTab('pillars')">View history →</button></div><div>
+      ${pillarDeltas.map(p=>{
+        if(p.curr===undefined)return `<div class="pillar-row" style="opacity:.5"><div class="pname">${escapeHtml(p.def.name)}</div><div class="pbar-wrap"><div class="pbar" style="width:0%;background:var(--text3)"></div></div><div class="pscore">—</div><div class="pdelta zero">—</div></div>`;
+        const cls=p.curr>=80?'good':p.curr>=60?'med':'bad';
+        const barColor=p.curr>=80?'var(--success)':p.curr>=60?'var(--warn)':'var(--danger)';
+        return `<div class="pillar-row"><div class="pname">${escapeHtml(p.def.name)}</div><div class="pbar-wrap"><div class="pbar" style="width:${p.curr}%;background:${barColor}"></div></div><div class="pscore">${p.curr}</div><div class="pdelta ${p.delta>0?'pos':p.delta<0?'neg':'zero'}">${p.delta===null?'—':(p.delta>0?'+':'')+p.delta}</div></div>`;
+      }).join('')}
+    </div></div>
+  `;
+}
+
+function renderTrends(snaps){
+  if(snaps.length<2){document.getElementById('cbody').innerHTML=`<div class="empty"><div class="et">Need at least 2 snapshots</div><div class="ed">Capture another snapshot in the left panel to see trends.</div></div>`;return;}
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>Overall Score Trend</h3><span class="badge">${snaps.length} snapshots</span></div><div class="chart-wrap"><canvas id="ch-overall"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Pillar Trends (top 5)</h3></div><div class="chart-wrap"><canvas id="ch-pillars"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+    Chart.defaults.borderColor=isDark?'#1e2d44':'#d1d9e8';
+    const labels=snaps.map(s=>s.date);
+    // Overall chart
+    const ctx1=document.getElementById('ch-overall')?.getContext('2d');
+    if(ctx1){if(chart)chart.destroy();chart=new Chart(ctx1,{type:'line',data:{labels,datasets:[{label:'Overall Score',data:snaps.map(s=>s.overall),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',tension:0.3,fill:true,pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{min:0,max:100}}}});}
+    // Pillar chart - top 5 most populated pillars
+    const ctx2=document.getElementById('ch-pillars')?.getContext('2d');
+    if(ctx2){
+      const counts={};PILLAR_DEFS.forEach(d=>{counts[d.id]=snaps.filter(s=>s.pillars[d.id]!==undefined).length;});
+      const top5=PILLAR_DEFS.slice().sort((a,b)=>counts[b.id]-counts[a.id]).slice(0,5);
+      new Chart(ctx2,{type:'line',data:{labels,datasets:top5.map(d=>({label:d.name,data:snaps.map(s=>s.pillars[d.id]||null),borderColor:d.color,backgroundColor:'transparent',tension:0.3,pointRadius:3,spanGaps:true}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{min:0,max:100}}}});
+    }
+  },50);
+}
+
+function renderPillarsHist(snaps){
+  if(snaps.length<2){document.getElementById('cbody').innerHTML=`<div class="empty"><div class="et">Need at least 2 snapshots</div></div>`;return;}
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>All Pillars Over Time</h3></div><div style="padding:14px;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono)">
+      <thead><tr style="background:var(--bg)"><th style="padding:8px 10px;text-align:left;color:var(--text2);text-transform:uppercase;font-size:9.5px;font-weight:800">Pillar</th>${snaps.map(s=>`<th style="padding:8px 10px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px;font-weight:800">${escapeHtml(s.date)}${s.label?'<br><span style="color:var(--text3);text-transform:none;font-weight:600">'+escapeHtml(s.label.slice(0,15))+'</span>':''}</th>`).join('')}<th style="padding:8px 10px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px;font-weight:800">Total Δ</th></tr></thead>
+      <tbody>
+        ${PILLAR_DEFS.map(def=>{
+          const vals=snaps.map(s=>s.pillars[def.id]);
+          const first=vals.find(v=>v!==undefined);
+          const last=vals.slice().reverse().find(v=>v!==undefined);
+          const delta=(first!==undefined && last!==undefined)?last-first:null;
+          return `<tr style="border-top:1px solid var(--border)"><td style="padding:7px 10px;font-weight:700"><span style="display:inline-block;width:10px;height:10px;background:${def.color};border-radius:50%;margin-right:7px"></span>${escapeHtml(def.name)}</td>${vals.map(v=>`<td style="padding:7px 10px;text-align:right;font-weight:700">${v===undefined?'<span style="color:var(--text3)">—</span>':v}</td>`).join('')}<td style="padding:7px 10px;text-align:right;font-weight:800;color:${delta===null?'var(--text3)':delta>0?'var(--success)':delta<0?'var(--danger)':'var(--text3)'}">${delta===null?'—':(delta>0?'+':'')+delta}</td></tr>`;
+        }).join('')}
+        <tr style="border-top:2px solid var(--text2);background:var(--bg)"><td style="padding:9px 10px;font-weight:900">OVERALL</td>${snaps.map(s=>`<td style="padding:9px 10px;text-align:right;font-weight:900;color:var(--text)">${s.overall}</td>`).join('')}<td style="padding:9px 10px;text-align:right;font-weight:900;color:${snaps[snaps.length-1].overall-snaps[0].overall>0?'var(--success)':snaps[snaps.length-1].overall-snaps[0].overall<0?'var(--danger)':'var(--text3)'}">${snaps[snaps.length-1].overall-snaps[0].overall>0?'+':''}${snaps[snaps.length-1].overall-snaps[0].overall}</td></tr>
+      </tbody>
+    </table>
+  </div></div>`;
+}
+
+function renderAlerts(snaps){
+  if(snaps.length<2){document.getElementById('cbody').innerHTML=`<div class="empty"><div class="et">Need at least 2 snapshots</div></div>`;return;}
+  // Generate alerts for each consecutive pair
+  const alerts=[];
+  for(let i=1;i<snaps.length;i++){
+    const prev=snaps[i-1],curr=snaps[i];
+    const overallDelta=curr.overall-prev.overall;
+    if(overallDelta<=state.thrReg) alerts.push({type:'regression',date:curr.date,title:`Overall score dropped ${overallDelta}`,desc:`From ${prev.overall} to ${curr.overall}`,delta:overallDelta});
+    else if(overallDelta>=state.thrImp) alerts.push({type:'improve',date:curr.date,title:`Overall score gained +${overallDelta}`,desc:`From ${prev.overall} to ${curr.overall}`,delta:overallDelta});
+    PILLAR_DEFS.forEach(def=>{
+      const pPrev=prev.pillars[def.id],pCurr=curr.pillars[def.id];
+      if(pPrev===undefined||pCurr===undefined)return;
+      const pd=pCurr-pPrev;
+      if(pd<=state.thrReg) alerts.push({type:'regression',date:curr.date,title:`${def.name} dropped ${pd}`,desc:`From ${pPrev} to ${pCurr}`,delta:pd,pillar:def.name});
+      else if(pd>=state.thrImp) alerts.push({type:'improve',date:curr.date,title:`${def.name} gained +${pd}`,desc:`From ${pPrev} to ${pCurr}`,delta:pd,pillar:def.name});
+    });
+  }
+  alerts.sort((a,b)=>(b.date+'').localeCompare(a.date+''));
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi d"><div class="l">Regressions</div><div class="v">${alerts.filter(a=>a.type==='regression').length}</div><div class="s">≤${state.thrReg} threshold</div></div>
+      <div class="kpi s"><div class="l">Improvements</div><div class="v">${alerts.filter(a=>a.type==='improve').length}</div><div class="s">≥+${state.thrImp} threshold</div></div>
+      <div class="kpi"><div class="l">Total alerts</div><div class="v">${alerts.length}</div><div class="s">across all snapshots</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>All Alerts</h3><span class="badge">${alerts.length}</span></div><div>
+      ${alerts.length?alerts.map(a=>`<div class="alert-row ${a.type}"><div class="icon">${a.type==='regression'?'↓':'↑'}</div><div class="body"><div class="title">${escapeHtml(a.title)}</div><div class="desc">${escapeHtml(a.desc)} · ${escapeHtml(a.date)}</div></div><div class="meta">${a.delta>0?'+':''}${a.delta}</div></div>`).join(''):'<div style="padding:30px;text-align:center;color:var(--text3)">No alerts triggered — score changes have stayed within threshold band</div>'}
+    </div></div>
+  `;
+}
+
+function renderCompare(snaps){
+  if(snaps.length<2){document.getElementById('cbody').innerHTML=`<div class="empty"><div class="et">Need at least 2 snapshots</div></div>`;return;}
+  // Compare any 2 snapshots
+  const aId=state.cmpA||snaps[0].id;
+  const bId=state.cmpB||snaps[snaps.length-1].id;
+  const a=snaps.find(s=>s.id===aId);
+  const b=snaps.find(s=>s.id===bId);
+  if(!a||!b){document.getElementById('cbody').innerHTML='<div class="empty"><div class="et">Snapshots not found</div></div>';return;}
+  document.getElementById('cbody').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:11px;font-weight:700;color:var(--text2)">From</label>
+      <select onchange="state.cmpA=this.value;saveState();render();" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:var(--mono);font-size:11.5px">${snaps.map(s=>`<option value="${s.id}" ${s.id===aId?'selected':''}>${escapeHtml(s.date)}${s.label?' — '+escapeHtml(s.label):''}</option>`).join('')}</select>
+      <label style="font-size:11px;font-weight:700;color:var(--text2)">To</label>
+      <select onchange="state.cmpB=this.value;saveState();render();" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:var(--mono);font-size:11.5px">${snaps.map(s=>`<option value="${s.id}" ${s.id===bId?'selected':''}>${escapeHtml(s.date)}${s.label?' — '+escapeHtml(s.label):''}</option>`).join('')}</select>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">From</div><div class="v">${a.overall}</div><div class="s">${escapeHtml(a.date)}</div></div>
+      <div class="kpi"><div class="l">To</div><div class="v">${b.overall}</div><div class="s">${escapeHtml(b.date)}</div></div>
+      <div class="kpi ${b.overall-a.overall>0?'s':b.overall-a.overall<0?'d':''}"><div class="l">Change</div><div class="v">${b.overall-a.overall>0?'+':''}${b.overall-a.overall}</div><div class="s">${b.overall-a.overall===0?'no change':b.overall-a.overall>0?'improvement':'regression'}</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Pillar Diff</h3></div><div>
+      ${PILLAR_DEFS.map(def=>{const va=a.pillars[def.id],vb=b.pillars[def.id];if(va===undefined&&vb===undefined)return '';const delta=(va!==undefined&&vb!==undefined)?vb-va:null;return `<div class="pillar-row"><div class="pname">${escapeHtml(def.name)}</div><div style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px"><span style="color:var(--text3)">${va??'—'}</span><span style="color:var(--text3)">→</span><span style="font-weight:800">${vb??'—'}</span></div><div></div><div class="pdelta ${delta===null?'zero':delta>0?'pos':delta<0?'neg':'zero'}">${delta===null?'—':(delta>0?'+':'')+delta}</div></div>`;}).join('')}
+    </div></div>
+  `;
+}
+
+function exportCSV(){
+  const rows=[['date','label','overall',...PILLAR_DEFS.map(d=>d.name),'note']];
+  state.snapshots.forEach(s=>rows.push([s.date, s.label||'', s.overall, ...PILLAR_DEFS.map(d=>s.pillars[d.id]||''), s.note||'']));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='health-history.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state.snapshots,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='health-snapshots.json';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('JSON exported','success');
+}
+
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

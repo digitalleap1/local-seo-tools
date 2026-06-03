@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Position Forecaster - Project Rankings, Traffic & ROI 30/60/90 Days</title>
+<meta name="description" content="Forecast local SEO outcomes 30/60/90 days out. Models position progression, predicted CTR, traffic, calls, conversions, and revenue based on current state + intervention effort. Reads from rank tracker, geo-grid, GBP performance, ROI calculator for end-to-end attribution.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0891b2; --accent-h:#0e7490; --accent-soft:rgba(8,145,178,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#22d3ee; --accent-h:#67e8f9; --accent-soft:rgba(34,211,238,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--success));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.pos strong{color:var(--accent)}
+.hdr-stat.traf strong{color:var(--blue)}
+.hdr-stat.rev strong{color:var(--success);font-size:14px}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center}
+.f label .src{font-size:9.5px;color:var(--success);font-weight:600;text-transform:none;letter-spacing:0}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.scenario-pills{display:flex;gap:4px;background:var(--bg2);border-radius:7px;padding:2px}
+.scenario-pills button{flex:1;padding:6px;background:transparent;border:none;color:var(--text2);font-size:10.5px;font-weight:700;border-radius:5px;cursor:pointer;font-family:var(--mono);text-transform:uppercase}
+.scenario-pills button.active{background:var(--accent);color:#fff}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.horizon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.horizon{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.horizon::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.horizon.now::before{background:var(--text3)}
+.horizon.d30::before{background:var(--blue)}
+.horizon.d60::before{background:var(--purple)}
+.horizon.d90::before{background:var(--success)}
+.horizon .hl{font-size:10.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.horizon .position{font-size:30px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05;display:flex;align-items:baseline;gap:4px}
+.horizon .position .delta{font-size:13px;font-weight:800;color:var(--success)}
+.horizon .position .delta.neg{color:var(--danger)}
+.horizon .position .delta.zero{color:var(--text3)}
+.horizon .stats{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--text2)}
+.horizon .stats .row{display:flex;justify-content:space-between;gap:8px}
+.horizon .stats .row strong{color:var(--text);font-weight:700}
+
+@media (max-width:1080px){.horizon-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:540px){.horizon-grid{grid-template-columns:1fr}}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.chart-wrap{position:relative;height:300px;padding:10px 14px}
+
+.scenario-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px;padding:12px}
+.scen{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:13px 15px}
+.scen.recommended{border-color:var(--success);background:rgba(22,163,74,.04);box-shadow:0 0 0 2px rgba(22,163,74,.15)}
+.scen .sl{font-size:9.5px;font-family:var(--mono);color:var(--text3);font-weight:800;text-transform:uppercase;margin-bottom:3px}
+.scen .sn{font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px}
+.scen .pos{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--accent);line-height:1.1}
+.scen .det{font-size:11px;color:var(--text2);margin-top:8px;line-height:1.5}
+.scen .det strong{color:var(--text)}
+.scen .rev{font-size:14px;font-weight:800;color:var(--success);font-family:var(--mono);margin-top:8px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+    <div><div class="logo-name">Position<span>Forecast</span></div></div>
+    <span class="logo-tag">90-DAY</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat pos">90d pos: <strong id="stat-pos">—</strong></div>
+  <div class="hdr-stat traf">90d traffic: <strong id="stat-traf">—</strong></div>
+  <div class="hdr-stat rev">90d rev: <strong id="stat-rev">—</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="roi-calculator.html" class="hdr-link" style="border-color:rgba(22,163,74,.4);color:var(--success)">ROI Calc</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Forecast Inputs</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Current State</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Target keyword</label><input id="i-kw" oninput="onChange()" placeholder="emergency plumber denver"></div>
+          <div class="f"><label>Current avg position <span class="src" id="src-pos"></span></label><input type="number" id="i-pos" min="1" max="100" step="0.1" value="12" oninput="onChange()"></div>
+          <div class="f"><label>Monthly search volume</label><input type="number" id="i-vol" min="0" value="2400" oninput="onChange()"></div>
+          <div class="f"><label>Current monthly visits <span class="src" id="src-visits"></span></label><input type="number" id="i-visits" min="0" value="120" oninput="onChange()"></div>
+          <button class="btn-sub" onclick="syncFromTools()">↻ Pull from all tools</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>SEO Effort Scenario</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="scenario-pills" id="scen-pills">
+            <button data-scen="diy" onclick="setScenario('diy')">DIY</button>
+            <button data-scen="lean" onclick="setScenario('lean')">Lean</button>
+            <button data-scen="std" class="active" onclick="setScenario('std')">Standard</button>
+            <button data-scen="agg" onclick="setScenario('agg')">Aggressive</button>
+          </div>
+          <div class="f"><label>Monthly SEO investment ($)</label><input type="number" id="i-budget" value="1500" min="0" oninput="onChange()"></div>
+          <div class="f"><label>Local SEO baseline score (0-100)</label><input type="number" id="i-baseline" value="55" min="0" max="100" oninput="onChange()"><div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5">Use the Dashboard overall score — affects how fast positions improve.</div></div>
+          <div class="f"><label>Competition intensity (1-5)</label><input type="number" id="i-comp" value="3" min="1" max="5" oninput="onChange()"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Conversion Funnel</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Visit→lead %</label><input type="number" id="i-leadcr" value="8" min="0" max="100" step="0.5" oninput="onChange()"></div>
+          <div class="f"><label>Lead→customer %</label><input type="number" id="i-custcr" value="35" min="0" max="100" oninput="onChange()"></div>
+          <div class="f"><label>Avg order value ($)</label><input type="number" id="i-aov" value="250" min="0" oninput="onChange()"></div>
+          <div class="f"><label>Gross margin %</label><input type="number" id="i-margin" value="40" min="0" max="100" oninput="onChange()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="runForecast()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Run Forecast
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportReport()">Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Forecast</button>
+      <button class="tab" data-tab="scenarios" onclick="setTab('scenarios')">Scenarios</button>
+      <button class="tab" data-tab="weekly" onclick="setTab('weekly')">Weekly Detail</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Methodology</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Adjust inputs — forecast updates live</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='fc_state_v1';
+const SCENARIOS={
+  diy:    {label:'DIY ($0/mo)',         budget:0,    speed:0.3, lift:5},
+  lean:   {label:'Lean ($500/mo)',      budget:500,  speed:0.6, lift:18},
+  std:    {label:'Standard ($1.5k/mo)', budget:1500, speed:1.0, lift:35},
+  agg:    {label:'Aggressive ($5k/mo)', budget:5000, speed:1.6, lift:65},
+};
+const defaultState={
+  kw:'',position:12,volume:2400,visits:120,
+  scenario:'std',budget:1500,baseline:55,competition:3,
+  leadCR:8,custCR:35,aov:250,margin:40,
+  view:'overview'
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+const POS_CTR=[0,0.282,0.157,0.111,0.080,0.060,0.046,0.036,0.029,0.024,0.020,0.016,0.013,0.011,0.009,0.008,0.007,0.006,0.005,0.005,0.004];
+function ctrFor(pos){if(pos<=0)return 0;if(pos>=20)return 0.003;const lo=Math.floor(pos),hi=Math.ceil(pos);if(lo===hi)return POS_CTR[lo];return POS_CTR[lo]+(POS_CTR[hi]-POS_CTR[lo])*(pos-lo);}
+
+function getInputs(){
+  state.kw=document.getElementById('i-kw').value.trim();
+  state.position=parseFloat(document.getElementById('i-pos').value)||12;
+  state.volume=parseInt(document.getElementById('i-vol').value)||0;
+  state.visits=parseInt(document.getElementById('i-visits').value)||0;
+  state.budget=parseInt(document.getElementById('i-budget').value)||0;
+  state.baseline=parseInt(document.getElementById('i-baseline').value)||55;
+  state.competition=parseInt(document.getElementById('i-comp').value)||3;
+  state.leadCR=parseFloat(document.getElementById('i-leadcr').value)||0;
+  state.custCR=parseFloat(document.getElementById('i-custcr').value)||0;
+  state.aov=parseFloat(document.getElementById('i-aov').value)||0;
+  state.margin=parseFloat(document.getElementById('i-margin').value)||0;
+  saveState();
+}
+function fillInputs(){
+  ['kw','pos','vol','visits','budget','baseline','comp','leadcr','custcr','aov','margin'].forEach(k=>{
+    const map={pos:'position',vol:'volume',visits:'visits',leadcr:'leadCR',custcr:'custCR',comp:'competition'};
+    const stk=map[k]||k;
+    const el=document.getElementById('i-'+k);if(el)el.value=state[stk];
+  });
+  document.querySelectorAll('#scen-pills button').forEach(b=>b.classList.toggle('active',b.dataset.scen===state.scenario));
+}
+function onChange(){getInputs();render();}
+function setScenario(s){state.scenario=s;state.budget=SCENARIOS[s].budget;saveState();fillInputs();render();}
+
+function syncFromTools(){
+  let touched=0;
+  try{
+    // Pack tracker — use first selected/best keyword position
+    const pt=JSON.parse(localStorage.getItem('pt_state_v1')||'null');
+    if(pt?.keywords?.length){
+      const k=pt.keywords.find(x=>x.kw===state.kw)||pt.keywords[0];
+      if(k){state.position=k.lastPos||state.position;if(k.kw)state.kw=k.kw;touched++;document.getElementById('src-pos').textContent='✓ Pack';}
+    }
+    // Geo-grid
+    const gg=JSON.parse(localStorage.getItem('gg_state_v1')||'null');
+    if(gg?.results){
+      const kw=state.kw?gg.results[state.kw]:Object.values(gg.results)[0];
+      if(kw?.points?.length){
+        const ranked=kw.points.filter(p=>p.rank);
+        if(ranked.length){const avg=ranked.reduce((s,p)=>s+p.rank,0)/ranked.length;state.position=Math.round(avg*10)/10;touched++;document.getElementById('src-pos').textContent='✓ GeoGrid';}
+      }
+    }
+    // GBP performance for visits proxy
+    const gp=JSON.parse(localStorage.getItem('gp_state_v1')||'null');
+    if(gp?.imports?.length){
+      const daily=gp.imports.filter(i=>i.type==='daily_actions').flatMap(i=>i.data||[]).slice(0,30);
+      if(daily.length){const totWeb=daily.reduce((s,r)=>s+(r.websiteClicks||0),0);state.visits=totWeb||state.visits;touched++;document.getElementById('src-visits').textContent='✓ GBP';}
+    }
+    // ROI calc inputs
+    const roi=JSON.parse(localStorage.getItem('roi_state_v1')||'null');
+    if(roi?.inputs){state.aov=roi.inputs.aov||state.aov;state.margin=roi.inputs.margin||state.margin;state.budget=roi.inputs.budget||state.budget;touched++;}
+    // Dashboard for baseline
+    const db=JSON.parse(localStorage.getItem('db_state_v1')||'null');
+    // Keyword research for volume
+    const kw=JSON.parse(localStorage.getItem('kw_state_v1')||'null');
+    if(kw?.keywords?.length && state.kw){const k=kw.keywords.find(x=>x.kw===state.kw);if(k?.volume){state.volume=k.volume;touched++;}}
+    saveState();fillInputs();render();
+    toast(touched?`Pulled from ${touched} tools`:'No data to pull','success');
+  }catch(e){toast('Sync failed','err');}
+}
+
+/* ---------- FORECAST MODEL ---------- */
+function forecast(){
+  // Decay model: target position depends on scenario + baseline + competition
+  // current pos -> target pos over weeks
+  const scen=SCENARIOS[state.scenario];
+  const baselineFactor=Math.max(0.5, Math.min(1.5, (state.baseline/55)));
+  const compPenalty=1 - (state.competition-3)*0.12; // 1.36 to 0.64
+  const effectiveSpeed=scen.speed * baselineFactor * compPenalty;
+
+  // Target position: lower (better) than current by lift%
+  const liftFactor=1 - (scen.lift/100);
+  const targetPos=Math.max(1, state.position*liftFactor);
+
+  // Weekly trajectory (12 weeks = 90 days)
+  const weeks=[];
+  for(let w=0;w<=13;w++){
+    const t=Math.min(1, w/12); // 0..1
+    // Logistic curve: starts slow, ramps middle, plateaus
+    const ramp = 1 / (1 + Math.exp(-effectiveSpeed*8*(t-0.45)));
+    const pos = state.position - (state.position - targetPos) * ramp;
+    const ctr = ctrFor(pos);
+    const clicks = state.volume*ctr/4.33; // weekly clicks (volume is monthly)
+    const leads = clicks*state.leadCR/100;
+    const customers = leads*state.custCR/100;
+    const revenue = customers*state.aov;
+    const profit = revenue*state.margin/100;
+    weeks.push({w, days:w*7, pos, ctr, weeklyClicks:clicks, weeklyLeads:leads, weeklyCustomers:customers, weeklyRevenue:revenue, weeklyProfit:profit});
+  }
+  // Aggregate to horizons (4w=30d, 8w=60d, 13w=~90d)
+  const horizons=[
+    {name:'Now',         w:0,  key:'now'},
+    {name:'30 days',     w:4,  key:'d30'},
+    {name:'60 days',     w:8,  key:'d60'},
+    {name:'90 days',     w:12, key:'d90'},
+  ].map(h=>{
+    const week=weeks[h.w]||weeks[0];
+    return {...h, ...week, monthlyClicks:week.weeklyClicks*4.33, monthlyLeads:week.weeklyLeads*4.33, monthlyCustomers:week.weeklyCustomers*4.33, monthlyRevenue:week.weeklyRevenue*4.33, monthlyProfit:week.weeklyProfit*4.33};
+  });
+  // Cumulative 90-day totals
+  const cum90=weeks.slice(0,12).reduce((acc,w)=>({clicks:acc.clicks+w.weeklyClicks, leads:acc.leads+w.weeklyLeads, customers:acc.customers+w.weeklyCustomers, revenue:acc.revenue+w.weeklyRevenue, profit:acc.profit+w.weeklyProfit}),{clicks:0,leads:0,customers:0,revenue:0,profit:0});
+  return {weeks, horizons, cum90, scenario:scen, targetPos};
+}
+
+function runForecast(){render();}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+let chart=null;
+function render(){
+  const f=forecast();
+  document.getElementById('stat-pos').textContent='#'+f.horizons[3].pos.toFixed(1);
+  document.getElementById('stat-traf').textContent=Math.round(f.horizons[3].monthlyClicks)+'/mo';
+  const rev=Math.round(f.horizons[3].monthlyRevenue);
+  document.getElementById('stat-rev').textContent=rev>=1000?'$'+Math.round(rev/100)/10+'K':'$'+rev;
+  if(state.view==='overview') return renderOverview(f);
+  if(state.view==='scenarios') return renderScenarios(f);
+  if(state.view==='weekly') return renderWeekly(f);
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(f){
+  document.getElementById('cbody').innerHTML=`
+    <div class="horizon-grid">
+      ${f.horizons.map(h=>{
+        const delta=h.pos-f.horizons[0].pos;
+        const dCls=delta<0?'':'neg';
+        return `<div class="horizon ${h.key}">
+          <div class="hl">${h.name}</div>
+          <div class="position">#${h.pos.toFixed(1)} ${h.w>0?`<span class="delta ${delta<-0.1?'':delta>0.1?'neg':'zero'}">${delta>0?'+':''}${delta.toFixed(1)}</span>`:''}</div>
+          <div class="stats">
+            <div class="row"><span>CTR</span><strong>${(h.ctr*100).toFixed(2)}%</strong></div>
+            <div class="row"><span>Clicks/mo</span><strong>${Math.round(h.monthlyClicks)}</strong></div>
+            <div class="row"><span>Customers/mo</span><strong>${(h.monthlyCustomers).toFixed(1)}</strong></div>
+            <div class="row"><span>Revenue/mo</span><strong>$${Math.round(h.monthlyRevenue).toLocaleString()}</strong></div>
+            <div class="row"><span>Profit/mo</span><strong style="color:var(--success)">$${Math.round(h.monthlyProfit).toLocaleString()}</strong></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="section"><div class="section-hdr"><h3>90-Day Projection — Position & Revenue</h3><span class="badge">${SCENARIOS[state.scenario].label}</span></div><div class="chart-wrap"><canvas id="chart-main"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Cumulative 90-Day Totals</h3></div><div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;font-family:var(--mono)">
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--blue)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">Total clicks</div><div style="font-size:22px;font-weight:900;color:var(--blue)">${Math.round(f.cum90.clicks).toLocaleString()}</div></div>
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--purple)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">Total leads</div><div style="font-size:22px;font-weight:900;color:var(--purple)">${Math.round(f.cum90.leads).toLocaleString()}</div></div>
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--accent)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">Total customers</div><div style="font-size:22px;font-weight:900;color:var(--accent)">${Math.round(f.cum90.customers).toLocaleString()}</div></div>
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--success)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">Total revenue</div><div style="font-size:22px;font-weight:900;color:var(--success)">$${Math.round(f.cum90.revenue).toLocaleString()}</div></div>
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--success)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">Profit (margin)</div><div style="font-size:22px;font-weight:900;color:var(--success)">$${Math.round(f.cum90.profit).toLocaleString()}</div></div>
+      <div style="background:var(--bg);padding:12px 14px;border-radius:8px;border-left:4px solid var(--warn)"><div style="font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase">SEO cost</div><div style="font-size:22px;font-weight:900;color:var(--warn)">$${(state.budget*3).toLocaleString()}</div></div>
+    </div></div>
+  `;
+  setTimeout(()=>drawChart(f), 50);
+}
+
+function drawChart(f){
+  const ctx=document.getElementById('chart-main')?.getContext('2d');
+  if(!ctx)return;
+  if(chart)chart.destroy();
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+  Chart.defaults.borderColor=isDark?'#1e2d44':'#d1d9e8';
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels:f.weeks.map(w=>'Wk '+w.w),datasets:[
+      {label:'Position', data:f.weeks.map(w=>w.pos), borderColor:'#0891b2', backgroundColor:'rgba(8,145,178,.15)', yAxisID:'y', tension:0.3, fill:false, pointRadius:3},
+      {label:'Weekly Revenue', data:f.weeks.map(w=>w.weeklyRevenue), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.15)', yAxisID:'y1', tension:0.3, fill:true, pointRadius:2},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>{if(c.dataset.label==='Position') return 'Position: #'+c.parsed.y.toFixed(1);return 'Revenue: $'+Math.round(c.parsed.y);}}}},
+      scales:{
+        y:{position:'left',reverse:true,title:{display:true,text:'Position (lower is better)'},min:1,max:20,ticks:{stepSize:5}},
+        y1:{position:'right',title:{display:true,text:'Weekly Revenue ($)'},grid:{drawOnChartArea:false},ticks:{callback:v=>'$'+v.toFixed(0)}}
+      }
+    }
+  });
+}
+
+function renderScenarios(f){
+  // Run all 4 scenarios
+  const orig=clone(state);
+  const results={};
+  ['diy','lean','std','agg'].forEach(s=>{
+    state.scenario=s;state.budget=SCENARIOS[s].budget;
+    results[s]=forecast();
+  });
+  Object.assign(state, orig);
+  // Best ROI scenario
+  let bestKey='std', bestROI=-Infinity;
+  ['diy','lean','std','agg'].forEach(s=>{
+    const profit=results[s].cum90.profit;
+    const cost=SCENARIOS[s].budget*3 + 2500; // +setup
+    const roi = cost ? (profit-cost)/cost : 0;
+    if(roi>bestROI){bestROI=roi;bestKey=s;}
+  });
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Scenario Comparison</h3></div><div class="scenario-cards">
+    ${['diy','lean','std','agg'].map(s=>{
+      const r=results[s];const scen=SCENARIOS[s];
+      const cost=scen.budget*3 + 2500;
+      const roi=cost?Math.round((r.cum90.profit-cost)/cost*100):0;
+      return `<div class="scen ${s===bestKey?'recommended':''}">
+        <div class="sl">${s===bestKey?'⭐ BEST ROI':'SCENARIO'}</div>
+        <div class="sn">${escapeHtml(scen.label)}</div>
+        <div class="pos">#${r.horizons[3].pos.toFixed(1)}</div>
+        <div class="det">90-day rank position. Lift: <strong>${scen.lift}%</strong> · Cost: <strong>$${cost.toLocaleString()}</strong></div>
+        <div class="det">Customers: <strong>${Math.round(r.cum90.customers)}</strong> · Clicks: <strong>${Math.round(r.cum90.clicks)}</strong></div>
+        <div class="rev">$${Math.round(r.cum90.profit).toLocaleString()} profit (${roi>=0?'+':''}${roi}% ROI)</div>
+      </div>`;
+    }).join('')}
+  </div></div>`;
+}
+
+function renderWeekly(f){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Weekly Detail (13 weeks)</h3></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono)">
+    <thead><tr style="background:var(--bg)"><th style="padding:9px 11px;text-align:left;color:var(--text2);text-transform:uppercase;font-size:9.5px">Week</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Position</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">CTR%</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Clicks</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Leads</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Customers</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Revenue</th><th style="padding:9px 11px;text-align:right;color:var(--text2);text-transform:uppercase;font-size:9.5px">Profit</th></tr></thead><tbody>
+    ${f.weeks.map(w=>`<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border)">Week ${w.w} (day ${w.days})</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border);font-weight:700">#${w.pos.toFixed(1)}</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border)">${(w.ctr*100).toFixed(2)}%</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border)">${w.weeklyClicks.toFixed(1)}</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border)">${w.weeklyLeads.toFixed(1)}</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border)">${w.weeklyCustomers.toFixed(2)}</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border);color:var(--success);font-weight:700">$${Math.round(w.weeklyRevenue).toLocaleString()}</td><td style="padding:8px 11px;text-align:right;border-bottom:1px solid var(--border);color:var(--success);font-weight:700">$${Math.round(w.weeklyProfit).toLocaleString()}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Forecasting Methodology</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">How positions improve</h4>
+    <p>The model uses a logistic curve to project position improvement over 12 weeks:</p>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Scenario speed factor</strong> — DIY: 0.3, Lean: 0.6, Standard: 1.0, Aggressive: 1.6</li>
+      <li><strong>Baseline factor</strong> — your current local SEO score divided by 55 (the "normal" baseline)</li>
+      <li><strong>Competition penalty</strong> — 1-5 scale, decreases speed in high-competition niches</li>
+      <li><strong>Target lift</strong> — DIY: 5%, Lean: 18%, Standard: 35%, Aggressive: 65% position improvement</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">CTR by position (2026 averages)</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono);margin-top:6px"><thead><tr><th style="text-align:left;padding:5px 8px">Position</th><th style="text-align:right;padding:5px 8px">CTR</th></tr></thead><tbody><tr><td style="padding:5px 8px">#1</td><td style="text-align:right;padding:5px 8px;font-weight:700">28.2%</td></tr><tr><td style="padding:5px 8px">#2</td><td style="text-align:right;padding:5px 8px;font-weight:700">15.7%</td></tr><tr><td style="padding:5px 8px">#3</td><td style="text-align:right;padding:5px 8px;font-weight:700">11.1%</td></tr><tr><td style="padding:5px 8px">#4-5</td><td style="text-align:right;padding:5px 8px">6.0-8.0%</td></tr><tr><td style="padding:5px 8px">#6-10</td><td style="text-align:right;padding:5px 8px">2.0-4.6%</td></tr></tbody></table>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Caveats</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Position improvements assume sustained execution — pause work, regress to baseline within 30-60 days</li>
+      <li>Algorithm updates can override forecasts in either direction</li>
+      <li>Local pack ranking has additional non-position factors (reviews, GBP signals)</li>
+      <li>Seasonal variance not modeled — overlay your industry's seasonal curve manually</li>
+      <li>Branded queries (your name) don't follow this model</li>
+    </ul>
+    <p style="margin-top:10px">Best used for forward-looking <strong>directional</strong> planning, not point-precise predictions.</p>
+  </div></div>`;
+}
+
+function exportCSV(){
+  const f=forecast();
+  const rows=[['week','days','position','ctr','weekly_clicks','weekly_leads','weekly_customers','weekly_revenue','weekly_profit']];
+  f.weeks.forEach(w=>rows.push([w.w, w.days, w.pos.toFixed(2), w.ctr.toFixed(4), w.weeklyClicks.toFixed(1), w.weeklyLeads.toFixed(1), w.weeklyCustomers.toFixed(2), Math.round(w.weeklyRevenue), Math.round(w.weeklyProfit)]));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='position-forecast.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function exportReport(){
+  const f=forecast();
+  const css=`*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:920px;margin:0 auto;background:#fff;border-radius:14px;padding:36px}h1{font-size:24px;font-weight:800;border-bottom:3px solid #0891b2;padding-bottom:12px}h2{font-size:17px;font-weight:700;margin:22px 0 10px;color:#0891b2}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.c{padding:14px;background:#f3f6fb;border-radius:10px;border-left:4px solid #0891b2}.cn{font-size:10px;color:#5b6b88;font-weight:700;text-transform:uppercase}.cv{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#f3f6fb;text-align:left;padding:8px 10px;text-transform:uppercase;font-size:10px;color:#5b6b88}td{padding:8px 10px;border-bottom:1px solid #e9eef7}`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Position Forecast</title><style>${css}</style></head><body><div class="wrap">
+<h1>Local Position Forecast</h1>
+<p style="color:#5b6b88">Keyword: ${escapeHtml(state.kw||'(not set)')} · Scenario: ${escapeHtml(SCENARIOS[state.scenario].label)} · 2026-05-29</p>
+<h2>Horizon Forecast</h2>
+<div class="grid">${f.horizons.map(h=>`<div class="c"><div class="cn">${escapeHtml(h.name)}</div><div class="cv">#${h.pos.toFixed(1)}</div><div style="font-size:11.5px;color:#5b6b88">${Math.round(h.monthlyClicks)} clicks · $${Math.round(h.monthlyRevenue).toLocaleString()} rev/mo</div></div>`).join('')}</div>
+<h2>90-Day Cumulative</h2>
+<p>Total clicks: <strong>${Math.round(f.cum90.clicks).toLocaleString()}</strong> · Customers: <strong>${Math.round(f.cum90.customers).toLocaleString()}</strong> · Revenue: <strong style="color:#16a34a">$${Math.round(f.cum90.revenue).toLocaleString()}</strong> · Profit: <strong style="color:#16a34a">$${Math.round(f.cum90.profit).toLocaleString()}</strong></p>
+<h2>Weekly Detail</h2>
+<table><thead><tr><th>Week</th><th>Position</th><th>CTR</th><th>Clicks/wk</th><th>Customers/wk</th><th>Revenue/wk</th></tr></thead><tbody>${f.weeks.map(w=>`<tr><td>${w.w}</td><td>#${w.pos.toFixed(1)}</td><td>${(w.ctr*100).toFixed(2)}%</td><td>${w.weeklyClicks.toFixed(1)}</td><td>${w.weeklyCustomers.toFixed(2)}</td><td>$${Math.round(w.weeklyRevenue).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+<div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by Position Forecaster</div>
+</div></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='position-forecast.html';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Report exported','success');
+}
+
+fillInputs();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

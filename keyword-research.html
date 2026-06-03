@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Keyword Research - Discover, Cluster & Score Local SEO Keywords</title>
+<meta name="description" content="Discover local SEO keywords via SERP autocomplete + AI expansion + 'near me' / '[service] in [city]' templates. SERP-based difficulty scoring, intent classification, auto-clustering by SERP overlap, send to SERP Ranker / Geo-Grid / AI Content Writer. 5 SERP providers + 5 AI providers shared.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0891b2; --accent-h:#0e7490; --accent-soft:rgba(8,145,178,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --int-info:#3b82f6; --int-comm:#a855f7; --int-trans:#16a34a; --int-nav:#94a3b8; --int-local:#0d9488;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#06b6d4; --accent-h:#22d3ee; --accent-soft:rgba(6,182,212,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(8,145,178,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.kw strong{color:var(--accent)}
+.hdr-stat.cl strong{color:var(--purple)}
+.hdr-stat.sel strong{color:var(--success)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT — SEED + CONFIG */
+#left{width:320px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.fsec-hdr h4{font-size:11px;font-weight:700;color:var(--text);flex:1;font-family:var(--font)}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{font-family:var(--mono);min-height:54px;resize:vertical;line-height:1.5}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5;margin-top:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);cursor:pointer;padding:3px 0}
+.chk input{margin:0}
+
+.template-pills{display:flex;flex-wrap:wrap;gap:4px}
+.tpill{padding:4px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.tpill:hover{border-color:var(--accent);color:var(--accent)}
+.tpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.pp-row{display:flex;flex-wrap:wrap;gap:4px}
+.pp{padding:5px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.pp:hover{border-color:var(--accent);color:var(--accent)}
+.pp.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pp .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 4px;border-radius:3px;margin-left:4px}
+.pp:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+.btn-go:hover{background:var(--accent-h)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed}
+.btn-go svg{width:14px;height:14px}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sub svg{width:12px;height:12px}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px}
+.tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);transition:all .15s;display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-btn svg{width:13px;height:13px}
+
+#search-bar{padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+#kw-search{flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:7px 11px 7px 32px;font-size:12px;color:var(--text);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a9ab5' stroke-width='2.5'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>");background-repeat:no-repeat;background-position:10px center}
+#kw-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.fpill{padding:5px 10px;border-radius:5px;font-size:10.5px;font-family:var(--mono);font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.fpill:hover{border-color:var(--accent);color:var(--accent)}
+.fpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;background:var(--bg)}
+
+/* KW TABLE */
+table.ktable{width:100%;border-collapse:collapse;font-size:12px}
+table.ktable thead{background:var(--bg2);position:sticky;top:0;z-index:10}
+table.ktable th{padding:10px 12px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+table.ktable th.center{text-align:center}
+table.ktable th:hover{color:var(--accent)}
+table.ktable th .sort-arr{margin-left:4px;font-size:8px;opacity:.4}
+table.ktable th.sorted .sort-arr{opacity:1;color:var(--accent)}
+table.ktable td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.ktable td.center{text-align:center}
+table.ktable tr:hover{background:var(--bg3)}
+table.ktable tr.selected{background:var(--accent-soft)}
+.kw-cb{width:14px;height:14px;cursor:pointer}
+.kw-text{font-weight:600;color:var(--text);font-size:12.5px}
+.kw-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;display:flex;gap:6px}
+.kw-meta .src{padding:1px 5px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.intent-pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.intent-pill.info{background:rgba(59,130,246,.13);color:var(--int-info)}
+.intent-pill.comm{background:rgba(168,85,247,.13);color:var(--int-comm)}
+.intent-pill.trans{background:rgba(22,163,74,.13);color:var(--int-trans)}
+.intent-pill.nav{background:rgba(148,163,184,.13);color:var(--int-nav)}
+.intent-pill.local{background:rgba(13,148,136,.13);color:var(--int-local)}
+.diff-pill{display:inline-block;font-family:var(--mono);font-weight:700;font-size:11px;padding:2px 9px;border-radius:4px;color:#fff;min-width:38px;text-align:center}
+.diff-pill.d10{background:#16a34a}.diff-pill.d30{background:#10b981}.diff-pill.d50{background:#3b82f6}.diff-pill.d70{background:#d97706}.diff-pill.d90{background:#dc2626}
+.diff-pill.un{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.cluster-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg);border:1px solid var(--border);color:var(--text2)}
+.row-actions a, .row-actions button{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);text-decoration:none;transition:all .12s;font-size:10px}
+.row-actions a:hover, .row-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.row-actions svg{width:11px;height:11px}
+
+/* CLUSTER VIEW */
+.cluster-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:14px}
+.cluster-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm)}
+.cluster-card .ch{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cluster-card .ch-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--teal));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;font-family:var(--mono);flex-shrink:0}
+.cluster-card .ch-name{flex:1;font-size:12.5px;font-weight:700;color:var(--text)}
+.cluster-card .ch-cnt{font-family:var(--mono);font-size:10.5px;color:var(--text2);background:var(--bg3);padding:2px 7px;border-radius:4px;font-weight:700}
+.cluster-list{display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto}
+.cluster-kw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);padding:4px 6px;border-radius:4px}
+.cluster-kw:hover{background:var(--bg3)}
+.cluster-kw .ck-text{flex:1;font-family:var(--mono)}
+.cluster-kw .ck-diff{font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:700}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:560px}
+.empty .examples{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;width:100%;max-width:700px;margin-top:8px}
+.empty .examples div{padding:11px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;text-align:left;font-size:12px;color:var(--text);font-family:var(--mono)}
+.empty .examples div strong{color:var(--accent);display:block;font-size:11px;font-family:var(--font);margin-bottom:3px}
+
+/* PROGRESS */
+.progress-line{height:3px;background:var(--bg3);position:relative;overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));width:0;transition:width .3s}
+
+/* AI Settings Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.modal-hdr h2{font-size:14px;font-weight:700;flex:1}
+.modal-hdr .close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);display:flex;align-items:center;justify-content:center}
+.modal-hdr .close:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.modal-body{padding:18px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.modal-foot button{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--bg);color:var(--text)}
+.modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:600}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text)}
+.field .hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.field .hint a{color:var(--accent)}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:960px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:320px}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="7" x2="11" y2="15"/><line x1="7" y1="11" x2="15" y2="11"/></svg>
+    </div>
+    <div><div class="logo-name">Keyword<span>Research</span></div></div>
+    <span class="logo-tag">LOCAL</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat kw"><strong id="stat-kw">0</strong> keywords</div>
+  <div class="hdr-stat cl"><strong id="stat-cl">0</strong> clusters</div>
+  <div class="hdr-stat sel"><strong id="stat-sel">0</strong> selected</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="serp-ranker.html" class="hdr-link" title="Send to SERP Ranker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+    SERP
+  </a>
+  <a href="geo-grid-tracker.html" class="hdr-link" title="Send to Geo-Grid" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Geo Grid
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="Write content for selected" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7 3 3-7 7-3-3z"/></svg>
+    Writer
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Assistant" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Discovery</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Seeds & Location</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Seed services (one per line)</label><textarea id="seed-services" placeholder="emergency plumber&#10;drain cleaning&#10;water heater repair" rows="3"></textarea></div>
+          <div class="row2">
+            <div class="f"><label>City</label><input id="seed-city" placeholder="Boston"></div>
+            <div class="f"><label>State / Region</label><input id="seed-state" placeholder="MA"></div>
+          </div>
+          <div class="row2">
+            <div class="f"><label>Country</label>
+              <select id="seed-country">
+                <option value="us">US</option><option value="ca">CA</option><option value="uk">UK</option><option value="au">AU</option><option value="in">IN</option>
+              </select>
+            </div>
+            <div class="f"><label>Industry (for AI)</label>
+              <select id="seed-industry">
+                <option value="">— Generic —</option>
+                <option value="plumber">Plumber</option><option value="electrician">Electrician</option>
+                <option value="restaurant">Restaurant</option><option value="dentist">Dentist</option>
+                <option value="lawyer">Lawyer</option><option value="realtor">Realtor</option>
+                <option value="salon">Salon</option><option value="gym">Gym</option>
+                <option value="auto">Auto repair</option><option value="medical">Medical</option>
+                <option value="contractor">Contractor</option><option value="landscaper">Landscaper</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Generation Templates</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="template-pills" id="template-pills">
+            <button class="tpill active" data-t="nearme">[service] near me</button>
+            <button class="tpill active" data-t="incity">[service] in [city]</button>
+            <button class="tpill active" data-t="best">best [service] [city]</button>
+            <button class="tpill" data-t="cheap">cheap [service] [city]</button>
+            <button class="tpill" data-t="emergency">emergency [service]</button>
+            <button class="tpill" data-t="24h">24 hour [service]</button>
+            <button class="tpill" data-t="open">[service] open now</button>
+            <button class="tpill" data-t="howmuch">how much does [service] cost</button>
+            <button class="tpill" data-t="reviews">[service] reviews [city]</button>
+            <button class="tpill" data-t="near_zip">[service] [zip]</button>
+            <button class="tpill active" data-t="autocomplete">SERP autocomplete</button>
+            <button class="tpill" data-t="ai_expand">AI semantic expansion</button>
+          </div>
+          <div class="f"><label>Max keywords per seed</label><input type="number" id="max-per-seed" value="30" min="5" max="100"></div>
+          <div class="f"><label>ZIP codes (optional, comma sep)</label><input id="seed-zips" placeholder="02108, 02109, 02110"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>SERP Provider (for difficulty + autocomplete)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="prov-pills"></div>
+          <div id="prov-cfg"></div>
+        </div>
+      </div>
+
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Provider (for expansion + clustering)</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="ai-pills"></div>
+          <div id="ai-cfg"></div>
+        </div>
+      </div>
+
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Scoring Behavior</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <label class="chk"><input type="checkbox" id="cfg-score-serp" checked> Score difficulty via SERP (5 calls per kw)</label>
+          <label class="chk"><input type="checkbox" id="cfg-cluster" checked> Auto-cluster by SERP overlap</label>
+          <div class="f"><label>Cluster similarity threshold (%)</label><input type="number" id="cfg-cluster-thresh" value="40" min="20" max="90"></div>
+          <label class="chk"><input type="checkbox" id="cfg-dedup" checked> Deduplicate variants</label>
+        </div>
+      </div>
+    </div>
+
+    <div id="left-footer">
+      <button class="btn-go" id="btn-gen" onclick="generate()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        Discover Keywords
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="cancelGen()" id="btn-cancel" style="display:none;flex:1">Cancel</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="importCSV()">Import</button>
+        <button class="btn-sub" onclick="clearAll()" style="border-color:rgba(220,38,38,.3);color:var(--danger)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="list" onclick="setTab('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        All Keywords <span class="count" id="ct-all">0</span>
+      </button>
+      <button class="tab" data-tab="clusters" onclick="setTab('clusters')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="6" x2="15" y2="6"/></svg>
+        Clusters <span class="count" id="ct-cl">0</span>
+      </button>
+      <button class="tab" data-tab="selected" onclick="setTab('selected')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Selected <span class="count" id="ct-sel">0</span>
+      </button>
+      <div class="cb-sp"></div>
+      <button class="cb-btn" onclick="sendToSerpRanker()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/></svg>
+        → SERP Ranker
+      </button>
+      <button class="cb-btn" onclick="sendToGeoGrid()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        → Geo Grid
+      </button>
+      <button class="cb-btn primary" onclick="scoreSelected()" id="btn-score">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Score Selected
+      </button>
+    </div>
+    <div id="search-bar">
+      <input id="kw-search" placeholder="Filter keywords…" oninput="renderList()">
+      <button class="fpill active" data-intent="all" onclick="setFilter('intent','all')">All Intent</button>
+      <button class="fpill" data-intent="local" onclick="setFilter('intent','local')">Local</button>
+      <button class="fpill" data-intent="comm" onclick="setFilter('intent','comm')">Commercial</button>
+      <button class="fpill" data-intent="trans" onclick="setFilter('intent','trans')">Transactional</button>
+      <button class="fpill" data-intent="info" onclick="setFilter('intent','info')">Informational</button>
+      <button class="fpill" onclick="selectAll()">Select all</button>
+      <button class="fpill" onclick="deselectAll()">Clear sel</button>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready — fill seeds and click Discover</span>
+  </div>
+  <div class="ft-item">
+    <span id="ft-prov">SERP: <strong id="ft-prov-n">—</strong> · AI: <strong id="ft-ai-n">offline</strong></span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * LOCAL KEYWORD RESEARCH
+ * SERP autocomplete + AI expansion + template-based generation + scoring + clustering
+ * Shares SERP/AI keys with other tools.
+ * ========================================================================== */
+
+/* ---------- TEMPLATES ---------- */
+const TEMPLATES = {
+  nearme:   (s,ctx)=>[`${s} near me`, `${s} nearby`, `${s} close to me`, `${s} near ${ctx.city}`, `${s} near my location`],
+  incity:   (s,ctx)=> ctx.city?[`${s} in ${ctx.city}`, `${s} ${ctx.city}`, `${ctx.city} ${s}`, `${s} ${ctx.city} ${ctx.state||''}`.trim()]:[`${s}`],
+  best:     (s,ctx)=> ctx.city?[`best ${s} in ${ctx.city}`, `best ${s} near me`, `top rated ${s} ${ctx.city}`, `top ${s} ${ctx.city}`]:[`best ${s} near me`, `top ${s}`],
+  cheap:    (s,ctx)=> ctx.city?[`cheap ${s} in ${ctx.city}`, `affordable ${s} ${ctx.city}`, `budget ${s} near me`, `${s} prices ${ctx.city}`]:[`cheap ${s} near me`, `affordable ${s}`],
+  emergency:(s,ctx)=> [`emergency ${s}`, `urgent ${s}`, `same day ${s}`, `${s} emergency ${ctx.city||''}`.trim()],
+  '24h':    (s,ctx)=> [`24 hour ${s}`, `24/7 ${s}`, `late night ${s} ${ctx.city||''}`.trim(), `weekend ${s}`],
+  open:     (s,ctx)=> [`${s} open now`, `${s} open today`, `${s} open sunday`, `${s} weekend hours`],
+  howmuch:  (s,ctx)=> [`how much does ${s} cost`, `${s} cost`, `${s} price`, `${s} pricing ${ctx.city||''}`.trim(), `average cost of ${s}`],
+  reviews:  (s,ctx)=> [`${s} reviews ${ctx.city||''}`.trim(), `${s} ratings`, `top rated ${s}`, `${s} near me reviews`],
+  near_zip: (s,ctx)=> (ctx.zips||[]).map(z=>`${s} ${z}`),
+};
+
+/* ---------- PROVIDERS ---------- */
+const SERP_PROVIDERS = {
+  serper: {label:'Serper', free:'2,500', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,num,country,key}){
+      const res = await fetch('https://google.serper.dev/search', {method:'POST', headers:{'X-API-KEY':key.key,'Content-Type':'application/json'}, body:JSON.stringify({q:query,num:num||10,gl:country||'us'})});
+      if(!res.ok) throw new Error('Serper '+res.status); const j = await res.json();
+      return {organic:(j.organic||[]).map((o,i)=>({pos:o.position||i+1,title:o.title,link:o.link,snippet:o.snippet,domain:domainOf(o.link)})), peopleAlsoAsk:(j.peopleAlsoAsk||[]).map(p=>p.question), related:(j.relatedSearches||[]).map(r=>r.query)};
+    },
+    async autocomplete({query,country,key}){
+      // Serper autocomplete endpoint
+      const res = await fetch('https://google.serper.dev/autocomplete', {method:'POST', headers:{'X-API-KEY':key.key,'Content-Type':'application/json'}, body:JSON.stringify({q:query,gl:country||'us'})});
+      if(!res.ok) return [];
+      const j = await res.json();
+      return (j.suggestions||[]).map(s=>s.value||s).filter(Boolean);
+    }
+  },
+  serpapi: {label:'SerpAPI', free:'100/mo', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,num,country,key}){
+      const res = await fetch(`https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(query)}&num=${num||10}&gl=${country||'us'}&api_key=${encodeURIComponent(key.key)}`);
+      if(!res.ok) throw new Error('SerpAPI '+res.status); const j = await res.json();
+      return {organic:(j.organic_results||[]).map(o=>({pos:o.position,title:o.title,link:o.link,snippet:o.snippet,domain:domainOf(o.link)})), peopleAlsoAsk:(j.related_questions||[]).map(p=>p.question), related:(j.related_searches||[]).map(r=>r.query)};
+    },
+    async autocomplete({query,country,key}){
+      const res = await fetch(`https://serpapi.com/search.json?engine=google_autocomplete&q=${encodeURIComponent(query)}&gl=${country||'us'}&api_key=${encodeURIComponent(key.key)}`);
+      if(!res.ok) return [];
+      const j = await res.json();
+      return (j.suggestions||[]).map(s=>s.value).filter(Boolean);
+    }
+  },
+  valueserp: {label:'ValueSERP', free:'100/mo', fields:[{key:'key',label:'API Key',type:'password'}],
+    async search({query,num,country,key}){
+      const res = await fetch(`https://api.valueserp.com/search?api_key=${encodeURIComponent(key.key)}&q=${encodeURIComponent(query)}&num=${num||10}&gl=${country||'us'}`);
+      if(!res.ok) throw new Error('ValueSERP '+res.status); const j = await res.json();
+      return {organic:(j.organic_results||[]).map(o=>({pos:o.position,title:o.title,link:o.link,snippet:o.snippet,domain:domainOf(o.link)})), peopleAlsoAsk:(j.related_questions||[]).map(p=>p.question), related:(j.related_searches||[]).map(r=>r.query)};
+    },
+    async autocomplete(){ return []; }
+  },
+  brave: {label:'Brave', free:'2,000', fields:[{key:'key',label:'API Token',type:'password'}],
+    async search({query,num,country,key}){
+      const res = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${num||10}&country=${country||'us'}`, {headers:{'Accept':'application/json','X-Subscription-Token':key.key}});
+      if(!res.ok) throw new Error('Brave '+res.status); const j = await res.json();
+      return {organic:((j.web?.results)||[]).map((o,i)=>({pos:i+1,title:o.title,link:o.url,snippet:o.description,domain:domainOf(o.url)})), peopleAlsoAsk:[], related:[]};
+    },
+    async autocomplete({query,key}){
+      try {
+        const res = await fetch(`https://api.search.brave.com/res/v1/suggest/search?q=${encodeURIComponent(query)}`, {headers:{'Accept':'application/json','X-Subscription-Token':key.key}});
+        if(!res.ok) return [];
+        const j = await res.json();
+        return (j.results||[]).map(r=>r.query||r).filter(Boolean);
+      } catch(e){ return []; }
+    }
+  },
+};
+
+const AI_PROVIDERS = {
+  gemini: {label:'Gemini', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    note:'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+    async ask(prompt, keys){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const j = await res.json(); return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  },
+  openai: {label:'OpenAI', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.7})});
+      if(!res.ok) throw new Error('OpenAI '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  claude: {label:'Claude', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1500, messages:[{role:'user',content:prompt}]})});
+      if(!res.ok) throw new Error('Claude '+res.status);
+      const j = await res.json(); return j.content?.[0]?.text || '';
+    }
+  },
+  groq: {label:'Groq', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.7})});
+      if(!res.ok) throw new Error('Groq '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  openrouter: {label:'OpenRouter', free:'free', fields:[{key:'key',label:'API Key',type:'password'},{key:'model',label:'Model',type:'text',placeholder:'meta-llama/llama-3.3-70b-instruct:free'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`,'HTTP-Referer':'https://kw-research.local','X-Title':'KW-Research'}, body:JSON.stringify({model:keys.model||'meta-llama/llama-3.3-70b-instruct:free', messages:[{role:'user',content:prompt}]})});
+      if(!res.ok) throw new Error('OpenRouter '+res.status);
+      const j = await res.json(); return j.choices?.[0]?.message?.content || '';
+    }
+  },
+};
+
+/* ---------- INTENT CLASSIFICATION ---------- */
+function classifyIntent(kw){
+  const t = kw.toLowerCase();
+  // local (highest priority for our use case)
+  if(/\bnear me\b|nearby|near my|close to me|open now|open today|near my location|directions/.test(t)) return 'local';
+  if(/\b(in|at|near) ([a-z]{2,}( [a-z]+){0,3})$/.test(t) && /[a-z]{3,}/.test(t.split(/\bin|at|near\b/).pop()||'')) return 'local';
+  // transactional
+  if(/\bbuy|order|hire|book|schedule|appointment|free quote|estimate|consultation|sign ?up|signup|deal|coupon|discount|sale|near.*today/.test(t)) return 'trans';
+  // commercial
+  if(/\bbest|top|review|rating|compare|vs |versus|alternative|cheap|affordable|premium|luxury|cost|price|quote/.test(t)) return 'comm';
+  // informational
+  if(/\bhow |what |why |when |where |which |guide|tutorial|tips|learn|examples?|explain|meaning|definition/.test(t)) return 'info';
+  // navigational fallback if branded-looking
+  if(/\b([A-Z][a-z]+){2,}|\.com/.test(kw)) return 'nav';
+  return 'comm';
+}
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'kw_state_v1';
+const CF_KEY = 'cf_state_v1';
+const defaultState = {
+  seeds: {services:'', city:'', state:'', country:'us', industry:'', zips:'', maxPerSeed:30},
+  templates: ['nearme','incity','best','autocomplete'],
+  serp: {provider:'serper', keys:{}},
+  ai:   {provider:'gemini', keys:{}},
+  cfg:  {scoreSerp:true, cluster:true, clusterThresh:40, dedup:true},
+  keywords: [], // [{id, kw, source, intent, difficulty, top10:[{domain}], related:[], clusterId, selected}]
+  clusters: [], // [{id, label, kwIds:[]}]
+  tab: 'list',
+  filters: {intent:'all'},
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){ toast('Storage full','err'); } }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+// Auto-inherit SERP + AI keys from sibling tools
+(function inherit(){
+  try {
+    if(!Object.keys(state.serp.keys).length){
+      const cf = JSON.parse(localStorage.getItem(CF_KEY)||'null');
+      if(cf?.settings?.keys){
+        state.serp.keys = clone(cf.settings.keys);
+        if(cf.settings.provider && SERP_PROVIDERS[cf.settings.provider]) state.serp.provider = cf.settings.provider;
+      }
+    }
+    if(!Object.keys(state.ai.keys).length){
+      ['gbp_state_v1','rr_state_v1','ai_state_v1'].forEach(k=>{
+        const o = JSON.parse(localStorage.getItem(k)||'null');
+        if(o?.ai?.keys){ Object.entries(o.ai.keys).forEach(([id, keys])=>{if(keys.key && !state.ai.keys[id]?.key) state.ai.keys[id] = clone(keys);}); }
+      });
+    }
+  } catch(e){}
+  saveState();
+})();
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+function domainOf(s){try{ if(!s) return ''; if(!/^https?:\/\//.test(s)) s='http://'+s; return new URL(s).hostname.replace(/^www\./,''); }catch(e){return s||'';}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();}
+
+/* ---------- INIT UI ---------- */
+function initUI(){
+  // Restore seeds
+  ['services','city','state','country','industry','zips','maxPerSeed'].forEach(k=>{
+    const el = document.getElementById('seed-'+k.replace('PerSeed','-per-seed')); if(!el) return;
+    el.value = state.seeds[k]||'';
+    el.addEventListener('input', ()=>{ const id = el.id.replace('seed-',''); const key = id==='max-per-seed'?'maxPerSeed':id; state.seeds[key] = el.value; saveState(); });
+  });
+  document.getElementById('max-per-seed').value = state.seeds.maxPerSeed||30;
+  // Templates
+  document.querySelectorAll('#template-pills .tpill').forEach(b=>{
+    b.classList.toggle('active', state.templates.includes(b.dataset.t));
+    b.onclick = ()=>{ const t = b.dataset.t; if(state.templates.includes(t)) state.templates = state.templates.filter(x=>x!==t); else state.templates.push(t); b.classList.toggle('active'); saveState(); };
+  });
+  // SERP Providers
+  document.getElementById('prov-pills').innerHTML = Object.entries(SERP_PROVIDERS).map(([id,p])=>`<button class="pp ${state.serp.provider===id?'active':''}" onclick="selSerp('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderSerpCfg();
+  // AI Providers
+  document.getElementById('ai-pills').innerHTML = Object.entries(AI_PROVIDERS).map(([id,p])=>`<button class="pp ${state.ai.provider===id?'active':''}" onclick="selAi('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>`).join('');
+  renderAiCfg();
+  // Cfg
+  document.getElementById('cfg-score-serp').checked = state.cfg.scoreSerp;
+  document.getElementById('cfg-cluster').checked = state.cfg.cluster;
+  document.getElementById('cfg-cluster-thresh').value = state.cfg.clusterThresh;
+  document.getElementById('cfg-dedup').checked = state.cfg.dedup;
+  ['cfg-score-serp','cfg-cluster','cfg-dedup'].forEach(id=>document.getElementById(id).addEventListener('change',(e)=>{ const k = id.replace('cfg-','').replace('score-serp','scoreSerp'); state.cfg[k]=e.target.checked; saveState(); }));
+  document.getElementById('cfg-cluster-thresh').addEventListener('change',(e)=>{state.cfg.clusterThresh=parseInt(e.target.value)||40; saveState();});
+}
+
+function selSerp(id){ state.serp.provider = id; saveState();
+  document.querySelectorAll('#prov-pills .pp').forEach(b=>b.classList.toggle('active', b.textContent.includes(SERP_PROVIDERS[id].label)));
+  renderSerpCfg();
+}
+function renderSerpCfg(){
+  const p = SERP_PROVIDERS[state.serp.provider]; const k = state.serp.keys[state.serp.provider]||{};
+  document.getElementById('prov-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="serp-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveSerpKey()"></div>`).join('');
+  document.getElementById('ft-prov-n').textContent = p.label;
+}
+function saveSerpKey(){
+  const p = SERP_PROVIDERS[state.serp.provider];
+  const keys = state.serp.keys[state.serp.provider]||{};
+  p.fields.forEach(f=>{keys[f.key] = document.getElementById('serp-'+f.key).value.trim();});
+  state.serp.keys[state.serp.provider] = keys; saveState();
+}
+
+function selAi(id){ state.ai.provider = id; saveState();
+  document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active', b.textContent.includes(AI_PROVIDERS[id].label)));
+  renderAiCfg();
+}
+function renderAiCfg(){
+  const p = AI_PROVIDERS[state.ai.provider]; const k = state.ai.keys[state.ai.provider]||{};
+  document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('');
+  document.getElementById('ft-ai-n').textContent = state.ai.keys[state.ai.provider]?.key ? p.label : 'offline';
+}
+function saveAiKey(){
+  const p = AI_PROVIDERS[state.ai.provider];
+  const keys = state.ai.keys[state.ai.provider]||{};
+  p.fields.forEach(f=>{keys[f.key] = document.getElementById('ai-'+f.key).value.trim();});
+  state.ai.keys[state.ai.provider] = keys; saveState();
+  document.getElementById('ft-ai-n').textContent = keys.key ? AI_PROVIDERS[state.ai.provider].label : 'offline';
+}
+
+/* ---------- GENERATION ---------- */
+let genCancel = false;
+async function generate(){
+  const services = (state.seeds.services||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!services.length){ toast('Add seed services','err'); return; }
+  genCancel = false;
+  document.getElementById('btn-gen').style.display='none';
+  document.getElementById('btn-cancel').style.display='flex';
+  document.getElementById('prog-fill').style.width = '5%';
+
+  const ctx = {city: state.seeds.city, state: state.seeds.state, country: state.seeds.country, industry: state.seeds.industry, zips: (state.seeds.zips||'').split(',').map(s=>s.trim()).filter(Boolean)};
+  const out = [];
+  const seen = new Set();
+  function add(kw, source){
+    kw = kw.trim().toLowerCase().replace(/\s+/g,' ');
+    if(!kw || kw.length<3) return;
+    if(state.cfg.dedup){
+      const key = norm(kw);
+      if(seen.has(key)) return; seen.add(key);
+    }
+    out.push({id:uid(), kw, source, intent: classifyIntent(kw), difficulty:null, top10:[], related:[], clusterId:null, selected:false});
+  }
+
+  // 1) Template generation
+  for(const s of services){
+    if(genCancel) break;
+    for(const t of state.templates){
+      if(t==='autocomplete' || t==='ai_expand') continue;
+      const fn = TEMPLATES[t]; if(!fn) continue;
+      fn(s, ctx).forEach(k=>add(k, 'template:'+t));
+    }
+  }
+  document.getElementById('prog-fill').style.width = '20%';
+
+  // 2) SERP autocomplete (if enabled and key set)
+  if(state.templates.includes('autocomplete') && state.serp.keys[state.serp.provider]?.key){
+    document.getElementById('ft-status').textContent = 'Fetching SERP autocomplete...';
+    const sp = SERP_PROVIDERS[state.serp.provider];
+    const keys = state.serp.keys[state.serp.provider];
+    for(const s of services){
+      if(genCancel) break;
+      try {
+        // Get autocomplete for seed + "near me" + "in city"
+        const queries = [s, `${s} near me`, ctx.city?`${s} ${ctx.city}`:'', `${s} `].filter(Boolean);
+        for(const q of queries){
+          if(genCancel) break;
+          try { const sugg = await sp.autocomplete({query:q, country:ctx.country, key:keys}); sugg.slice(0, state.seeds.maxPerSeed).forEach(k=>add(k, 'autocomplete')); } catch(e){}
+        }
+        // also do a SERP search to grab related + PAA
+        try {
+          const r = await sp.search({query:`${s} ${ctx.city||''}`.trim(), num:10, country:ctx.country, key:keys});
+          r.related?.forEach(k=>add(k, 'related'));
+          r.peopleAlsoAsk?.forEach(k=>add(k, 'paa'));
+        } catch(e){}
+        await sleep(300);
+      } catch(e){}
+    }
+  }
+  document.getElementById('prog-fill').style.width = '50%';
+
+  // 3) AI expansion (if enabled and key set)
+  if(state.templates.includes('ai_expand') && state.ai.keys[state.ai.provider]?.key){
+    document.getElementById('ft-status').textContent = 'AI expanding keyword universe...';
+    const ai = AI_PROVIDERS[state.ai.provider];
+    const keys = state.ai.keys[state.ai.provider];
+    const prompt = `You are a local SEO keyword researcher. Generate 40 high-intent search keywords that real customers would Google when looking for: ${services.join(', ')}${ctx.industry?` (industry: ${ctx.industry})`:''}${ctx.city?` in ${ctx.city}, ${ctx.state||''} ${ctx.country.toUpperCase()}`:''}.
+
+Mix:
+- "[service] near me" variants
+- "[service] in [city]" variants
+- Long-tail question searches ("how do I find a good plumber")
+- Pain-point searches ("water heater leaking what to do")
+- Commercial intent ("best plumber in Boston with same-day service")
+- Transactional ("hire emergency plumber Boston")
+- Comparison and ratings
+
+Return ONLY a plain list of keywords, one per line. No numbering, no markdown, no commentary.`;
+    try {
+      const ans = await ai.ask(prompt, keys);
+      ans.split('\n').map(l=>l.replace(/^[\d.\-*•\s]+/,'').trim()).filter(Boolean).forEach(k=>add(k, 'ai'));
+    } catch(e){ toast('AI expansion failed: '+e.message,'err'); }
+  }
+  document.getElementById('prog-fill').style.width = '70%';
+
+  // Filter "near_zip" if zips present
+  if(state.templates.includes('near_zip') && ctx.zips?.length){
+    services.forEach(s=>TEMPLATES.near_zip(s,ctx).forEach(k=>add(k, 'zip')));
+  }
+
+  state.keywords = out;
+  state.clusters = [];
+  saveState();
+  document.getElementById('ft-status').textContent = `Generated ${out.length} keywords`;
+  document.getElementById('prog-fill').style.width = '100%';
+  setTimeout(()=>document.getElementById('prog-fill').style.width = '0', 600);
+  document.getElementById('btn-gen').style.display='flex';
+  document.getElementById('btn-cancel').style.display='none';
+  toast(`Generated ${out.length} keywords`,'success');
+  renderAll();
+  // Note: difficulty scoring requires explicit user action via "Score Selected" or scoring all
+  if(state.cfg.scoreSerp && out.length<=50){
+    if(confirm(`Score difficulty for all ${out.length} keywords now? (${out.length} SERP API calls)`)) await scoreAll();
+  }
+}
+
+function cancelGen(){ genCancel = true; }
+
+/* ---------- SCORING ---------- */
+async function scoreAll(){
+  const items = state.keywords.filter(k=>k.difficulty===null);
+  if(!items.length){ toast('All already scored','info'); return; }
+  await scoreItems(items);
+}
+async function scoreSelected(){
+  const items = state.keywords.filter(k=>k.selected && k.difficulty===null);
+  if(!items.length){ toast('Select unscored keywords first','err'); return; }
+  if(!confirm(`Score ${items.length} keyword(s)? Uses ${items.length} SERP API calls.`)) return;
+  await scoreItems(items);
+}
+
+async function scoreItems(items){
+  const sp = SERP_PROVIDERS[state.serp.provider]; const keys = state.serp.keys[state.serp.provider];
+  if(!sp.fields.every(f=>keys?.[f.key])){ toast('Set SERP provider key','err'); return; }
+  document.getElementById('btn-score').disabled = true;
+  let done = 0;
+  for(const k of items){
+    if(genCancel) break;
+    try {
+      const r = await sp.search({query:k.kw, num:10, country:state.seeds.country, key:keys});
+      k.top10 = (r.organic||[]).slice(0,10).map(o=>({domain:o.domain, link:o.link, title:o.title}));
+      // Difficulty heuristic: count of "big domain" top10 + presence of branded SERP features
+      const bigDomains = new Set(['amazon.com','wikipedia.org','yelp.com','tripadvisor.com','facebook.com','linkedin.com','reddit.com','youtube.com','quora.com','pinterest.com','bbb.org','yellowpages.com','angi.com','thumbtack.com','homeadvisor.com','houzz.com','healthgrades.com','zillow.com','realtor.com','indeed.com']);
+      const bigCount = k.top10.filter(o=>bigDomains.has(o.domain)).length;
+      const uniqueDomains = new Set(k.top10.map(o=>o.domain)).size;
+      // diff 0-100: more big domains = harder
+      let diff = Math.round(bigCount*9 + (10 - uniqueDomains)*3 + 30);
+      diff = Math.max(5, Math.min(95, diff));
+      // local intent kws tend to be slightly easier
+      if(k.intent==='local') diff = Math.max(5, diff - 10);
+      k.difficulty = diff;
+    } catch(e){
+      k.difficulty = -1; // err marker
+    }
+    done++;
+    document.getElementById('ft-status').textContent = `Scoring ${done}/${items.length}`;
+    document.getElementById('prog-fill').style.width = (done/items.length*100)+'%';
+    saveState(); renderList();
+    await sleep(300);
+  }
+  document.getElementById('btn-score').disabled = false;
+  document.getElementById('prog-fill').style.width = '0';
+  // Auto-cluster after scoring if enabled
+  if(state.cfg.cluster){ clusterKeywords(); }
+  saveState(); renderAll();
+  toast(`Scored ${done} keywords`,'success');
+}
+
+/* ---------- CLUSTERING ---------- */
+function clusterKeywords(){
+  // Cluster by SERP top-10 domain overlap (Jaccard ≥ threshold)
+  const scored = state.keywords.filter(k=>k.top10?.length);
+  if(scored.length<2){ state.clusters=[]; saveState(); return; }
+  const threshold = (state.cfg.clusterThresh||40)/100;
+  const clusters = [];
+  const assigned = new Set();
+  for(const a of scored){
+    if(assigned.has(a.id)) continue;
+    const cluster = {id:uid(), label: a.kw, kwIds:[a.id]};
+    assigned.add(a.id);
+    a.clusterId = cluster.id;
+    const aDoms = new Set(a.top10.map(o=>o.domain));
+    for(const b of scored){
+      if(assigned.has(b.id)) continue;
+      const bDoms = new Set(b.top10.map(o=>o.domain));
+      const inter = new Set([...aDoms].filter(d=>bDoms.has(d)));
+      const union = new Set([...aDoms, ...bDoms]);
+      const sim = union.size ? inter.size/union.size : 0;
+      if(sim >= threshold){
+        cluster.kwIds.push(b.id);
+        assigned.add(b.id);
+        b.clusterId = cluster.id;
+      }
+    }
+    clusters.push(cluster);
+  }
+  // Sort by size
+  clusters.sort((a,b)=>b.kwIds.length-a.kwIds.length);
+  state.clusters = clusters;
+}
+
+/* ---------- TABS / FILTERS / SELECTION ---------- */
+function setTab(t){state.tab=t; saveState(); document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); renderCenter();}
+function setFilter(k,v){state.filters[k]=v; saveState(); document.querySelectorAll(`[data-${k}]`).forEach(b=>b.classList.toggle('active', b.dataset[k]===v)); renderList();}
+function selectAll(){ const filtered = filteredKws(); filtered.forEach(k=>k.selected=true); saveState(); renderAll(); }
+function deselectAll(){ state.keywords.forEach(k=>k.selected=false); saveState(); renderAll(); }
+function toggleSel(id){ const k = state.keywords.find(x=>x.id===id); if(k){ k.selected = !k.selected; saveState(); renderAll(); } }
+
+function filteredKws(){
+  const q = (document.getElementById('kw-search')?.value || '').toLowerCase().trim();
+  return state.keywords.filter(k=>{
+    if(state.filters.intent && state.filters.intent!=='all' && k.intent!==state.filters.intent) return false;
+    if(q && !k.kw.includes(q)) return false;
+    return true;
+  });
+}
+
+/* ---------- RENDER ---------- */
+function renderAll(){
+  document.getElementById('stat-kw').textContent = state.keywords.length;
+  document.getElementById('stat-cl').textContent = state.clusters.length;
+  const sel = state.keywords.filter(k=>k.selected).length;
+  document.getElementById('stat-sel').textContent = sel;
+  document.getElementById('ct-all').textContent = state.keywords.length;
+  document.getElementById('ct-cl').textContent = state.clusters.length;
+  document.getElementById('ct-sel').textContent = sel;
+  renderCenter();
+}
+
+function renderCenter(){
+  if(state.tab==='list') return renderList();
+  if(state.tab==='clusters') return renderClusters();
+  if(state.tab==='selected') return renderSelected();
+}
+
+function renderList(){
+  const body = document.getElementById('cbody');
+  const kws = filteredKws();
+  if(!state.keywords.length){
+    body.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="7" x2="11" y2="15"/><line x1="7" y1="11" x2="15" y2="11"/></svg>
+      <div><div class="et">Local Keyword Research</div><div class="ed">Discover local SEO keywords for any service + city. Combines template-based generation (near me, in city, best, etc.), SERP autocomplete, and AI semantic expansion. Difficulty scoring via real SERP analysis, auto-clustering by SERP overlap.</div></div>
+      <div class="examples">
+        <div><strong>Plumber, Boston</strong>"emergency plumber boston" → 60+ keywords clustered into 8 topics</div>
+        <div><strong>Dentist, Austin</strong>"family dentist near me" → 40+ keywords, 5 clusters by SERP overlap</div>
+        <div><strong>Restaurant, NYC</strong>"best italian restaurant manhattan" → 50+ keywords mixed intent</div>
+      </div>
+    </div>`;
+    return;
+  }
+  body.innerHTML = `<table class="ktable">
+    <thead><tr>
+      <th style="width:32px"></th>
+      <th>Keyword</th>
+      <th class="center" style="width:90px">Intent</th>
+      <th class="center" style="width:80px">Difficulty</th>
+      <th class="center" style="width:90px">Cluster</th>
+      <th style="width:120px">Top domain</th>
+      <th class="center" style="width:90px">Source</th>
+      <th style="width:60px"></th>
+    </tr></thead>
+    <tbody>
+    ${kws.map(k=>{
+      const diffPill = k.difficulty===null?'<span class="diff-pill un">—</span>':k.difficulty===-1?'<span class="diff-pill un" style="color:var(--danger)">err</span>':`<span class="diff-pill ${k.difficulty>=70?'d90':k.difficulty>=50?'d70':k.difficulty>=30?'d50':k.difficulty>=15?'d30':'d10'}">${k.difficulty}</span>`;
+      const cluster = k.clusterId ? state.clusters.find(c=>c.id===k.clusterId) : null;
+      const topDom = k.top10?.[0]?.domain || '—';
+      return `<tr class="${k.selected?'selected':''}">
+        <td class="center"><input type="checkbox" class="kw-cb" ${k.selected?'checked':''} onchange="toggleSel('${k.id}')"></td>
+        <td><div class="kw-text">${escapeHtml(k.kw)}</div>${k.related?.length?`<div class="kw-meta">+${k.related.length} variants</div>`:''}</td>
+        <td class="center"><span class="intent-pill ${k.intent}">${k.intent}</span></td>
+        <td class="center">${diffPill}</td>
+        <td class="center">${cluster?`<span class="cluster-pill" title="${escapeAttr(cluster.label)}">${cluster.kwIds.length} kws</span>`:'<span style="color:var(--text3)">—</span>'}</td>
+        <td style="font-family:var(--mono);font-size:10.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${escapeHtml(topDom)}</td>
+        <td class="center"><span class="kw-meta" style="margin:0"><span class="src">${escapeHtml(k.source.split(':')[0])}</span></span></td>
+        <td><div class="row-actions" style="justify-content:flex-end"><a href="https://www.google.com/search?q=${encodeURIComponent(k.kw)}" target="_blank" rel="noopener" title="Search Google"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></a><button onclick="delKw('${k.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function delKw(id){ state.keywords = state.keywords.filter(k=>k.id!==id); saveState(); renderAll(); }
+
+function renderClusters(){
+  const body = document.getElementById('cbody');
+  if(!state.clusters.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg><div><div class="et">No clusters yet</div><div class="ed">Score difficulty (which fetches SERP top-10) for at least 2 keywords. Then clustering groups keywords whose SERP results overlap, revealing pillar-page opportunities.</div></div></div>`;
+    return;
+  }
+  body.innerHTML = `<div class="cluster-grid">${state.clusters.map((c,i)=>{
+    const kws = c.kwIds.map(id=>state.keywords.find(k=>k.id===id)).filter(Boolean);
+    return `<div class="cluster-card">
+      <div class="ch">
+        <div class="ch-icon">${i+1}</div>
+        <div class="ch-name" title="${escapeAttr(c.label)}">${escapeHtml(c.label)}</div>
+        <div class="ch-cnt">${kws.length} kws</div>
+      </div>
+      <div class="cluster-list">
+        ${kws.map(k=>`<div class="cluster-kw"><input type="checkbox" class="kw-cb" ${k.selected?'checked':''} onchange="toggleSel('${k.id}')"><div class="ck-text">${escapeHtml(k.kw)}</div><div class="ck-diff">${k.difficulty===null?'—':k.difficulty}</div></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderSelected(){
+  const body = document.getElementById('cbody');
+  const sel = state.keywords.filter(k=>k.selected);
+  if(!sel.length){
+    body.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="20 6 9 17 4 12"/></svg><div><div class="et">No keywords selected</div><div class="ed">Tick the checkbox on any keyword to add it to your selection, then send the selection to SERP Ranker, Geo-Grid Tracker, or AI Content Writer with one click.</div></div></div>`;
+    return;
+  }
+  body.innerHTML = `<table class="ktable">
+    <thead><tr><th></th><th>Keyword</th><th class="center">Intent</th><th class="center">Difficulty</th></tr></thead>
+    <tbody>${sel.map(k=>`<tr class="selected">
+      <td class="center"><input type="checkbox" class="kw-cb" checked onchange="toggleSel('${k.id}')"></td>
+      <td><div class="kw-text">${escapeHtml(k.kw)}</div></td>
+      <td class="center"><span class="intent-pill ${k.intent}">${k.intent}</span></td>
+      <td class="center">${k.difficulty===null?'<span class="diff-pill un">—</span>':`<span class="diff-pill ${k.difficulty>=70?'d90':k.difficulty>=50?'d70':k.difficulty>=30?'d50':k.difficulty>=15?'d30':'d10'}">${k.difficulty}</span>`}</td>
+    </tr>`).join('')}</tbody>
+  </table>
+  <div style="padding:20px;background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+    <button class="cb-btn primary" onclick="sendToSerpRanker()">→ Track in SERP Ranker</button>
+    <button class="cb-btn" onclick="sendToGeoGrid()">→ Track in Geo-Grid</button>
+    <button class="cb-btn" onclick="sendToWriter()">→ Write content (AI Writer)</button>
+    <button class="cb-btn" onclick="copySelected()">📋 Copy as list</button>
+  </div>`;
+}
+
+/* ---------- SEND TO OTHER TOOLS ---------- */
+function sendToSerpRanker(){
+  const sel = state.keywords.filter(k=>k.selected);
+  if(!sel.length){ toast('Select keywords first','err'); return; }
+  const list = sel.map(k=>k.kw).join('\n');
+  // Try to merge into existing SERP Ranker state by appending to its keyword list
+  try {
+    const srp = JSON.parse(localStorage.getItem('srp_state_v2')||localStorage.getItem('srp_state')||'null');
+    // SERP Ranker uses its own state. We can't safely merge without knowing schema, so we copy to clipboard + redirect.
+  } catch(e){}
+  navigator.clipboard.writeText(list).then(()=>{
+    toast(`${sel.length} keywords copied — paste them in SERP Ranker`, 'success');
+    setTimeout(()=>window.location.href='serp-ranker.html', 800);
+  });
+}
+
+function sendToGeoGrid(){
+  const sel = state.keywords.filter(k=>k.selected);
+  if(!sel.length){ toast('Select keywords first','err'); return; }
+  try {
+    const gg = JSON.parse(localStorage.getItem('gg_state_v1')||'null') || {cfg:{keywords:''}};
+    if(!gg.cfg) gg.cfg = {};
+    const existing = (gg.cfg.keywords||'').split('\n').map(s=>s.trim()).filter(Boolean);
+    const merged = Array.from(new Set([...existing, ...sel.map(k=>k.kw)]));
+    gg.cfg.keywords = merged.join('\n');
+    localStorage.setItem('gg_state_v1', JSON.stringify(gg));
+    toast(`Sent ${sel.length} keywords to Geo-Grid`,'success');
+    setTimeout(()=>window.location.href='geo-grid-tracker.html', 800);
+  } catch(e){ toast('Could not send: '+e.message,'err'); }
+}
+
+function sendToWriter(){
+  const sel = state.keywords.filter(k=>k.selected);
+  if(!sel.length){ toast('Select keywords first','err'); return; }
+  const list = sel.map(k=>k.kw).join(', ');
+  navigator.clipboard.writeText(list).then(()=>{
+    toast(`${sel.length} keywords copied — paste as topic in AI Writer`, 'success');
+    setTimeout(()=>window.location.href='ai-content-writer.html', 800);
+  });
+}
+
+function copySelected(){
+  const sel = state.keywords.filter(k=>k.selected);
+  navigator.clipboard.writeText(sel.map(k=>k.kw).join('\n'));
+  toast(`Copied ${sel.length} keywords`,'success');
+}
+
+/* ---------- EXPORT/IMPORT ---------- */
+function exportCSV(){
+  if(!state.keywords.length){ toast('No keywords','err'); return; }
+  const rows = [['keyword','intent','difficulty','cluster','source','top_domain','selected']];
+  state.keywords.forEach(k=>{
+    const cluster = k.clusterId ? state.clusters.find(c=>c.id===k.clusterId)?.label : '';
+    rows.push([k.kw, k.intent, k.difficulty===null?'':k.difficulty, cluster||'', k.source, k.top10?.[0]?.domain||'', k.selected?'yes':'no']);
+  });
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`keywords-${(state.seeds.city||'local').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+
+function importCSV(){
+  const input = document.createElement('input'); input.type='file'; input.accept='.csv';
+  input.onchange = e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ev=>{
+      try {
+        const lines = ev.target.result.split(/\r?\n/).filter(l=>l.trim());
+        if(lines.length<2){ toast('CSV needs header + rows','err'); return; }
+        const header = lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/['"]/g,''));
+        const kwIdx = header.indexOf('keyword');
+        if(kwIdx<0){ toast('CSV needs "keyword" column','err'); return; }
+        let added=0;
+        for(let i=1;i<lines.length;i++){
+          const cells = lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
+          const kw = cells[kwIdx]; if(!kw) continue;
+          state.keywords.push({id:uid(), kw, source:'import', intent:classifyIntent(kw), difficulty:null, top10:[], related:[], clusterId:null, selected:false});
+          added++;
+        }
+        saveState(); renderAll();
+        toast(`Imported ${added} keywords`,'success');
+      } catch(e){ toast('Bad CSV','err'); }
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
+
+function clearAll(){
+  if(!confirm('Clear all keywords?')) return;
+  state.keywords = []; state.clusters = []; saveState(); renderAll();
+  toast('Cleared','success');
+}
+
+/* ---------- BOOT ---------- */
+initUI();
+setTab(state.tab||'list');
+setFilter('intent', state.filters?.intent||'all');
+renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

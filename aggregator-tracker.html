@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listings Aggregator Tracker - Data Axle, Foursquare, Neustar, Acxiom Submission Status</title>
+<meta name="description" content="Track your business data submissions to the major US data aggregators: Data Axle (Infogroup), Foursquare, Neustar/TransUnion (formerly Localeze), and Acxiom. Submission status, sync timeline, downstream propagation, and verification checklist.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0891b2; --accent-h:#0e7490; --accent-soft:rgba(8,145,178,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b;
+  --blue:#2563eb; --pink:#db2777; --purple:#7c3aed;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#22d3ee; --accent-h:#67e8f9; --accent-soft:rgba(34,211,238,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24;
+  --blue:#3b82f6; --pink:#ec4899; --purple:#a78bfa;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(8,145,178,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.live strong{color:var(--success)}
+.hdr-stat.pending strong{color:var(--warn)}
+.hdr-stat.dropped strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT */
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+/* Aggregator cards */
+.agg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px}
+.agg-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);transition:all .2s}
+.agg-card:hover{box-shadow:var(--shadow-md)}
+.agg-hdr{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.agg-logo{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0}
+.agg-info{flex:1;min-width:0}
+.agg-name{font-size:15px;font-weight:800;line-height:1.2;margin-bottom:1px}
+.agg-aka{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.agg-status{padding:4px 10px;border-radius:14px;font-size:10.5px;font-weight:800;font-family:var(--mono);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.agg-status.live{background:rgba(22,163,74,.15);color:var(--success)}
+.agg-status.pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.agg-status.submitted{background:rgba(37,99,235,.15);color:var(--blue)}
+.agg-status.dropped{background:rgba(220,38,38,.15);color:var(--danger)}
+.agg-status.notstarted{background:var(--bg3);color:var(--text2)}
+
+.agg-body{padding:12px 16px;font-size:12px;line-height:1.55}
+.agg-desc{color:var(--text2);margin-bottom:10px}
+.agg-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:10.5px;margin-bottom:10px}
+.agg-meta div{background:var(--bg);padding:5px 9px;border-radius:5px;font-family:var(--mono)}
+.agg-meta div .l{color:var(--text3);font-size:9.5px;text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+.agg-meta div .v{color:var(--text);font-weight:700;font-size:11px}
+.agg-downstream{padding:10px 12px;background:var(--bg);border-radius:7px;margin-bottom:8px}
+.agg-downstream .dt{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;font-family:var(--mono);letter-spacing:.6px;margin-bottom:5px}
+.agg-downstream .dl{display:flex;flex-wrap:wrap;gap:5px}
+.ds-chip{font-size:10px;font-weight:700;font-family:var(--mono);background:var(--bg2);padding:2px 7px;border-radius:11px;border:1px solid var(--border);color:var(--text2)}
+.ds-chip.live{background:rgba(22,163,74,.1);color:var(--success);border-color:rgba(22,163,74,.3)}
+
+.agg-actions{display:flex;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}
+.agg-btn{padding:6px 10px;border-radius:5px;font-size:10.5px;font-weight:700;border:1px solid var(--border);background:var(--bg3);color:var(--text);text-decoration:none;display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.agg-btn:hover{border-color:var(--accent);color:var(--accent)}
+.agg-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.agg-btn.primary:hover{background:var(--accent-h);color:#fff}
+.agg-btn svg{width:11px;height:11px}
+
+/* Hero cards */
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.hero-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.hero-card.success::before{background:var(--success)}
+.hero-card.warn::before{background:var(--warn)}
+.hero-card.danger::before{background:var(--danger)}
+.hero-card .hl{font-size:9.5px;font-family:var(--mono);font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.hero-card .hv{font-size:26px;font-weight:900;color:var(--text);font-family:var(--mono);line-height:1.05}
+.hero-card.success .hv{color:var(--success)}
+.hero-card.warn .hv{color:var(--warn)}
+.hero-card.danger .hv{color:var(--danger)}
+.hero-card .hs{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+
+/* Section */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+
+/* Timeline */
+.timeline{padding:16px}
+.tl-item{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:10px 0;border-left:2px solid var(--border);padding-left:16px;margin-left:8px;position:relative}
+.tl-item::before{content:'';width:11px;height:11px;border-radius:50%;background:var(--accent);position:absolute;left:-6px;top:14px}
+.tl-item.done::before{background:var(--success)}
+.tl-item.pending::before{background:var(--warn)}
+.tl-when{font-size:10.5px;color:var(--text3);font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding-top:1px}
+.tl-body .t{font-size:12.5px;font-weight:700;margin-bottom:2px}
+.tl-body .d{font-size:11.5px;color:var(--text2);line-height:1.5}
+
+/* Propagation diagram */
+.prop-diag{padding:14px;display:flex;gap:18px;align-items:start}
+.prop-col{flex:1;min-width:0}
+.prop-col-hdr{font-size:10.5px;font-weight:800;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.prop-row{padding:6px 9px;background:var(--bg);border-radius:5px;font-size:11.5px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-left:3px solid var(--border)}
+.prop-row.live{border-left-color:var(--success)}
+.prop-row.pending{border-left-color:var(--warn)}
+.prop-row.dropped{border-left-color:var(--danger)}
+.prop-row .ps{font-size:9px;font-weight:800;font-family:var(--mono);padding:1px 5px;border-radius:3px;text-transform:uppercase}
+.prop-row.live .ps{background:rgba(22,163,74,.18);color:var(--success)}
+.prop-row.pending .ps{background:rgba(245,158,11,.18);color:var(--warn)}
+.prop-row.dropped .ps{background:rgba(220,38,38,.18);color:var(--danger)}
+
+/* Form modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000;padding:14px}
+.modal.show{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:560px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-hdr h3{font-size:14px;font-weight:800;flex:1}
+.modal-hdr .x{padding:6px;background:var(--bg3);border:none;border-radius:6px;color:var(--text);font-size:14px;font-weight:700}
+.modal-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+.chart-wrap{position:relative;height:240px;padding:8px 14px 14px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+  .agg-grid{grid-template-columns:1fr}
+  .prop-diag{flex-direction:column}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="2" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </div>
+    <div><div class="logo-name">Aggregator<span>Tracker</span></div></div>
+    <span class="logo-tag">DATA HUB</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat live">Live: <strong id="stat-live">0</strong></div>
+  <div class="hdr-stat pending">Pending: <strong id="stat-pending">0</strong></div>
+  <div class="hdr-stat dropped">Dropped: <strong id="stat-dropped">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="citation-finder.html" class="hdr-link" style="border-color:rgba(13,148,136,.4);color:var(--teal)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Citation Finder
+  </a>
+  <a href="nap-checker.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+    NAP Checker
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Business Info</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Primary Business</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name *</label><input id="i-name" placeholder="Acme Plumbing" oninput="saveBiz()"></div>
+          <div class="f"><label>Phone *</label><input id="i-phone" placeholder="+1 555 555 0123" oninput="saveBiz()"></div>
+          <div class="f"><label>Street address</label><input id="i-street" oninput="saveBiz()"></div>
+          <div class="f"><label>City</label><input id="i-city" oninput="saveBiz()"></div>
+          <div class="f"><label>State</label><input id="i-state" placeholder="CA" oninput="saveBiz()"></div>
+          <div class="f"><label>Postal code</label><input id="i-zip" oninput="saveBiz()"></div>
+          <div class="f"><label>Website</label><input id="i-web" placeholder="https://" oninput="saveBiz()"></div>
+          <div class="f"><label>Primary category</label><input id="i-cat" oninput="saveBiz()"></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ Pull from Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Reminders & Cadence</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Re-verification cadence</label><select id="i-cadence" onchange="saveBiz()">
+            <option value="quarterly">Quarterly (recommended)</option>
+            <option value="monthly">Monthly (paranoid)</option>
+            <option value="semiannual">Every 6 months</option>
+            <option value="annual">Annual (minimum)</option>
+          </select></div>
+          <div class="f hint">Aggregators silently drop your listing if data changes or if other sources contradict it. Re-verify periodically.</div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="openSubmissionWizard()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Submission
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="exportReport()">Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="aggregators" onclick="setTab('aggregators')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+        Aggregators
+      </button>
+      <button class="tab" data-tab="propagation" onclick="setTab('propagation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
+        Propagation Map
+      </button>
+      <button class="tab" data-tab="timeline" onclick="setTab('timeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><polyline points="9 7 12 4 15 7"/><polyline points="9 17 12 20 15 17"/></svg>
+        Timeline
+      </button>
+      <button class="tab" data-tab="checklist" onclick="setTab('checklist')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Verification Checklist
+      </button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg>
+        Submission Guide
+      </button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Track aggregator submissions and propagation</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<!-- Submission wizard modal -->
+<div class="modal" id="m-sub">
+  <div class="modal-card">
+    <div class="modal-hdr"><h3>Record Aggregator Submission</h3><button class="x" onclick="document.getElementById('m-sub').classList.remove('show')">✕</button></div>
+    <div class="modal-body">
+      <div class="f"><label>Aggregator</label><select id="m-agg"></select></div>
+      <div class="f"><label>Submission status</label><select id="m-status"><option value="submitted">Submitted (waiting for sync)</option><option value="pending">Pending review</option><option value="live">Live / Confirmed</option><option value="dropped">Dropped / Rejected</option></select></div>
+      <div class="f"><label>Submission date</label><input type="date" id="m-date"></div>
+      <div class="f"><label>Submission method</label><select id="m-method"><option>Direct (free)</option><option>Direct (paid)</option><option>Via Yext</option><option>Via BrightLocal</option><option>Via Moz Local</option><option>Via Whitespark</option><option>Via Synup</option><option>Other service</option></select></div>
+      <div class="f"><label>Confirmation # / ref</label><input id="m-ref" placeholder="Optional"></div>
+      <div class="f"><label>Notes</label><textarea id="m-notes" rows="3" placeholder="e.g. asked for $99 enhanced listing, used credit card ending 4321"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sub" onclick="document.getElementById('m-sub').classList.remove('show')">Cancel</button>
+      <button class="btn-go" style="padding:8px 14px" onclick="saveSubmission()">Save Submission</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+ * LISTINGS AGGREGATOR TRACKER
+ * Track submissions to the major US data aggregators + downstream propagation
+ * ========================================================================== */
+
+const STORE_KEY = 'agg_state_v1';
+
+/* Aggregator metadata - the "Big 4" + relevant peers */
+const AGGREGATORS = [
+  {
+    id:'data_axle',
+    name:'Data Axle',
+    aka:'(formerly Infogroup / ExpressUpdate)',
+    color:'#2563eb',
+    icon:'DA',
+    submit_url:'https://www.expressupdate.com/',
+    cost:'Free direct',
+    sync:'8-12 weeks',
+    description:'Data Axle owns ExpressUpdate.com — the primary direct submission path. Feeds Apple Maps, Yelp, Bing Places (partial), Bing Search, FactFinder, MerchantCircle, Trip Advisor, ratings sites.',
+    downstream:['Apple Maps','Yelp (data)','Bing Places (partial)','MerchantCircle','Trip Advisor (US)','LocalEdge','MapQuest'],
+    requirements:['Business name','Phone (matched to credit bureau if possible)','Address','Hours','Categories'],
+    verification:'Phone callback or postcard',
+    priority:'CRITICAL',
+  },
+  {
+    id:'foursquare',
+    name:'Foursquare',
+    aka:'(Foursquare Places API + Local Update)',
+    color:'#f17060',
+    icon:'4S',
+    submit_url:'https://foursquare.com/add-place',
+    cost:'Free direct',
+    sync:'1-4 weeks',
+    description:'Powers Apple Maps secondary data, Snapchat, Tinder, Tumblr, Pinterest, X.com, Square Cash, Twitter geolocation, Uber. Submit directly via Foursquare for Business or update existing.',
+    downstream:['Apple Maps (secondary)','Snapchat','Tinder','Tumblr','Pinterest places','X / Twitter','Uber pickup','Square Cash'],
+    requirements:['Name','Phone','Address with verified geolocation','Hours','Photos'],
+    verification:'GPS + email verification',
+    priority:'HIGH',
+  },
+  {
+    id:'neustar',
+    name:'Neustar Localeze',
+    aka:'(now TransUnion / Neustar / Localeze)',
+    color:'#7c3aed',
+    icon:'NL',
+    submit_url:'https://www.neustarlocaleze.biz/welcome/',
+    cost:'$299-$575/yr',
+    sync:'2-8 weeks',
+    description:'Paid only. Feeds Apple Maps, Bing Places, Yelp, Yahoo Local, Citysearch, Mapquest, and dozens of regional directories. Best ROI if you can only afford one paid aggregator.',
+    downstream:['Apple Maps','Bing Places','Yelp','Yahoo Local','Citysearch','SuperPages','HotFrog','Manta','MapQuest'],
+    requirements:['Verified business documentation','Tax ID or DBA','Subscription'],
+    verification:'Document review + phone',
+    priority:'CRITICAL',
+  },
+  {
+    id:'acxiom',
+    name:'Acxiom / MyBusinessListingManager',
+    aka:'(was MBLM, now part of LiveRamp / Acxiom)',
+    color:'#16a34a',
+    icon:'AX',
+    submit_url:'https://www.mybusinesslistingmanager.com/',
+    cost:'Free direct (limited)',
+    sync:'6-12 weeks',
+    description:'Less universally distributed than Data Axle but still feeds Yahoo Local, Yellow Pages, Local.com, and various ad networks. Direct submission is free but reach is shrinking.',
+    downstream:['Yahoo Local','Yellow Pages','Local.com','MoJoPages','Mapquest (partial)','LiveRamp ad networks'],
+    requirements:['Name','Phone','Address','Email'],
+    verification:'Email + phone',
+    priority:'MEDIUM',
+  },
+  {
+    id:'apple_maps',
+    name:'Apple Maps Connect',
+    aka:'Direct Apple submission (no aggregator)',
+    color:'#0f172a',
+    icon:'',
+    submit_url:'https://mapsconnect.apple.com/',
+    cost:'Free',
+    sync:'Days to 2 weeks',
+    description:'Apple Maps now allows direct submission and management of business listings. Skip the aggregator wait — verify directly with Apple ID.',
+    downstream:['Apple Maps','Apple Business Connect','Siri','Apple ecosystem (iOS/macOS)'],
+    requirements:['Apple ID','Phone','Address','Hours','Photos'],
+    verification:'Phone callback',
+    priority:'CRITICAL',
+  },
+  {
+    id:'bing',
+    name:'Bing Places for Business',
+    aka:'Microsoft direct',
+    color:'#0078d4',
+    icon:'B',
+    submit_url:'https://www.bingplaces.com/',
+    cost:'Free',
+    sync:'Days to 4 weeks',
+    description:'Microsoft\'s direct path. Can also pull from your verified Google Business Profile, saving you re-entry. Important for Bing Search + ChatGPT + Copilot answers.',
+    downstream:['Bing Search','Bing Maps','Microsoft Copilot','Bing Chat','DuckDuckGo (via Bing index)'],
+    requirements:['Bing/Microsoft account','Business info'],
+    verification:'Postcard or phone',
+    priority:'HIGH',
+  },
+  {
+    id:'gbp',
+    name:'Google Business Profile',
+    aka:'Direct Google (primary source of truth)',
+    color:'#4285f4',
+    icon:'G',
+    submit_url:'https://business.google.com/',
+    cost:'Free',
+    sync:'Immediate to 2 weeks',
+    description:'The single most important listing. Google does NOT use aggregator data for GBP — must be claimed directly. All your other aggregator data should match this profile exactly.',
+    downstream:['Google Search','Google Maps','Google Local Pack','Google AI Overviews','Waze','Android Auto'],
+    requirements:['Google account','Verification (postcard/phone/video)'],
+    verification:'Multiple methods',
+    priority:'CRITICAL',
+  },
+];
+
+const defaultState = {
+  biz:{name:'', phone:'', street:'', city:'', state:'', zip:'', web:'', cat:'', cadence:'quarterly'},
+  submissions:{}, // {aggregator_id: {status, date, method, ref, notes}}
+  view:'aggregators',
+};
+
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+/* THEME */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* UTILS */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+
+/* INPUTS */
+function fillBiz(){
+  Object.entries({name:'name',phone:'phone',street:'street',city:'city',state:'state',zip:'zip',web:'web',cat:'cat',cadence:'cadence'}).forEach(([id,k])=>{
+    const el = document.getElementById('i-'+id); if(el) el.value = state.biz[k]||'';
+  });
+}
+function saveBiz(){
+  ['name','phone','street','city','state','zip','web','cat','cadence'].forEach(k=>{
+    state.biz[k] = document.getElementById('i-'+k).value;
+  });
+  saveState();
+}
+
+function syncFromCitation(){
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.[0];
+    if(b){
+      state.biz.name = b.name||state.biz.name;
+      state.biz.phone = b.phone||state.biz.phone;
+      state.biz.street = b.address||state.biz.street;
+      state.biz.city = b.city||state.biz.city;
+      state.biz.state = b.state||state.biz.state;
+      state.biz.zip = b.zip||state.biz.zip;
+      state.biz.web = b.website||state.biz.web;
+      state.biz.cat = b.category||state.biz.cat;
+      saveState(); fillBiz();
+      toast('Synced from Citation Finder','success');
+    } else { toast('No business in Citation Finder','err'); }
+  } catch(e){ toast('Sync failed','err'); }
+}
+
+/* WIZARD */
+function openSubmissionWizard(aggId){
+  const sel = document.getElementById('m-agg');
+  sel.innerHTML = AGGREGATORS.map(a=>`<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  if(aggId) sel.value = aggId;
+  const existing = state.submissions[sel.value] || {};
+  document.getElementById('m-status').value = existing.status||'submitted';
+  document.getElementById('m-date').value = existing.date || '2026-05-29';
+  document.getElementById('m-method').value = existing.method||'Direct (free)';
+  document.getElementById('m-ref').value = existing.ref||'';
+  document.getElementById('m-notes').value = existing.notes||'';
+  document.getElementById('m-sub').classList.add('show');
+}
+
+function saveSubmission(){
+  const aggId = document.getElementById('m-agg').value;
+  state.submissions[aggId] = {
+    status: document.getElementById('m-status').value,
+    date: document.getElementById('m-date').value,
+    method: document.getElementById('m-method').value,
+    ref: document.getElementById('m-ref').value,
+    notes: document.getElementById('m-notes').value,
+  };
+  saveState();
+  document.getElementById('m-sub').classList.remove('show');
+  render();
+  toast('Submission saved','success');
+}
+
+function setAggStatus(aggId, status){
+  if(!state.submissions[aggId]) state.submissions[aggId] = {status, date:'2026-05-29', method:'Direct (free)', ref:'', notes:''};
+  else state.submissions[aggId].status = status;
+  saveState();
+  render();
+  toast(`${aggId} → ${status}`,'success');
+}
+
+/* RENDER */
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function counts(){
+  const c = {live:0, pending:0, submitted:0, dropped:0, notstarted:0};
+  AGGREGATORS.forEach(a=>{
+    const s = state.submissions[a.id]?.status || 'notstarted';
+    c[s] = (c[s]||0)+1;
+  });
+  return c;
+}
+
+function render(){
+  const c = counts();
+  document.getElementById('stat-live').textContent = c.live;
+  document.getElementById('stat-pending').textContent = c.pending+c.submitted;
+  document.getElementById('stat-dropped').textContent = c.dropped;
+  if(state.view==='aggregators') return renderAggregators();
+  if(state.view==='propagation') return renderPropagation();
+  if(state.view==='timeline') return renderTimeline();
+  if(state.view==='checklist') return renderChecklist();
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderAggregators(){
+  const c = counts();
+  document.getElementById('cbody').innerHTML = `
+    <div class="hero-grid">
+      <div class="hero-card success"><div class="hl">Live Listings</div><div class="hv">${c.live}</div><div class="hs">of ${AGGREGATORS.length} aggregators</div></div>
+      <div class="hero-card warn"><div class="hl">In Progress</div><div class="hv">${c.pending+c.submitted}</div><div class="hs">submitted, awaiting sync</div></div>
+      <div class="hero-card danger"><div class="hl">Dropped / Rejected</div><div class="hv">${c.dropped}</div><div class="hs">needs resubmission</div></div>
+      <div class="hero-card"><div class="hl">Not Started</div><div class="hv">${c.notstarted}</div><div class="hs">opportunities to claim</div></div>
+    </div>
+    <div class="agg-grid">
+      ${AGGREGATORS.map(a=>{
+        const sub = state.submissions[a.id] || {};
+        const status = sub.status || 'notstarted';
+        return `<div class="agg-card">
+          <div class="agg-hdr">
+            <div class="agg-logo" style="background:${a.color}">${a.icon||a.name.charAt(0)}</div>
+            <div class="agg-info">
+              <div class="agg-name">${escapeHtml(a.name)}</div>
+              <div class="agg-aka">${escapeHtml(a.aka)}</div>
+            </div>
+            <div class="agg-status ${status}">${status==='notstarted'?'Not Started':status.charAt(0).toUpperCase()+status.slice(1)}</div>
+          </div>
+          <div class="agg-body">
+            <div class="agg-desc">${escapeHtml(a.description)}</div>
+            <div class="agg-meta">
+              <div><div class="l">Cost</div><div class="v">${escapeHtml(a.cost)}</div></div>
+              <div><div class="l">Sync Time</div><div class="v">${escapeHtml(a.sync)}</div></div>
+              <div><div class="l">Verification</div><div class="v">${escapeHtml(a.verification)}</div></div>
+              <div><div class="l">Priority</div><div class="v" style="color:${a.priority==='CRITICAL'?'var(--danger)':a.priority==='HIGH'?'var(--warn)':'var(--text2)'}">${a.priority}</div></div>
+            </div>
+            <div class="agg-downstream">
+              <div class="dt">Feeds → ${a.downstream.length} downstream sources</div>
+              <div class="dl">${a.downstream.map(d=>`<div class="ds-chip ${status==='live'?'live':''}">${escapeHtml(d)}</div>`).join('')}</div>
+            </div>
+            ${sub.date?`<div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-bottom:8px">Submitted: ${escapeHtml(sub.date)} via ${escapeHtml(sub.method||'')}${sub.ref?` · ref: ${escapeHtml(sub.ref)}`:''}</div>`:''}
+            ${sub.notes?`<div style="font-size:11px;color:var(--text2);padding:7px 9px;background:var(--bg);border-radius:5px;margin-bottom:8px;border-left:3px solid var(--accent)">${escapeHtml(sub.notes)}</div>`:''}
+            <div class="agg-actions">
+              <a href="${a.submit_url}" target="_blank" class="agg-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Submit / Update</a>
+              <button class="agg-btn" onclick="openSubmissionWizard('${a.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Track</button>
+              ${status==='submitted'||status==='pending'?`<button class="agg-btn" onclick="setAggStatus('${a.id}','live')" style="color:var(--success);border-color:var(--success)">✓ Live</button>`:''}
+              ${status==='live'?`<button class="agg-btn" onclick="setAggStatus('${a.id}','dropped')" style="color:var(--danger);border-color:var(--danger)">✗ Dropped</button>`:''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderPropagation(){
+  const downstreamMap = {};
+  AGGREGATORS.forEach(a=>{
+    const status = state.submissions[a.id]?.status || 'notstarted';
+    a.downstream.forEach(d=>{
+      if(!downstreamMap[d]) downstreamMap[d] = [];
+      downstreamMap[d].push({agg:a.name, status});
+    });
+  });
+  // Sort by status: live first
+  const downstreamSorted = Object.entries(downstreamMap).sort((a,b)=>{
+    const aLive = a[1].some(x=>x.status==='live')?0:1;
+    const bLive = b[1].some(x=>x.status==='live')?0:1;
+    return aLive - bLive;
+  });
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Downstream Propagation Map</h3></div><div class="prop-diag">
+      <div class="prop-col">
+        <div class="prop-col-hdr">Your Aggregators (${AGGREGATORS.length})</div>
+        ${AGGREGATORS.map(a=>{
+          const status = state.submissions[a.id]?.status || 'notstarted';
+          return `<div class="prop-row ${status}"><span>${escapeHtml(a.name)}</span><span class="ps">${status==='notstarted'?'OPEN':status}</span></div>`;
+        }).join('')}
+      </div>
+      <div class="prop-col">
+        <div class="prop-col-hdr">→ Downstream Sources (${downstreamSorted.length})</div>
+        ${downstreamSorted.map(([d, sources])=>{
+          const hasLive = sources.some(s=>s.status==='live');
+          const status = hasLive?'live':sources.some(s=>s.status==='submitted'||s.status==='pending')?'pending':'';
+          return `<div class="prop-row ${status}"><span title="From: ${sources.map(s=>s.agg).join(', ')}">${escapeHtml(d)}</span><span class="ps" style="color:var(--text3)">${sources.length}×</span></div>`;
+        }).join('')}
+      </div>
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Coverage Chart</h3></div><div class="chart-wrap"><canvas id="ch-coverage"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const ctx = document.getElementById('ch-coverage')?.getContext('2d');
+    if(!ctx) return;
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color = isDark?'#7e95b8':'#5b6b88';
+    const c = counts();
+    new Chart(ctx, {
+      type:'doughnut',
+      data:{labels:['Live','Pending/Submitted','Dropped','Not Started'], datasets:[{data:[c.live, c.pending+c.submitted, c.dropped, c.notstarted], backgroundColor:['#16a34a','#f59e0b','#dc2626','#5b6b88'], borderWidth:0}]},
+      options:{plugins:{legend:{position:'right'}}, cutout:'62%'}
+    });
+  }, 50);
+}
+
+function renderTimeline(){
+  const items = Object.entries(state.submissions).map(([aggId,s])=>({...s, aggId, aggName: AGGREGATORS.find(a=>a.id===aggId)?.name||aggId}))
+    .filter(s=>s.date).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!items.length){
+    document.getElementById('cbody').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="et">No submissions logged yet</div><div class="ed">Click <strong>Add Submission</strong> in the left panel to start tracking when you sent data to each aggregator. The timeline shows propagation history and helps you plan re-verification cycles.</div></div>`;
+    return;
+  }
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Submission Timeline (${items.length} events)</h3></div><div class="timeline">
+      ${items.map(s=>`<div class="tl-item ${s.status==='live'?'done':s.status==='dropped'?'pending':''}">
+        <div class="tl-when">${escapeHtml(s.date)}</div>
+        <div class="tl-body">
+          <div class="t">${escapeHtml(s.aggName)} <span style="font-size:10.5px;font-weight:700;font-family:var(--mono);padding:1px 6px;border-radius:3px;background:${s.status==='live'?'rgba(22,163,74,.15)':s.status==='dropped'?'rgba(220,38,38,.15)':'rgba(245,158,11,.15)'};color:${s.status==='live'?'var(--success)':s.status==='dropped'?'var(--danger)':'var(--warn)'}">${s.status.toUpperCase()}</span></div>
+          <div class="d">${escapeHtml(s.method||'')}${s.ref?` · ref: ${escapeHtml(s.ref)}`:''}${s.notes?`<br><span style="color:var(--text3)">${escapeHtml(s.notes)}</span>`:''}</div>
+        </div>
+      </div>`).join('')}
+    </div></div>
+  `;
+}
+
+function renderChecklist(){
+  // Verification checklist
+  const b = state.biz;
+  const issues = [];
+  if(!b.name) issues.push({sev:'fail', msg:'Business name is required for every aggregator submission'});
+  if(!b.phone) issues.push({sev:'fail', msg:'Phone number is required for aggregator listings'});
+  else if(!/^[\+\d][\d\s\-\(\)\.]{7,}$/.test(b.phone)) issues.push({sev:'warn', msg:'Phone format may need normalizing — use +1 555 555 0123 or (555) 555-0123'});
+  if(!b.street) issues.push({sev:'fail', msg:'Street address required'});
+  if(!b.zip) issues.push({sev:'fail', msg:'ZIP/postal code required for US aggregators'});
+  if(b.web && !b.web.startsWith('http')) issues.push({sev:'warn', msg:'Website should start with https://'});
+  if(!b.cat) issues.push({sev:'warn', msg:'Primary category not set — required by Apple Maps, Foursquare'});
+  if(b.phone && b.phone.replace(/\D/g,'').length < 10) issues.push({sev:'warn', msg:'Phone number too short — needs at least 10 digits'});
+
+  // Submission completeness
+  const critical = AGGREGATORS.filter(a=>a.priority==='CRITICAL');
+  critical.forEach(a=>{
+    const s = state.submissions[a.id]?.status;
+    if(!s) issues.push({sev:'fail', msg:`${a.name} (CRITICAL) — not submitted yet`});
+    else if(s==='dropped') issues.push({sev:'fail', msg:`${a.name} (CRITICAL) — dropped, needs resubmission`});
+  });
+
+  // Sync timing checks
+  const now = new Date('2026-05-29');
+  Object.entries(state.submissions).forEach(([aggId,s])=>{
+    if(s.status!=='submitted' && s.status!=='pending') return;
+    if(!s.date) return;
+    const submitted = new Date(s.date);
+    const weeksAgo = Math.floor((now - submitted) / (1000*60*60*24*7));
+    const agg = AGGREGATORS.find(a=>a.id===aggId);
+    const maxWeeks = parseInt((agg?.sync||'8').match(/\d+/g)?.slice(-1)[0]||'12');
+    if(weeksAgo > maxWeeks){
+      issues.push({sev:'warn', msg:`${agg.name} — submitted ${weeksAgo} weeks ago, longer than typical sync (${agg.sync}). Check status.`});
+    }
+  });
+
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Verification Checklist</h3></div><div style="padding:0">
+      ${issues.length===0 ? `<div style="padding:30px;text-align:center"><div style="font-size:36px;margin-bottom:8px">✓</div><div style="font-size:14px;font-weight:700;color:var(--success);margin-bottom:4px">All checks passed</div><div style="font-size:12px;color:var(--text2)">Your aggregator submissions are in good order.</div></div>` : issues.map(i=>`<div style="padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr;gap:10px"><div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${i.sev==='fail'?'rgba(220,38,38,.15)':'rgba(245,158,11,.15)'};color:${i.sev==='fail'?'var(--danger)':'var(--warn)'};font-weight:900">${i.sev==='fail'?'✗':'!'}</div><div style="font-size:12.5px">${escapeHtml(i.msg)}</div></div>`).join('')}
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Re-verification Schedule</h3></div><div style="padding:14px;font-size:12.5px;line-height:1.65;color:var(--text2)">
+      Aggregators silently drop listings when data changes (new phone number, moved address, NAP inconsistencies surface elsewhere). Set calendar reminders to re-verify your active listings every <strong>${state.biz.cadence||'quarterly'}</strong>.
+      <ul style="padding-left:22px;margin-top:8px">
+        <li><strong>Data Axle:</strong> Log into expressupdate.com → search by phone → confirm details</li>
+        <li><strong>Foursquare:</strong> foursquare.com/business → My venues</li>
+        <li><strong>Neustar Localeze:</strong> neustarlocaleze.biz → renewal cycle</li>
+        <li><strong>Acxiom:</strong> mybusinesslistingmanager.com → update</li>
+        <li><strong>Apple Maps:</strong> mapsconnect.apple.com → manage listing</li>
+        <li><strong>Bing Places:</strong> bingplaces.com → review profile</li>
+        <li><strong>GBP:</strong> business.google.com → manage</li>
+      </ul>
+    </div></div>
+  `;
+}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>The US Aggregator Ecosystem (2026)</h3></div><div style="padding:18px;font-size:13px;line-height:1.75">
+      <p style="color:var(--text2);margin-bottom:12px">In the United States, business listing data flows downstream from a small group of <strong>data aggregators</strong> to hundreds of consumer-facing directories, maps, voice assistants, and AI search products. Submitting accurate data to each aggregator earns you consistent NAP coverage across the entire web — without needing to submit individually to each downstream source.</p>
+
+      <h4 style="margin-top:14px;font-size:13.5px;font-weight:700;color:var(--accent)">The Big Four (2026)</h4>
+      <ol style="padding-left:22px;color:var(--text2);margin-top:6px">
+        <li><strong>Data Axle</strong> — formerly Infogroup. Submit free at expressupdate.com. Feeds Apple Maps, Yelp data, Bing partial.</li>
+        <li><strong>Foursquare</strong> — independent. Submit free at foursquare.com/add-place. Feeds Apple Maps secondary, social platforms, ride-share.</li>
+        <li><strong>Neustar Localeze</strong> (TransUnion) — paid, $299–$575/yr. Feeds Apple, Bing, Yelp, regional directories. Best ROI single paid aggregator.</li>
+        <li><strong>Acxiom</strong> — LiveRamp subsidiary. Free direct submission, more limited reach than Data Axle.</li>
+      </ol>
+
+      <h4 style="margin-top:18px;font-size:13.5px;font-weight:700;color:var(--accent)">The Three Direct Channels (Skip Aggregators)</h4>
+      <ol style="padding-left:22px;color:var(--text2);margin-top:6px">
+        <li><strong>Google Business Profile</strong> — primary, must claim directly</li>
+        <li><strong>Apple Maps Connect</strong> — direct since 2023, no aggregator wait</li>
+        <li><strong>Bing Places</strong> — direct, can sync from GBP</li>
+      </ol>
+
+      <h4 style="margin-top:18px;font-size:13.5px;font-weight:700;color:var(--accent)">Recommended Submission Order</h4>
+      <ol style="padding-left:22px;color:var(--text2);margin-top:6px">
+        <li>Google Business Profile (claim + fully optimize first)</li>
+        <li>Apple Maps Connect</li>
+        <li>Bing Places (sync from GBP)</li>
+        <li>Data Axle (free, broad reach)</li>
+        <li>Foursquare (free, social/maps reach)</li>
+        <li>Acxiom (free, limited reach)</li>
+        <li>Neustar Localeze (paid — only if budget allows, and only after the free ones are 100% consistent)</li>
+      </ol>
+
+      <h4 style="margin-top:18px;font-size:13.5px;font-weight:700;color:var(--accent)">NAP Consistency Rules</h4>
+      <ul style="padding-left:22px;color:var(--text2);margin-top:6px">
+        <li>Use the <strong>exact same business name</strong> everywhere (no abbreviations on one, full name on another)</li>
+        <li><strong>One canonical phone number</strong> per location (tracking numbers cause inconsistencies)</li>
+        <li><strong>Match Google address format exactly</strong>: "Suite" vs "Ste", "Avenue" vs "Ave"</li>
+        <li>Use the <strong>NAP Checker tool</strong> in this suite to verify consistency before each submission round</li>
+      </ul>
+
+      <h4 style="margin-top:18px;font-size:13.5px;font-weight:700;color:var(--accent)">Aggregator vs Yext/Synup/Moz Local Services</h4>
+      <p style="color:var(--text2);margin-top:6px">Services like Yext, BrightLocal, Moz Local, Whitespark, and Synup push to multiple aggregators on your behalf, monitor changes, and auto-correct drift. Trade-off: ~$200-$400/yr per location, but huge time savings + automated re-verification. If you have 5+ locations or no time to manage manually, the service typically pays for itself.</p>
+
+      <h4 style="margin-top:18px;font-size:13.5px;font-weight:700;color:var(--accent)">When Listings Get Dropped</h4>
+      <ul style="padding-left:22px;color:var(--text2);margin-top:6px">
+        <li>Aggregator detects conflicting data elsewhere (mismatched phone on another source)</li>
+        <li>Phone disconnected or unanswered during verification callback</li>
+        <li>Subscription lapsed (Localeze)</li>
+        <li>Business reported as closed by competitor or user</li>
+        <li>Domain or address verification fails (postcard returned)</li>
+      </ul>
+      <p style="color:var(--text2);margin-top:8px">Re-verify quarterly to catch drops early before they propagate to all downstream sources.</p>
+    </div></div>
+  `;
+}
+
+/* EXPORT */
+function exportCSV(){
+  const rows = [['Aggregator','Status','Date','Method','Reference','Notes','Cost','Sync Time','Priority','Downstream Sources']];
+  AGGREGATORS.forEach(a=>{
+    const s = state.submissions[a.id] || {};
+    rows.push([a.name, s.status||'not_started', s.date||'', s.method||'', s.ref||'', s.notes||'', a.cost, a.sync, a.priority, a.downstream.join('; ')]);
+  });
+  const blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='aggregator-tracker.csv'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('CSV exported','success');
+}
+
+function exportReport(){
+  const c = counts();
+  const css = `*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}.wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:14px;padding:36px;box-shadow:0 4px 16px rgba(15,26,46,.1)}h1{font-size:24px;font-weight:800;border-bottom:3px solid #0891b2;padding-bottom:12px}h2{font-size:17px;font-weight:700;margin:22px 0 10px;color:#0891b2}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.c{padding:10px 13px;background:#f3f6fb;border-radius:8px;border-left:4px solid #0891b2}.cn{font-size:10px;color:#5b6b88;font-weight:700;text-transform:uppercase}.cv{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}th{background:#f3f6fb;text-align:left;padding:9px 11px;font-size:10px;text-transform:uppercase;color:#5b6b88}td{padding:9px 11px;border-bottom:1px solid #e9eef7}.st{font-size:10px;font-weight:800;font-family:monospace;padding:2px 6px;border-radius:4px}.st.live{background:rgba(22,163,74,.15);color:#16a34a}.st.pending,.st.submitted{background:rgba(245,158,11,.15);color:#d97706}.st.dropped{background:rgba(220,38,38,.15);color:#dc2626}@media print{body{padding:0;background:#fff}.wrap{box-shadow:none;border-radius:0}}`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Aggregator Tracker Report</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="wrap">
+<h1>Listings Aggregator Report — ${escapeHtml(state.biz.name||'(unnamed business)')}</h1>
+<p style="color:#5b6b88;margin-bottom:14px">${new Date().toLocaleDateString()} · ${AGGREGATORS.length} aggregators tracked</p>
+<div class="grid">
+  <div class="c" style="border-color:#16a34a"><div class="cn">Live</div><div class="cv" style="color:#16a34a">${c.live}</div></div>
+  <div class="c" style="border-color:#d97706"><div class="cn">Pending</div><div class="cv" style="color:#d97706">${c.pending+c.submitted}</div></div>
+  <div class="c" style="border-color:#dc2626"><div class="cn">Dropped</div><div class="cv" style="color:#dc2626">${c.dropped}</div></div>
+  <div class="c"><div class="cn">Not Started</div><div class="cv" style="color:#5b6b88">${c.notstarted}</div></div>
+</div>
+<h2>Submission Status</h2>
+<table><thead><tr><th>Aggregator</th><th>Status</th><th>Submitted</th><th>Method</th><th>Priority</th></tr></thead><tbody>
+${AGGREGATORS.map(a=>{const s=state.submissions[a.id]||{};const status=s.status||'not_started';return `<tr><td><strong>${escapeHtml(a.name)}</strong><div style="font-size:10px;color:#5b6b88">${escapeHtml(a.aka)}</div></td><td><span class="st ${status}">${status.toUpperCase()}</span></td><td>${escapeHtml(s.date||'—')}</td><td>${escapeHtml(s.method||'—')}</td><td>${a.priority}</td></tr>`;}).join('')}
+</tbody></table>
+<h2>Business Information</h2>
+<table><tr><td>Name</td><td>${escapeHtml(state.biz.name)}</td></tr><tr><td>Phone</td><td>${escapeHtml(state.biz.phone)}</td></tr><tr><td>Address</td><td>${escapeHtml(state.biz.street)}, ${escapeHtml(state.biz.city)}, ${escapeHtml(state.biz.state)} ${escapeHtml(state.biz.zip)}</td></tr><tr><td>Website</td><td>${escapeHtml(state.biz.web)}</td></tr><tr><td>Category</td><td>${escapeHtml(state.biz.cat)}</td></tr></table>
+<div style="margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center">Generated by Listings Aggregator Tracker · ${new Date().toLocaleString()}</div>
+</div><script src="global-nav.js"><\/script>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='aggregator-report.html'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Report exported','success');
+}
+
+/* AUTO-INHERIT business from citation finder */
+(function inherit(){
+  if(state.biz.name) return;
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.[0];
+    if(b){
+      state.biz.name = b.name||'';
+      state.biz.phone = b.phone||'';
+      state.biz.street = b.address||'';
+      state.biz.city = b.city||'';
+      state.biz.state = b.state||'';
+      state.biz.zip = b.zip||'';
+      state.biz.web = b.website||'';
+      state.biz.cat = b.category||'';
+      saveState();
+    }
+  } catch(e){}
+})();
+
+/* BOOT */
+fillBiz();
+render();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

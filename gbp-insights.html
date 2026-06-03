@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Insights Analyzer - Visual Analytics for Google Business Profile Performance</title>
+<meta name="description" content="Deep visual analytics for Google Business Profile performance data. Day-of-week patterns, search query analysis, photo views, conversion trends, and AI-powered insights from imported GBP Insights CSVs.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#4285f4; --accent-h:#1a73e8; --accent-soft:rgba(66,133,244,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed; --green:#16a34a;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#60a5fa; --accent-h:#93c5fd; --accent-soft:rgba(96,165,250,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa; --green:#22c55e;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--green);border:1px solid var(--green);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.calls strong{color:var(--success);font-size:14px}
+.hdr-stat.dirs strong{color:var(--blue)}
+.hdr-stat.web strong{color:var(--accent)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:300px;min-width:260px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+.range-pills{display:flex;flex-wrap:wrap;gap:4px}
+.range-pill{font-size:10.5px;font-family:var(--mono);font-weight:700;padding:5px 10px;border-radius:11px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;text-transform:uppercase}
+.range-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:11px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}.kpi.b::before{background:var(--blue)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}.kpi.b .v{color:var(--blue)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.kpi .delta{font-size:11px;font-family:var(--mono);font-weight:800;margin-top:2px}
+.kpi .delta.pos{color:var(--success)}
+.kpi .delta.neg{color:var(--danger)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.chart-wrap{position:relative;height:300px;padding:14px}
+.chart-wrap.small{height:220px}
+
+.dow-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:14px}
+.dow-cell{padding:12px 8px;border-radius:8px;text-align:center;color:#fff;font-weight:800}
+.dow-cell .day{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;opacity:.85;margin-bottom:3px}
+.dow-cell .num{font-size:18px;font-weight:900;font-family:var(--mono)}
+.dow-cell .pct{font-size:10px;opacity:.8;font-family:var(--mono);margin-top:2px}
+
+.query-row{padding:9px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1fr auto auto;gap:11px;align-items:center;font-size:12px}
+.query-row:last-child{border-bottom:none}
+.query-row .rank{width:28px;height:28px;border-radius:7px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--text2)}
+.query-row .rank.top{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.query-row .q{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.query-row .imps{font-family:var(--mono);font-size:11.5px;color:var(--text);font-weight:800;text-align:right;min-width:50px}
+.query-row .bar{width:80px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.query-row .bar .fill{height:100%;background:var(--accent);transition:width .3s}
+
+.insight{padding:11px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:24px 1fr;gap:11px;align-items:start;font-size:12px}
+.insight:last-child{border-bottom:none}
+.insight .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;margin-top:1px}
+.insight.info .icon{background:rgba(37,99,235,.15);color:var(--blue)}
+.insight.warn .icon{background:rgba(245,158,11,.15);color:var(--warn)}
+.insight.good .icon{background:rgba(22,163,74,.15);color:var(--success)}
+.insight .body .title{font-size:12.5px;font-weight:700}
+.insight .body .desc{font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:300px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+    <div><div class="logo-name">GBP<span>Insights</span></div></div>
+    <span class="logo-tag">ANALYTICS</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat calls">Calls: <strong id="stat-calls">0</strong></div>
+  <div class="hdr-stat dirs">Dirs: <strong id="stat-dirs">0</strong></div>
+  <div class="hdr-stat web">Web: <strong id="stat-web">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="gbp-performance.html" class="hdr-link" style="border-color:rgba(66,133,244,.4);color:var(--accent)">CSV Import</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Filters</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Date Range</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="range-pills" id="range-pills">
+            <span class="range-pill" data-r="7" onclick="setRange(7)">7d</span>
+            <span class="range-pill active" data-r="30" onclick="setRange(30)">30d</span>
+            <span class="range-pill" data-r="90" onclick="setRange(90)">90d</span>
+            <span class="range-pill" data-r="all" onclick="setRange('all')">All</span>
+          </div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Data Source</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f hint">Data is pulled from your GBP Performance Importer state. Import CSVs there first.</div>
+          <button class="btn-sub" onclick="window.location='gbp-performance.html'">Open Importer</button>
+          <button class="btn-sub" onclick="reload()">↻ Reload Data</button>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="exportReport()">Export Report</button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="trends" onclick="setTab('trends')">Trends</button>
+      <button class="tab" data-tab="dow" onclick="setTab('dow')">Day-of-Week</button>
+      <button class="tab" data-tab="queries" onclick="setTab('queries')">Search Queries</button>
+      <button class="tab" data-tab="insights" onclick="setTab('insights')">AI Insights</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Deep visual analytics for GBP Performance data</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='gpi_state_v1';
+const defaultState={range:30, view:'overview'};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function setRange(r){state.range=r;saveState();document.querySelectorAll('.range-pill').forEach(el=>el.classList.toggle('active',el.dataset.r==r));render();}
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function getData(){
+  try{const gp=JSON.parse(localStorage.getItem('gp_state_v1')||'null');
+    if(!gp?.imports?.length) return null;
+    const daily=gp.imports.filter(i=>i.type==='daily_actions').flatMap(i=>i.data||[]);
+    const queries=gp.imports.filter(i=>i.type==='search_queries').flatMap(i=>i.data||[]);
+    return {daily, queries, business:gp.biz};
+  }catch(e){return null;}
+}
+
+function filterByRange(rows){
+  if(state.range==='all') return rows;
+  const days=parseInt(state.range);
+  if(!rows.length) return rows;
+  // Sort + take last N rows assuming chronological
+  const sorted=rows.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return sorted.slice(0, days).reverse();
+}
+
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+function render(){
+  destroyCharts();
+  const data=getData();
+  if(!data){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <div class="et">No GBP Performance Data</div>
+      <div class="ed">Import GBP Insights CSVs first via the <strong>GBP Performance Importer</strong>. Once you have data, this tool provides deep visual analytics including day-of-week patterns, trend lines, search query analysis, and AI-style insights.</div>
+    </div>`;
+    document.getElementById('stat-calls').textContent='0';
+    document.getElementById('stat-dirs').textContent='0';
+    document.getElementById('stat-web').textContent='0';
+    return;
+  }
+  const daily=filterByRange(data.daily);
+  const totals=daily.reduce((s,r)=>({calls:s.calls+(r.calls||0), directions:s.directions+(r.directions||0), websiteClicks:s.websiteClicks+(r.websiteClicks||0), messages:s.messages+(r.messages||0), bookings:s.bookings+(r.bookings||0)}),{calls:0,directions:0,websiteClicks:0,messages:0,bookings:0});
+  document.getElementById('stat-calls').textContent=totals.calls.toLocaleString();
+  document.getElementById('stat-dirs').textContent=totals.directions.toLocaleString();
+  document.getElementById('stat-web').textContent=totals.websiteClicks.toLocaleString();
+  if(state.view==='overview') return renderOverview(data, daily, totals);
+  if(state.view==='trends') return renderTrends(data, daily);
+  if(state.view==='dow') return renderDow(data, daily);
+  if(state.view==='queries') return renderQueries(data);
+  if(state.view==='insights') return renderInsights(data, daily, totals);
+}
+
+function getPrevPeriodTotals(daily, range){
+  if(range==='all'||!daily.length)return null;
+  const days=parseInt(range);
+  // Pretend prior period is the same N days before
+  const allData=getData()?.daily||[];
+  const sorted=allData.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const prev=sorted.slice(days, days*2);
+  return prev.reduce((s,r)=>({calls:s.calls+(r.calls||0), directions:s.directions+(r.directions||0), websiteClicks:s.websiteClicks+(r.websiteClicks||0)}),{calls:0,directions:0,websiteClicks:0});
+}
+
+function renderOverview(data, daily, totals){
+  const prev=getPrevPeriodTotals(daily, state.range);
+  const total=totals.calls+totals.directions+totals.websiteClicks+totals.messages+totals.bookings;
+  const dCalls=prev?totals.calls-prev.calls:null;
+  const dDirs=prev?totals.directions-prev.directions:null;
+  const dWeb=prev?totals.websiteClicks-prev.websiteClicks:null;
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi s"><div class="l">Calls</div><div class="v">${totals.calls.toLocaleString()}</div>${prev?`<div class="delta ${dCalls>=0?'pos':'neg'}">${dCalls>=0?'+':''}${dCalls} vs prior</div>`:'<div class="s">total in range</div>'}</div>
+      <div class="kpi b"><div class="l">Directions</div><div class="v">${totals.directions.toLocaleString()}</div>${prev?`<div class="delta ${dDirs>=0?'pos':'neg'}">${dDirs>=0?'+':''}${dDirs} vs prior</div>`:'<div class="s">requests</div>'}</div>
+      <div class="kpi"><div class="l">Website clicks</div><div class="v">${totals.websiteClicks.toLocaleString()}</div>${prev?`<div class="delta ${dWeb>=0?'pos':'neg'}">${dWeb>=0?'+':''}${dWeb} vs prior</div>`:'<div class="s">site visits</div>'}</div>
+      <div class="kpi w"><div class="l">Messages</div><div class="v">${totals.messages.toLocaleString()}</div><div class="s">chat inquiries</div></div>
+      <div class="kpi"><div class="l">Bookings</div><div class="v">${totals.bookings.toLocaleString()}</div><div class="s">scheduled</div></div>
+      <div class="kpi"><div class="l">Total actions</div><div class="v">${total.toLocaleString()}</div><div class="s">all interactions</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Daily Actions Trend</h3></div><div class="chart-wrap"><canvas id="ch-daily"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Action Mix</h3></div><div class="chart-wrap small"><canvas id="ch-mix"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+    Chart.defaults.borderColor=isDark?'#1e2d44':'#d1d9e8';
+    const labels=daily.map(r=>r.date);
+    const ctx1=document.getElementById('ch-daily')?.getContext('2d');
+    if(ctx1)charts.push(new Chart(ctx1,{type:'line',data:{labels,datasets:[
+      {label:'Calls',data:daily.map(r=>r.calls||0),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:0.3,fill:true,pointRadius:0},
+      {label:'Directions',data:daily.map(r=>r.directions||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',tension:0.3,fill:true,pointRadius:0},
+      {label:'Website',data:daily.map(r=>r.websiteClicks||0),borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.1)',tension:0.3,fill:true,pointRadius:0},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}}));
+    const ctx2=document.getElementById('ch-mix')?.getContext('2d');
+    if(ctx2)charts.push(new Chart(ctx2,{type:'doughnut',data:{labels:['Calls','Directions','Website','Messages','Bookings'],datasets:[{data:[totals.calls,totals.directions,totals.websiteClicks,totals.messages,totals.bookings],backgroundColor:['#16a34a','#2563eb','#7c3aed','#f59e0b','#db2777']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}}));
+  },50);
+}
+
+function renderTrends(data, daily){
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>Calls Trend with Moving Average</h3></div><div class="chart-wrap"><canvas id="ch-calls"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Directions Trend</h3></div><div class="chart-wrap"><canvas id="ch-dirs"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Website Clicks Trend</h3></div><div class="chart-wrap"><canvas id="ch-web"></canvas></div></div>
+  `;
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+    Chart.defaults.borderColor=isDark?'#1e2d44':'#d1d9e8';
+    const labels=daily.map(r=>r.date);
+    [['ch-calls','calls','#16a34a','Calls'],['ch-dirs','directions','#2563eb','Directions'],['ch-web','websiteClicks','#7c3aed','Website']].forEach(([id,key,color,label])=>{
+      const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+      const series=daily.map(r=>r[key]||0);
+      const ma=movingAvg(series, 7);
+      charts.push(new Chart(ctx,{type:'line',data:{labels,datasets:[
+        {label,data:series,borderColor:color,backgroundColor:color+'22',tension:0.2,fill:true,pointRadius:1},
+        {label:'7-day avg',data:ma,borderColor:color,backgroundColor:'transparent',borderDash:[5,5],tension:0.2,pointRadius:0},
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}}));
+    });
+  },50);
+}
+function movingAvg(arr, n){return arr.map((_,i)=>{const start=Math.max(0,i-n+1);const win=arr.slice(start,i+1);return win.reduce((s,v)=>s+v,0)/win.length;});}
+
+function renderDow(data, daily){
+  const dowTotals=Array(7).fill().map(()=>({calls:0,directions:0,websiteClicks:0,count:0}));
+  daily.forEach(r=>{if(!r.date)return;const d=new Date(r.date);if(isNaN(d))return;const dow=d.getDay();dowTotals[dow].calls+=r.calls||0;dowTotals[dow].directions+=r.directions||0;dowTotals[dow].websiteClicks+=r.websiteClicks||0;dowTotals[dow].count++;});
+  const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const colors=['#dc2626','#2563eb','#7c3aed','#0891b2','#0d9488','#16a34a','#db2777'];
+  const totalActions=dowTotals.reduce((s,d)=>s+d.calls+d.directions+d.websiteClicks,0);
+  // Find best day per metric
+  const bestCalls=dowTotals.map(d=>d.calls).indexOf(Math.max(...dowTotals.map(d=>d.calls)));
+  const bestDirs=dowTotals.map(d=>d.directions).indexOf(Math.max(...dowTotals.map(d=>d.directions)));
+  document.getElementById('cbody').innerHTML=`
+    <div class="section"><div class="section-hdr"><h3>Total Actions by Day of Week</h3></div><div class="dow-grid">
+      ${dowTotals.map((d,i)=>{const total=d.calls+d.directions+d.websiteClicks;const pct=totalActions?Math.round(total/totalActions*100):0;return `<div class="dow-cell" style="background:${colors[i]}"><div class="day">${names[i]}</div><div class="num">${total}</div><div class="pct">${pct}%</div></div>`;}).join('')}
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Per-Metric Day of Week</h3></div><div class="chart-wrap"><canvas id="ch-dow"></canvas></div></div>
+    <div class="section"><div class="section-hdr"><h3>Insights</h3></div><div>
+      <div class="insight info"><div class="icon">i</div><div class="body"><div class="title">Peak day for calls: ${names[bestCalls]}</div><div class="desc">${dowTotals[bestCalls].calls} total calls on ${names[bestCalls]}s over the period.</div></div></div>
+      <div class="insight info"><div class="icon">i</div><div class="body"><div class="title">Peak day for directions: ${names[bestDirs]}</div><div class="desc">${dowTotals[bestDirs].directions} direction requests. Consider scheduling more staff for visit-heavy days.</div></div></div>
+    </div></div>
+  `;
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color=isDark?'#7e95b8':'#5b6b88';
+    const ctx=document.getElementById('ch-dow')?.getContext('2d');if(!ctx)return;
+    charts.push(new Chart(ctx,{type:'bar',data:{labels:names,datasets:[
+      {label:'Calls',data:dowTotals.map(d=>d.calls),backgroundColor:'#16a34a'},
+      {label:'Directions',data:dowTotals.map(d=>d.directions),backgroundColor:'#2563eb'},
+      {label:'Website',data:dowTotals.map(d=>d.websiteClicks),backgroundColor:'#7c3aed'},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,stacked:false},x:{stacked:false}}}}));
+  },50);
+}
+
+function renderQueries(data){
+  if(!data.queries?.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty"><div class="et">No search query data</div><div class="ed">Import the search-queries CSV from GBP Insights to see what people are searching to find you.</div></div>`;
+    return;
+  }
+  // Aggregate queries by string
+  const byQuery={};
+  data.queries.forEach(q=>{const k=(q.query||'').toLowerCase().trim();if(!k)return;if(!byQuery[k])byQuery[k]={impressions:0, count:0};byQuery[k].impressions+=q.impressions||0;byQuery[k].count++;});
+  const sorted=Object.entries(byQuery).sort((a,b)=>b[1].impressions-a[1].impressions);
+  const max=sorted[0]?.[1].impressions||1;
+  // Branded vs unbranded
+  const biz=(data.business?.name||'').toLowerCase().split(/\s+/).filter(w=>w.length>3);
+  let branded=0, unbranded=0;
+  sorted.forEach(([q,info])=>{if(biz.some(w=>q.includes(w)))branded+=info.impressions;else unbranded+=info.impressions;});
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Unique queries</div><div class="v">${sorted.length}</div><div class="s">distinct searches</div></div>
+      <div class="kpi s"><div class="l">Total impressions</div><div class="v">${(branded+unbranded).toLocaleString()}</div><div class="s">across all queries</div></div>
+      <div class="kpi b"><div class="l">Branded</div><div class="v">${branded.toLocaleString()}</div><div class="s">${branded+unbranded?Math.round(branded/(branded+unbranded)*100):0}% of impressions</div></div>
+      <div class="kpi"><div class="l">Unbranded</div><div class="v">${unbranded.toLocaleString()}</div><div class="s">discovery</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Top Search Queries</h3><span class="badge">${sorted.length}</span></div><div>
+      ${sorted.slice(0,50).map(([q,info],i)=>{const pct=Math.round(info.impressions/max*100);const isBrand=biz.some(w=>q.includes(w));return `<div class="query-row"><div class="rank ${i<3?'top':''}">${i+1}</div><div class="q">${escapeHtml(q)}${isBrand?' <span style="font-size:9px;color:var(--blue);font-family:var(--mono);font-weight:800">BRANDED</span>':''}</div><div class="bar"><div class="fill" style="width:${pct}%"></div></div><div class="imps">${info.impressions.toLocaleString()}</div></div>`;}).join('')}
+    </div></div>
+  `;
+}
+
+function renderInsights(data, daily, totals){
+  const insights=[];
+  // Volume trends
+  if(daily.length>=14){
+    const half=Math.floor(daily.length/2);
+    const recent=daily.slice(half);
+    const older=daily.slice(0,half);
+    const recentSum=recent.reduce((s,r)=>s+(r.calls||0)+(r.directions||0)+(r.websiteClicks||0),0);
+    const olderSum=older.reduce((s,r)=>s+(r.calls||0)+(r.directions||0)+(r.websiteClicks||0),0);
+    const change=olderSum?(recentSum-olderSum)/olderSum*100:0;
+    if(change>=15)insights.push({type:'good',title:`Actions trending up ${Math.round(change)}%`,desc:`Recent half of period saw ${recentSum} actions vs ${olderSum} in older half.`});
+    else if(change<=-15)insights.push({type:'warn',title:`Actions trending down ${Math.round(change)}%`,desc:`Recent half saw ${recentSum} actions vs ${olderSum} in older half. Investigate cause.`});
+  }
+  // Day-of-week
+  const dowTotals=Array(7).fill(0);daily.forEach(r=>{if(!r.date)return;const d=new Date(r.date);if(isNaN(d))return;dowTotals[d.getDay()]+=(r.calls||0)+(r.directions||0)+(r.websiteClicks||0);});
+  const names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const bestDow=dowTotals.indexOf(Math.max(...dowTotals));
+  const worstDow=dowTotals.indexOf(Math.min(...dowTotals.filter(v=>v>0)));
+  if(dowTotals[bestDow]>0)insights.push({type:'info',title:`Peak day: ${names[bestDow]}`,desc:`${dowTotals[bestDow]} total actions. Consider promotions or staff scheduling around this day.`});
+  if(dowTotals[bestDow]/dowTotals[worstDow] > 3)insights.push({type:'warn',title:`Heavy weekly variance`,desc:`${names[bestDow]} (${dowTotals[bestDow]}) is ${Math.round(dowTotals[bestDow]/dowTotals[worstDow])}x ${names[worstDow]} (${dowTotals[worstDow]}). Consider campaigns to lift slow days.`});
+  // Action mix
+  if(totals.calls && totals.websiteClicks){
+    const callShare=totals.calls/(totals.calls+totals.websiteClicks);
+    if(callShare>0.6)insights.push({type:'info',title:'Call-heavy audience',desc:`${Math.round(callShare*100)}% prefer calling over web. Optimize phone experience, click-to-call.`});
+    else if(callShare<0.2)insights.push({type:'info',title:'Web-first audience',desc:`Only ${Math.round(callShare*100)}% call. Focus on web conversion optimization.`});
+  }
+  if(totals.directions>totals.calls*1.5)insights.push({type:'good',title:'High visit intent',desc:`Directions outpace calls. Customers want to visit — optimize storefront experience.`});
+  // Search queries
+  if(data.queries?.length){
+    const biz=(data.business?.name||'').toLowerCase().split(/\s+/).filter(w=>w.length>3);
+    const branded=data.queries.filter(q=>biz.some(w=>(q.query||'').toLowerCase().includes(w))).reduce((s,q)=>s+(q.impressions||0),0);
+    const total=data.queries.reduce((s,q)=>s+(q.impressions||0),0);
+    const brandPct=total?branded/total*100:0;
+    if(brandPct<25)insights.push({type:'good',title:'Strong discovery',desc:`Only ${Math.round(brandPct)}% branded — most searches are discovery-driven (good local SEO sign).`});
+    else if(brandPct>60)insights.push({type:'warn',title:'Mostly branded queries',desc:`${Math.round(brandPct)}% branded. Need more discovery via SEO/citations.`});
+  }
+  if(!insights.length)insights.push({type:'info',title:'No notable patterns yet',desc:'Need more data — capture at least 2-4 weeks of GBP Insights to surface patterns.'});
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Pattern-Detected Insights</h3><span class="badge">${insights.length}</span></div><div>
+    ${insights.map(i=>`<div class="insight ${i.type}"><div class="icon">${i.type==='good'?'✓':i.type==='warn'?'!':'i'}</div><div class="body"><div class="title">${escapeHtml(i.title)}</div><div class="desc">${escapeHtml(i.desc)}</div></div></div>`).join('')}
+  </div></div>`;
+}
+
+function exportCSV(){
+  const data=getData();
+  if(!data){toast('No data','err');return;}
+  const daily=filterByRange(data.daily);
+  const rows=[['date','calls','directions','website_clicks','messages','bookings']];
+  daily.forEach(r=>rows.push([r.date||'', r.calls||0, r.directions||0, r.websiteClicks||0, r.messages||0, r.bookings||0]));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='gbp-insights.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function exportReport(){toast('Use Export → CSV or capture screenshots','success');}
+function reload(){render();toast('Reloaded','success');}
+
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

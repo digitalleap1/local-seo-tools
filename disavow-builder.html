@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backlink Disavow Builder - Generate Google Disavow File from Toxic Links</title>
+<meta name="description" content="Build a Google Disavow Tool file from your backlink profile. Toxic link detection, domain/URL toggles, severity filtering, and exportable disavow.txt format. Pairs with the Backlink Profile tool.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#dc2626; --accent-h:#b91c1c; --accent-soft:rgba(220,38,38,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#ef4444; --accent-h:#f87171; --accent-soft:rgba(239,68,68,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--amber));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.total strong{color:var(--accent)}
+.hdr-stat.flagged strong{color:var(--warn)}
+.hdr-stat.disavow strong{color:var(--danger);font-size:14px}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{resize:vertical;min-height:80px;font-family:var(--mono)}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+.threshold-slider{padding:8px 0}
+.threshold-slider .row{display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono);margin-bottom:4px}
+.threshold-slider .row strong{color:var(--accent);font-weight:800}
+.threshold-slider input[type=range]{width:100%;accent-color:var(--accent)}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.link-row{padding:9px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 42px 1fr auto auto;gap:11px;align-items:center;font-size:12px}
+.link-row:hover{background:var(--bg)}
+.link-row:last-child{border-bottom:none}
+.link-row .chk{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:900}
+.link-row .chk.active{background:var(--danger);border-color:var(--danger)}
+.link-row .score{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-family:var(--mono);font-size:12px}
+.link-row .score.hi{background:var(--danger)}
+.link-row .score.med{background:var(--warn)}
+.link-row .score.lo{background:var(--success)}
+.link-row .info{min-width:0}
+.link-row .info .dom{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link-row .info .src{font-size:10.5px;font-family:var(--mono);color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.link-row .info .flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.link-row .info .flag{font-size:9px;font-weight:700;font-family:var(--mono);padding:1px 5px;border-radius:3px;background:rgba(220,38,38,.1);color:var(--danger);border:1px solid rgba(220,38,38,.3)}
+.link-row .info .flag.warn{background:rgba(245,158,11,.1);color:var(--amber);border-color:rgba(245,158,11,.3)}
+.link-row .anchor{font-family:var(--mono);font-size:10.5px;color:var(--text2);text-align:right;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link-row .da{font-family:var(--mono);font-size:11px;color:var(--text2);text-align:center;min-width:32px}
+
+.preview-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--text2);max-height:400px;overflow-y:auto;white-space:pre-wrap}
+.preview-box .comment{color:var(--success)}
+.preview-box .domain{color:var(--danger);font-weight:700}
+.preview-box .url{color:var(--blue)}
+
+.bulk-controls{display:flex;gap:6px;padding:11px 14px;background:var(--bg);border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.bulk-controls .ctrl-btn{padding:5px 11px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;cursor:pointer}
+.bulk-controls .ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.bulk-controls .ctrl-btn.danger{color:var(--danger);border-color:var(--danger)}
+.bulk-controls input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--text);font-family:var(--font);min-width:180px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+    <div><div class="logo-name">Disavow<span>Builder</span></div></div>
+    <span class="logo-tag">TOXIC</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat total">Links: <strong id="stat-total">0</strong></div>
+  <div class="hdr-stat flagged">Flagged: <strong id="stat-flagged">0</strong></div>
+  <div class="hdr-stat disavow">Disavow: <strong id="stat-disavow">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="backlink-profile.html" class="hdr-link" style="border-color:rgba(147,51,234,.4);color:var(--purple)">Backlinks</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Toxic Filter</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Source</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Your domain</label><input id="i-domain" placeholder="yoursite.com" oninput="saveBiz()"></div>
+          <button class="btn-sub" onclick="syncFromBacklinks()">↻ Import from Backlink Profile</button>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ Domain from Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Toxicity Threshold</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="threshold-slider">
+            <div class="row"><span>Min score to flag</span><strong id="thr-disp">70</strong></div>
+            <input type="range" id="i-threshold" min="0" max="100" value="70" oninput="onThresholdChange()">
+          </div>
+          <div class="f hint">Higher = stricter (fewer false positives). Default 70 = catches obvious spam, leaves edge cases.</div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Detection Rules</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label><input type="checkbox" id="r-spam-tld" checked onchange="render()" style="width:auto"> Spam TLDs (.xyz, .top, .work)</label></div>
+          <div class="f"><label><input type="checkbox" id="r-low-da" checked onchange="render()" style="width:auto"> Very low DA (under 10)</label></div>
+          <div class="f"><label><input type="checkbox" id="r-foreign" checked onchange="render()" style="width:auto"> Foreign-language irrelevant</label></div>
+          <div class="f"><label><input type="checkbox" id="r-keyword-spam" checked onchange="render()" style="width:auto"> Keyword-stuffed anchors</label></div>
+          <div class="f"><label><input type="checkbox" id="r-pbn" checked onchange="render()" style="width:auto"> PBN-pattern domains</label></div>
+          <div class="f"><label><input type="checkbox" id="r-link-farm" checked onchange="render()" style="width:auto"> Link farm signals</label></div>
+          <div class="f"><label><input type="checkbox" id="r-adult-gambling" checked onchange="render()" style="width:auto"> Adult / gambling / pharma</label></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Manual Additions</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Extra domains/URLs to disavow (one per line)</label><textarea id="i-extra" rows="5" placeholder="spammy-site.xyz
+http://other-spam.tld/page"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="downloadDisavow()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download disavow.txt
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="copyDisavow()">Copy</button>
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="links" onclick="setTab('links')">Link List</button>
+      <button class="tab" data-tab="preview" onclick="setTab('preview')">disavow.txt Preview</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Disavow Guide</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Import backlinks and build disavow file</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORE_KEY='dis_state_v1';
+const defaultState={
+  domain:'',
+  links:[],  // {url, sourceDomain, anchor, da, type, category, isManual}
+  threshold:70,
+  rules:{spamTld:true,lowDa:true,foreign:true,keywordSpam:true,pbn:true,linkFarm:true,adultGambling:true},
+  extra:'',
+  manualDisavow:{}, // url -> bool
+  view:'overview',
+  filter:'flagged' // all | flagged | disavowed
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillInputs(){
+  document.getElementById('i-domain').value=state.domain||'';
+  document.getElementById('i-threshold').value=state.threshold;
+  document.getElementById('thr-disp').textContent=state.threshold;
+  document.getElementById('i-extra').value=state.extra||'';
+  ['r-spam-tld','r-low-da','r-foreign','r-keyword-spam','r-pbn','r-link-farm','r-adult-gambling'].forEach(id=>{const k=id.replace('r-','').replace(/-([a-z])/g,(_,c)=>c.toUpperCase()).replace(/^Tld$/,'spamTld').replace('lowDa','lowDa');const el=document.getElementById(id);if(el)el.checked=state.rules[k.replace('spamTld','spamTld')]!==false;});
+  // Manually
+  document.getElementById('r-spam-tld').checked=state.rules.spamTld!==false;
+  document.getElementById('r-low-da').checked=state.rules.lowDa!==false;
+  document.getElementById('r-foreign').checked=state.rules.foreign!==false;
+  document.getElementById('r-keyword-spam').checked=state.rules.keywordSpam!==false;
+  document.getElementById('r-pbn').checked=state.rules.pbn!==false;
+  document.getElementById('r-link-farm').checked=state.rules.linkFarm!==false;
+  document.getElementById('r-adult-gambling').checked=state.rules.adultGambling!==false;
+}
+function saveBiz(){state.domain=document.getElementById('i-domain').value.trim();state.extra=document.getElementById('i-extra').value;state.rules.spamTld=document.getElementById('r-spam-tld').checked;state.rules.lowDa=document.getElementById('r-low-da').checked;state.rules.foreign=document.getElementById('r-foreign').checked;state.rules.keywordSpam=document.getElementById('r-keyword-spam').checked;state.rules.pbn=document.getElementById('r-pbn').checked;state.rules.linkFarm=document.getElementById('r-link-farm').checked;state.rules.adultGambling=document.getElementById('r-adult-gambling').checked;saveState();render();}
+function onThresholdChange(){state.threshold=parseInt(document.getElementById('i-threshold').value);document.getElementById('thr-disp').textContent=state.threshold;saveState();render();}
+
+function syncFromBacklinks(){
+  try{const bl=JSON.parse(localStorage.getItem('bl_state_v1')||'null');
+    if(!bl?.backlinks?.length){toast('No backlinks found','err');return;}
+    state.links=bl.backlinks.map(b=>({url:b.sourceUrl||b.url||'', sourceDomain:b.sourceDomain||extractDomain(b.sourceUrl||b.url), anchor:b.anchor||'', da:b.da||b.domainAuthority||0, type:b.relCategory||b.type||'', toxicLevel:b.toxicLevel||''}));
+    if(bl.target?.domain)state.domain=bl.target.domain;
+    saveState();fillInputs();render();
+    toast(`Imported ${state.links.length} backlinks`,'success');
+  }catch(e){toast('Import failed','err');}
+}
+function syncFromCitation(){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b?.website){state.domain=extractDomain(b.website);fillInputs();saveState();toast('Loaded domain','success');}}catch(e){}}
+function extractDomain(u){if(!u)return '';try{return new URL(u.startsWith('http')?u:'http://'+u).hostname.replace(/^www\./,'');}catch(e){return u;}}
+
+/* ---------- TOXICITY DETECTION ---------- */
+const SPAM_TLDS=['xyz','top','work','click','loan','win','party','review','date','stream','trade','accountant','science','cricket','racing','men','download','bid','webcam','tk','ml','ga','cf','gq'];
+const FOREIGN_TLDS=['ru','cn','ir','vn','tr','jp','kr','tw','hk','id','th','my','ua'];
+const ADULT_TERMS=['xxx','porn','escort','adult','sex','cam','live','casino','gambling','bet','poker','viagra','cialis','pharmacy','rx','meds','weight loss','pills'];
+const SPAM_ANCHORS=['cheap','buy','online','for sale','viagra','cialis','loans','payday','casino','poker','escort','best price','discount','generic'];
+
+function detectToxic(link, rules){
+  const flags=[];let score=0;
+  const url=(link.url||'').toLowerCase();
+  const dom=(link.sourceDomain||'').toLowerCase();
+  const anchor=(link.anchor||'').toLowerCase();
+  // TLD
+  const tld=dom.split('.').pop();
+  if(rules.spamTld && SPAM_TLDS.includes(tld)){flags.push('Spam TLD ('+tld+')');score+=35;}
+  if(rules.foreign && FOREIGN_TLDS.includes(tld)){flags.push('Foreign TLD ('+tld+')');score+=15;}
+  // Low DA
+  if(rules.lowDa && link.da && link.da<10){flags.push('DA '+link.da);score+=25;}
+  else if(rules.lowDa && link.da && link.da<5){flags.push('Very low DA ('+link.da+')');score+=10;}
+  // Adult/gambling/pharma
+  if(rules.adultGambling && ADULT_TERMS.some(t=>dom.includes(t)||url.includes(t))){flags.push('Adult/gambling/pharma');score+=50;}
+  // Spammy anchor
+  if(rules.keywordSpam && SPAM_ANCHORS.some(t=>anchor.includes(t))){flags.push('Spam anchor');score+=20;}
+  // Excessive numbers in domain
+  if(rules.pbn && /\d{3,}/.test(dom)){flags.push('Numbers-in-domain (PBN signal)');score+=15;}
+  // Subdomain spam
+  if(rules.pbn && (dom.match(/\./g)||[]).length>=3){flags.push('Multi-level subdomain');score+=10;}
+  // Very long domain name
+  if(rules.pbn && dom.length>30){flags.push('Suspicious domain length');score+=8;}
+  // Hyphen-heavy
+  if(rules.pbn && (dom.match(/-/g)||[]).length>=3){flags.push('Hyphen-heavy domain');score+=12;}
+  // Exact-match keyword domain
+  if(rules.pbn && /^(best|top|cheap|buy)/.test(dom)){flags.push('Exact-match spam pattern');score+=15;}
+  // Link farm: marked toxic in profile
+  if(rules.linkFarm && link.toxicLevel==='high'){flags.push('Link farm pattern');score+=30;}
+  if(rules.linkFarm && link.toxicLevel==='medium'){flags.push('Suspicious pattern');score+=15;}
+  return {score:Math.min(100,score), flags};
+}
+
+function annotateLinks(){
+  return state.links.map(l=>{const t=detectToxic(l,state.rules);return {...l, toxicScore:t.score, flags:t.flags, shouldDisavow: t.score>=state.threshold || state.manualDisavow[l.url]};});
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+function setFilter(f){state.filter=f;saveState();render();}
+
+function render(){
+  const links=annotateLinks();
+  document.getElementById('stat-total').textContent=links.length;
+  document.getElementById('stat-flagged').textContent=links.filter(l=>l.flags.length>0).length;
+  const extraDis=(state.extra||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  const disavowCount=links.filter(l=>l.shouldDisavow).length + extraDis.length;
+  document.getElementById('stat-disavow').textContent=disavowCount;
+  if(state.view==='overview') return renderOverview(links);
+  if(state.view==='links') return renderLinks(links);
+  if(state.view==='preview') return renderPreview(links);
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(links){
+  const flagged=links.filter(l=>l.flags.length>0).length;
+  const disavow=links.filter(l=>l.shouldDisavow).length;
+  const uniqueDomains=new Set(links.map(l=>l.sourceDomain)).size;
+  const flaggedDoms=new Set(links.filter(l=>l.shouldDisavow).map(l=>l.sourceDomain)).size;
+  // Top spam categories
+  const cats={};
+  links.forEach(l=>l.flags.forEach(f=>{const k=f.split(' (')[0];cats[k]=(cats[k]||0)+1;}));
+  const topCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!links.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <div class="et">Disavow Builder</div>
+      <div class="ed">Import your backlinks from the Backlink Profile tool, then use toxicity detection rules to identify spam links. The tool generates a properly-formatted disavow.txt file you can upload to Google Search Console.</div>
+    </div>`;
+    return;
+  }
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Total backlinks</div><div class="v">${links.length}</div><div class="s">${uniqueDomains} unique domains</div></div>
+      <div class="kpi w"><div class="l">Flagged</div><div class="v">${flagged}</div><div class="s">have toxicity signals</div></div>
+      <div class="kpi d"><div class="l">Will disavow</div><div class="v">${disavow}</div><div class="s">≥${state.threshold} threshold</div></div>
+      <div class="kpi d"><div class="l">Spam domains</div><div class="v">${flaggedDoms}</div><div class="s">to disavow</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Top Toxicity Patterns</h3></div><div style="padding:14px">
+      ${topCats.length?topCats.map(([cat,n])=>`<div style="display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:700">${escapeHtml(cat)}</div><div style="font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:700">${n} link${n===1?'':'s'}</div></div>`).join(''):'<div style="text-align:center;color:var(--success);font-weight:700;padding:20px">✓ No toxic patterns detected</div>'}
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Recommendation</h3></div><div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text2)">
+      ${disavow===0?'<strong style="color:var(--success)">Your profile looks clean.</strong> No disavow file needed. Continue monitoring monthly.':disavow<10?`<strong style="color:var(--warn)">Minor cleanup needed.</strong> ${disavow} links flagged. Review them in the Link List tab before submitting.`:disavow<50?`<strong style="color:var(--warn)">Moderate cleanup recommended.</strong> ${disavow} links to disavow. Submit after manual review.`:`<strong style="color:var(--danger)">Significant toxic link presence detected.</strong> ${disavow} links flagged. Strongly recommended to submit a disavow file via Google Search Console.`}
+    </div></div>
+  `;
+}
+
+function renderLinks(links){
+  const filtered=state.filter==='all'?links:state.filter==='flagged'?links.filter(l=>l.flags.length>0):links.filter(l=>l.shouldDisavow);
+  const sorted=filtered.slice().sort((a,b)=>b.toxicScore-a.toxicScore);
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Backlinks</h3><span class="badge">${sorted.length} shown</span></div>
+    <div class="bulk-controls">
+      <button class="ctrl-btn ${state.filter==='all'?'':''}" onclick="setFilter('all')" style="${state.filter==='all'?'background:var(--accent);color:#fff':''}">All (${links.length})</button>
+      <button class="ctrl-btn" onclick="setFilter('flagged')" style="${state.filter==='flagged'?'background:var(--accent);color:#fff':''}">Flagged (${links.filter(l=>l.flags.length).length})</button>
+      <button class="ctrl-btn" onclick="setFilter('disavowed')" style="${state.filter==='disavowed'?'background:var(--accent);color:#fff':''}">Disavowed (${links.filter(l=>l.shouldDisavow).length})</button>
+      <div style="flex:1"></div>
+      <button class="ctrl-btn danger" onclick="markAllAsDisavow()">Mark all as disavow</button>
+      <button class="ctrl-btn" onclick="clearAllManual()">Clear manual marks</button>
+    </div>
+    <div>
+      ${sorted.length?sorted.map(l=>{
+        const cls=l.toxicScore>=70?'hi':l.toxicScore>=40?'med':'lo';
+        const active=l.shouldDisavow;
+        return `<div class="link-row" onclick="toggleManual('${escapeAttr(l.url||l.sourceDomain)}')">
+          <div class="chk ${active?'active':''}">${active?'✓':''}</div>
+          <div class="score ${cls}">${l.toxicScore}</div>
+          <div class="info"><div class="dom">${escapeHtml(l.sourceDomain||'(no domain)')}</div><div class="src">${escapeHtml(l.url||'')}</div>${l.flags.length?`<div class="flags">${l.flags.map(f=>`<span class="flag">${escapeHtml(f)}</span>`).join('')}</div>`:''}</div>
+          <div class="anchor">${escapeHtml(l.anchor||'(no anchor)')}</div>
+          <div class="da">DA${l.da||'—'}</div>
+        </div>`;
+      }).join(''):'<div style="padding:30px;text-align:center;color:var(--text3)">No links match filter</div>'}
+    </div>
+  </div>`;
+}
+function toggleManual(key){if(state.manualDisavow[key])delete state.manualDisavow[key];else state.manualDisavow[key]=true;saveState();render();}
+function markAllAsDisavow(){const links=annotateLinks().filter(l=>l.flags.length>0);links.forEach(l=>{state.manualDisavow[l.url||l.sourceDomain]=true;});saveState();render();toast('Marked all flagged for disavow','success');}
+function clearAllManual(){state.manualDisavow={};saveState();render();toast('Cleared manual marks','success');}
+
+function buildDisavowText(){
+  const links=annotateLinks();
+  const disavowed=links.filter(l=>l.shouldDisavow);
+  const domains=new Set();
+  const urls=[];
+  disavowed.forEach(l=>{
+    // Prefer domain-level if multiple URLs from same domain
+    const sameDomain=disavowed.filter(x=>x.sourceDomain===l.sourceDomain);
+    if(sameDomain.length>=2)domains.add(l.sourceDomain);
+    else if(l.url) urls.push(l.url);
+    else if(l.sourceDomain) domains.add(l.sourceDomain);
+  });
+  // Manual extra
+  const extra=(state.extra||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  extra.forEach(e=>{if(e.startsWith('http')) urls.push(e); else domains.add(e.replace(/^domain:\s*/i,''));});
+  // Build text
+  const lines=[];
+  lines.push('# Disavow file generated 2026-05-29');
+  if(state.domain) lines.push(`# Target domain: ${state.domain}`);
+  lines.push(`# Toxicity threshold: ${state.threshold}/100`);
+  lines.push(`# ${domains.size} domains + ${urls.length} URLs`);
+  lines.push('');
+  if(domains.size){
+    lines.push('# Domain-level disavow');
+    Array.from(domains).sort().forEach(d=>lines.push('domain:'+d));
+    lines.push('');
+  }
+  if(urls.length){
+    lines.push('# URL-level disavow');
+    urls.sort().forEach(u=>lines.push(u));
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+function renderPreview(){
+  const txt=buildDisavowText();
+  // Highlight comments / domain: / URLs
+  const html=escapeHtml(txt).split('\n').map(line=>{
+    if(line.startsWith('#')) return '<span class="comment">'+escapeHtml(line)+'</span>';
+    if(line.startsWith('domain:')) return '<span class="domain">'+escapeHtml(line)+'</span>';
+    if(line.startsWith('http')) return '<span class="url">'+escapeHtml(line)+'</span>';
+    return escapeHtml(line);
+  }).join('\n');
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>disavow.txt Preview</h3><span class="badge">${txt.split('\n').filter(l=>l&&!l.startsWith('#')).length} entries</span><button class="cb-btn" onclick="copyDisavow()">Copy</button><button class="cb-btn primary" onclick="downloadDisavow()">Download</button></div><div style="padding:14px"><div class="preview-box">${html.replace(/<span class="comment">&amp;#x23;/g,'<span class="comment">#').replace(/&amp;#x23;/g,'#')}</div></div></div>`;
+}
+function copyDisavow(){const t=buildDisavowText();navigator.clipboard.writeText(t);toast('Copied disavow.txt','success');}
+function downloadDisavow(){const t=buildDisavowText();const blob=new Blob([t],{type:'text/plain'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='disavow.txt';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('Downloaded disavow.txt','success');}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Disavow Tool — Use Carefully</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <div style="background:rgba(245,158,11,.08);border-left:4px solid var(--warn);padding:12px 14px;border-radius:7px;margin-bottom:14px"><strong>⚠ Important:</strong> Google's official guidance is that <strong>most sites don't need to disavow</strong>. The algorithm now ignores most spam links automatically. Only use disavow when you've received a <strong>manual action notice</strong> or have clear evidence of negative SEO attack.</div>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">When to Disavow</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>You received a <strong>manual action</strong> in Search Console for "unnatural links"</li>
+      <li>You're recovering from a Google penalty (e.g., Penguin)</li>
+      <li>Clear evidence of negative SEO attack with hundreds of toxic links</li>
+      <li>You bought links in the past and want to clean up</li>
+      <li>Your site has been hacked and bad links were created</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">When NOT to Disavow</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>A few low-quality directory listings (Google ignores them)</li>
+      <li>Scraper sites copying your content (they don't hurt you)</li>
+      <li>"Just to be safe" cleanups (this can hurt good links)</li>
+      <li>Foreign sites linking to you with relevant content (often legitimate)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">File Format Rules</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Plain text, UTF-8 encoding, &lt; 100,000 lines</li>
+      <li><code>#</code> for comments</li>
+      <li><code>http://example.com/page</code> — disavow specific URL</li>
+      <li><code>domain:example.com</code> — disavow entire domain (preferred for spam sites)</li>
+      <li>No <code>domain:</code> prefix needed for URL-level entries</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">How to Submit</h4>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li>Download disavow.txt from this tool</li>
+      <li>Go to <a href="https://search.google.com/search-console/disavow-links-tool" target="_blank" style="color:var(--accent)">Disavow Links Tool</a> in Search Console</li>
+      <li>Select your property</li>
+      <li>Upload the .txt file</li>
+      <li>Confirm — replaces previous disavow file</li>
+    </ol>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">After Submitting</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Takes 2-8 weeks for Google to recrawl + apply</li>
+      <li>Keep the file updated as you find more bad links</li>
+      <li>Document why each entry exists — easier to maintain</li>
+      <li>Re-submit if you make changes (replaces previous file)</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Better Strategy: Outreach First</h4>
+    <p>Where possible, contact the linking site and ask them to remove the link. Disavow is the last resort after outreach attempts fail. Document your outreach attempts — Google's reconsideration form asks for them.</p>
+  </div></div>`;
+}
+
+function exportCSV(){
+  const links=annotateLinks();
+  const rows=[['domain','url','anchor','da','toxic_score','flags','will_disavow']];
+  links.forEach(l=>rows.push([l.sourceDomain, l.url||'', l.anchor||'', l.da||'', l.toxicScore, l.flags.join('; '), l.shouldDisavow?'yes':'no']));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='disavow-analysis.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+
+/* Inherit */
+(function(){
+  if(!state.links.length){try{const bl=JSON.parse(localStorage.getItem('bl_state_v1')||'null');if(bl?.backlinks?.length){state.links=bl.backlinks.map(b=>({url:b.sourceUrl||b.url||'', sourceDomain:b.sourceDomain||extractDomain(b.sourceUrl||b.url), anchor:b.anchor||'', da:b.da||b.domainAuthority||0, toxicLevel:b.toxicLevel||''}));if(bl.target?.domain)state.domain=bl.target.domain;}}catch(e){}}
+  if(!state.domain){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b?.website)state.domain=extractDomain(b.website);}catch(e){}}
+})();
+
+fillInputs();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

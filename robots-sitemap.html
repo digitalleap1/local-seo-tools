@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robots.txt & Sitemap Builder/Validator - Technical SEO Foundation Tools</title>
+<meta name="description" content="Generate or validate robots.txt + XML sitemaps. Parse sitemap structure, find crawl-budget waste, sitemap index builder for multi-location, common-mistake checker, URL-set splitter (50k cap), 100% client-side.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#2563eb; --accent-h:#1d4ed8; --accent-soft:rgba(37,99,235,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --code-bg:#0c1828;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#3b82f6; --accent-h:#60a5fa; --accent-soft:rgba(59,130,246,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+  --code-bg:#040b18;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(37,99,235,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* TABS LEFT-NAV */
+#left{width:220px;min-width:200px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.lh{padding:10px 14px 4px;font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.nav-item{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:9px;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent-soft);color:var(--text);border-left-color:var(--accent);font-weight:700}
+.nav-item .icon{width:22px;height:22px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-item.active .icon{background:var(--accent);color:#fff}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+#cbar h2{font-size:15px;font-weight:800}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:16px;background:var(--bg)}
+
+/* SECTION */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-hdr .badge.danger{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.section-hdr .badge.ok{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.section-body{padding:14px}
+
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:600}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.field textarea{min-height:120px;font-family:var(--mono);resize:vertical;line-height:1.5}
+.field .hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.code-out{background:var(--code-bg);color:#e2ecf8;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11.5px;line-height:1.55;overflow:auto;max-height:500px;white-space:pre-wrap}
+
+/* VALIDATION RESULTS */
+.check{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:11px}
+.check:last-child{border-bottom:none}
+.check .ic{width:24px;height:24px;border-radius:50%;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.check.ok .ic{background:var(--success)}
+.check.warn .ic{background:var(--amber)}
+.check.fail .ic{background:var(--danger)}
+.check.info .ic{background:var(--blue)}
+.check .body{flex:1}
+.check .title{font-size:12.5px;font-weight:700}
+.check .desc{font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:3px}
+.check .fix{margin-top:6px;font-size:11.5px;background:rgba(22,163,74,.05);border:1px dashed rgba(22,163,74,.3);padding:7px 10px;border-radius:5px;color:var(--text);line-height:1.55}
+
+/* RULE BUILDER */
+.rule-row{display:grid;grid-template-columns:140px 1fr auto;gap:7px;margin-bottom:5px;align-items:center}
+.rule-row select, .rule-row input{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:11.5px;color:var(--text);font-family:var(--mono)}
+.rule-row button{width:24px;height:24px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:12px}
+.rule-row button:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+.add-row-btn{padding:6px 11px;font-size:11px;font-weight:700;background:var(--bg);border:1px dashed var(--border2);color:var(--accent);border-radius:5px;align-self:flex-start;margin-top:4px}
+.add-row-btn:hover{border-style:solid;background:var(--accent-soft)}
+
+/* URL TABLE */
+table.utable{width:100%;border-collapse:collapse;font-size:11.5px}
+table.utable thead{background:var(--bg);position:sticky;top:0;z-index:5}
+table.utable th{padding:8px 10px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.utable td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.utable tr:hover{background:var(--bg3)}
+.url-cell{max-width:380px;font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.stat-card.ok::before{background:var(--success)}
+.stat-card.warn::before{background:var(--amber)}
+.stat-card.bad::before{background:var(--danger)}
+.stat-card .sl{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase}
+.stat-card .sv{font-size:22px;font-weight:800;font-family:var(--mono);line-height:1.1;color:var(--text);margin-top:4px}
+.stat-card.ok .sv{color:var(--success)}
+.stat-card.warn .sv{color:var(--amber)}
+.stat-card.bad .sv{color:var(--danger)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+.progress-line{height:3px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.progress-line .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));width:0;transition:width .3s}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:220px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    </div>
+    <div><div class="logo-name">Robots<span>+Sitemap</span></div></div>
+    <span class="logo-tag">TECH</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="site-crawler.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Crawler
+  </a>
+  <a href="multi-location.html" class="hdr-link" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+    Multi-Loc
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT NAV -->
+  <div id="left">
+    <div class="lh">Robots.txt</div>
+    <div class="nav-item active" data-view="robots-build" onclick="setView('robots-build')"><div class="icon">B</div>Build robots.txt</div>
+    <div class="nav-item" data-view="robots-validate" onclick="setView('robots-validate')"><div class="icon">V</div>Validate / Audit</div>
+    <div class="lh">Sitemap</div>
+    <div class="nav-item" data-view="sitemap-build" onclick="setView('sitemap-build')"><div class="icon">B</div>Build XML Sitemap</div>
+    <div class="nav-item" data-view="sitemap-validate" onclick="setView('sitemap-validate')"><div class="icon">V</div>Validate Sitemap</div>
+    <div class="nav-item" data-view="sitemap-index" onclick="setView('sitemap-index')"><div class="icon">∑</div>Sitemap Index</div>
+    <div class="lh">Help</div>
+    <div class="nav-item" data-view="guide" onclick="setView('guide')"><div class="icon">?</div>Common Mistakes</div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="cbar">
+      <h2 id="view-title">Build robots.txt</h2>
+      <div class="cb-sp"></div>
+    </div>
+    <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * ROBOTS.TXT + SITEMAP BUILDER/VALIDATOR
+ * ========================================================================== */
+
+const STORE_KEY = 'rs_state_v1';
+const defaultState = {
+  robots: {
+    rules: [
+      {agent:'*', dir:'allow', path:'/'},
+      {agent:'*', dir:'disallow', path:'/admin/'},
+      {agent:'*', dir:'disallow', path:'/wp-admin/'},
+      {agent:'*', dir:'disallow', path:'/cart/'},
+      {agent:'*', dir:'disallow', path:'/checkout/'},
+      {agent:'*', dir:'disallow', path:'/*?*'},
+    ],
+    sitemap: 'https://example.com/sitemap.xml',
+  },
+  robotsText: '',
+  sitemap: {
+    baseUrl: 'https://example.com',
+    urls: '',
+    changefreq: 'monthly',
+    priority: '0.8',
+  },
+  sitemapText: '',
+  view: 'robots-build',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function download(text, name, mime){
+  const blob = new Blob([text], {type:mime||'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+}
+
+/* ---------- VIEW ---------- */
+function setView(v){
+  state.view=v; saveState();
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===v));
+  const titles = {'robots-build':'Build robots.txt','robots-validate':'Validate / Audit robots.txt','sitemap-build':'Build XML Sitemap','sitemap-validate':'Validate Sitemap','sitemap-index':'Build Sitemap Index','guide':'Common Mistakes'};
+  document.getElementById('view-title').textContent = titles[v];
+  render();
+}
+
+/* ---------- ROBOTS BUILDER ---------- */
+function buildRobots(){
+  const lines = [];
+  let lastAgent = '';
+  // Group by agent
+  const byAgent = {};
+  state.robots.rules.forEach(r=>{ byAgent[r.agent]=byAgent[r.agent]||[]; byAgent[r.agent].push(r); });
+  for(const [agent, rules] of Object.entries(byAgent)){
+    if(lines.length) lines.push('');
+    lines.push(`User-agent: ${agent}`);
+    rules.forEach(r=>{
+      if(r.dir==='allow') lines.push(`Allow: ${r.path}`);
+      else if(r.dir==='disallow') lines.push(`Disallow: ${r.path}`);
+      else if(r.dir==='crawl-delay') lines.push(`Crawl-delay: ${r.path}`);
+    });
+  }
+  if(state.robots.sitemap){
+    lines.push('');
+    lines.push(`Sitemap: ${state.robots.sitemap}`);
+  }
+  state.robotsText = lines.join('\n');
+  return state.robotsText;
+}
+
+function addRule(){state.robots.rules.push({agent:'*', dir:'disallow', path:'/'}); saveState(); render();}
+function delRule(i){state.robots.rules.splice(i,1); saveState(); render();}
+
+/* ---------- ROBOTS VALIDATOR ---------- */
+function validateRobots(text){
+  const checks = [];
+  const lines = text.split('\n').map(l=>l.trim());
+  let userAgent = null, hasUserAgent = false;
+  const directives = [];
+  const sitemaps = [];
+
+  lines.forEach((line, i)=>{
+    if(!line || line.startsWith('#')) return;
+    const m = line.match(/^([\w-]+):\s*(.*)$/i);
+    if(!m){ checks.push({sev:'fail', title:`Invalid line ${i+1}: <code>${escapeHtml(line)}</code>`, desc:'Not a valid directive. Format: <code>Directive: value</code>', fix:'Remove or fix this line.'}); return; }
+    const directive = m[1].toLowerCase(); const value = m[2];
+    if(directive === 'user-agent'){ userAgent = value; hasUserAgent = true; }
+    else if(directive === 'disallow' || directive === 'allow'){
+      if(!hasUserAgent){ checks.push({sev:'fail', title:`${directive} before User-agent`, desc:'A User-agent must come before any Allow/Disallow.', fix:'Add a <code>User-agent: *</code> before this line.'}); }
+      directives.push({type:directive, path:value, agent:userAgent});
+      // Check path validity
+      if(value && !value.startsWith('/') && value !== ''){
+        checks.push({sev:'warn', title:`Path doesn't start with /: <code>${escapeHtml(value)}</code>`, desc:'Robots.txt paths should start with /.', fix:'Add leading slash.'});
+      }
+    }
+    else if(directive === 'sitemap'){ sitemaps.push(value); }
+    else if(directive === 'crawl-delay'){ /* OK but bots ignore */ }
+    else if(directive === 'host'){ /* legacy */ }
+    else { checks.push({sev:'warn', title:`Unknown directive: <code>${escapeHtml(directive)}</code>`, desc:'Not a standard directive.', fix:''}); }
+  });
+
+  // Common-mistake checks
+  if(!hasUserAgent && text.trim()){ checks.push({sev:'fail', title:'No User-agent directive', desc:'Every robots.txt needs at least one User-agent.', fix:'Add <code>User-agent: *</code> at the top.'}); }
+  if(!sitemaps.length){ checks.push({sev:'warn', title:'No Sitemap reference', desc:'Robots.txt should reference your XML sitemap location.', fix:'Add <code>Sitemap: https://yoursite.com/sitemap.xml</code>'}); }
+  // Disallow: /
+  const disallowAll = directives.find(d=>d.type==='disallow' && (d.path==='/' || d.path===''));
+  if(disallowAll){
+    if(disallowAll.path==='/' && disallowAll.agent==='*'){ checks.push({sev:'fail', title:'🛑 Disallow: / for User-agent: *', desc:'This blocks ALL crawlers from your entire site. Are you sure?', fix:'If your site is live, change to allow specific paths or remove the disallow.'}); }
+    else if(disallowAll.path===''){ checks.push({sev:'warn', title:'Empty Disallow path', desc:'<code>Disallow:</code> with no path is equivalent to "allow everything" — confusing.', fix:'Either set a path or remove the line.'}); }
+  }
+  // Multiple sitemaps not always wrong but worth flagging
+  if(sitemaps.length>5){ checks.push({sev:'warn', title:`${sitemaps.length} sitemap references`, desc:'Many separate sitemap URLs — consider a sitemap index instead.', fix:'Use one sitemap-index.xml that lists all your sitemaps.'}); }
+  // Conflicting Allow + Disallow with no specificity
+  const wildPaths = directives.filter(d=>d.path.includes('*'));
+  if(wildPaths.length>10){ checks.push({sev:'warn', title:'Heavy use of wildcards', desc:'Wildcards are supported by Google but not all crawlers. Be precise where possible.', fix:''}); }
+  // File size
+  if(text.length > 500000){ checks.push({sev:'fail', title:'File >500KB', desc:'Google ignores robots.txt files over 500KB. Yours may be truncated.', fix:'Trim unused rules.'}); }
+  if(!checks.length || !checks.some(c=>c.sev==='fail')){ checks.unshift({sev:'ok', title:'No critical issues found', desc:'Your robots.txt looks valid.'}); }
+  return {checks, stats: {lines:lines.filter(l=>l && !l.startsWith('#')).length, directives:directives.length, sitemaps:sitemaps.length}};
+}
+
+/* ---------- SITEMAP BUILDER ---------- */
+function buildSitemap(){
+  const urls = (state.sitemap.urls||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  const base = (state.sitemap.baseUrl||'').replace(/\/$/,'');
+  const today = new Date().toISOString().slice(0,10);
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u=>{
+    const url = /^https?:\/\//.test(u) ? u : base + (u.startsWith('/')?u:'/'+u);
+    return `  <url>\n    <loc>${escapeXml(url)}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${state.sitemap.changefreq||'monthly'}</changefreq>\n    <priority>${state.sitemap.priority||'0.8'}</priority>\n  </url>`;
+  }).join('\n')}\n</urlset>`;
+  state.sitemapText = xml;
+  return xml;
+}
+
+function escapeXml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"}[c]));}
+
+/* ---------- SITEMAP VALIDATOR ---------- */
+function validateSitemap(text){
+  const checks = [];
+  let doc;
+  try { doc = new DOMParser().parseFromString(text, 'text/xml'); } catch(e){ checks.push({sev:'fail', title:'XML parse error', desc:e.message, fix:'Check for unbalanced tags or invalid characters.'}); return {checks, stats:{}}; }
+  // Check for parse error
+  const perr = doc.querySelector('parsererror');
+  if(perr){ checks.push({sev:'fail', title:'XML parse error', desc:escapeHtml(perr.textContent.slice(0,200)), fix:'Fix the XML syntax errors.'}); return {checks, stats:{}}; }
+  // Identify type
+  const isIndex = doc.querySelector('sitemapindex');
+  const isUrlset = doc.querySelector('urlset');
+  if(!isIndex && !isUrlset){ checks.push({sev:'fail', title:'Not a recognized sitemap', desc:'Root element should be <code>urlset</code> or <code>sitemapindex</code>.', fix:'Wrap URLs in <code>&lt;urlset&gt;</code>.'}); return {checks, stats:{}}; }
+  const type = isIndex ? 'index' : 'urlset';
+  const items = Array.from(doc.querySelectorAll(isIndex?'sitemap':'url'));
+  const stats = {type, items:items.length, sizeKB:Math.round(text.length/1024)};
+  // Spec limits
+  if(items.length > 50000){ checks.push({sev:'fail', title:`${items.length} URLs (exceeds 50,000 limit)`, desc:'Per spec, a single sitemap can have at most 50,000 URLs.', fix:'Split into multiple sitemaps and use a sitemap index.'}); }
+  if(text.length > 50*1024*1024){ checks.push({sev:'fail', title:`Size ${stats.sizeKB} KB exceeds 50 MB`, desc:'Uncompressed sitemaps cannot exceed 50 MB per spec.', fix:'Compress or split the sitemap.'}); }
+  // URL validation
+  const urls = items.map(u=>u.querySelector('loc')?.textContent?.trim()).filter(Boolean);
+  const protocols = new Set();
+  const hostnames = new Set();
+  let invalidCount = 0;
+  urls.forEach(u=>{
+    try { const url = new URL(u); protocols.add(url.protocol); hostnames.add(url.hostname); }
+    catch(e){ invalidCount++; }
+  });
+  if(invalidCount){ checks.push({sev:'fail', title:`${invalidCount} URLs are malformed`, desc:'Some <code>&lt;loc&gt;</code> values aren\'t valid URLs.', fix:'Fix or remove invalid URLs.'}); }
+  if(protocols.has('http:') && protocols.has('https:')){ checks.push({sev:'warn', title:'Mixed http/https URLs', desc:'Sitemap should use a single protocol (preferably https).', fix:'Standardize on https.'}); }
+  if(hostnames.size>1){ checks.push({sev:'warn', title:`${hostnames.size} different hostnames`, desc:'All URLs in a single sitemap should be on the same hostname.', fix:'Use sitemap index for cross-host.'}); }
+  // Check for duplicates
+  const seen = new Set(); let dupes = 0;
+  urls.forEach(u=>{ if(seen.has(u)) dupes++; else seen.add(u); });
+  if(dupes){ checks.push({sev:'warn', title:`${dupes} duplicate URLs`, desc:'Same URL listed multiple times wastes crawl budget.', fix:'Dedupe.'}); }
+  // Empty lastmod / priority warnings
+  const withLastmod = items.filter(u=>u.querySelector('lastmod')).length;
+  if(type==='urlset' && withLastmod/items.length < 0.5){ checks.push({sev:'warn', title:'Most URLs missing <lastmod>', desc:'lastmod is the most important Google freshness signal.', fix:'Add lastmod to every URL.'}); }
+  if(!checks.some(c=>c.sev==='fail')){ checks.unshift({sev:'ok', title:'Sitemap structure valid', desc:`${type} with ${items.length} entries.`}); }
+  return {checks, stats:{...stats, urls:urls.length, uniqueUrls:seen.size, withLastmod, hostnames:hostnames.size}};
+}
+
+/* ---------- SITEMAP SPLITTING / INDEX ---------- */
+function splitSitemap(urls, base, perFile){
+  perFile = perFile || 45000;
+  const chunks = [];
+  for(let i=0;i<urls.length;i+=perFile) chunks.push(urls.slice(i, i+perFile));
+  const today = new Date().toISOString().slice(0,10);
+  const files = chunks.map((chunk, idx)=>({
+    name: `sitemap-${idx+1}.xml`,
+    content: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${chunk.map(u=>`  <url>\n    <loc>${escapeXml(u)}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`).join('\n')}\n</urlset>`,
+  }));
+  const indexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${files.map(f=>`  <sitemap>\n    <loc>${base.replace(/\/$/,'')}/${f.name}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>`;
+  return {files, indexXml};
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const body = document.getElementById('cbody');
+  const v = state.view;
+  if(v==='robots-build') return renderRobotsBuild(body);
+  if(v==='robots-validate') return renderRobotsValidate(body);
+  if(v==='sitemap-build') return renderSitemapBuild(body);
+  if(v==='sitemap-validate') return renderSitemapValidate(body);
+  if(v==='sitemap-index') return renderSitemapIndex(body);
+  if(v==='guide') return renderGuide(body);
+}
+
+function renderRobotsBuild(body){
+  buildRobots();
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Rules Builder</h3><span class="badge">${state.robots.rules.length} rules</span></div><div class="section-body">
+      ${state.robots.rules.map((r,i)=>`<div class="rule-row">
+        <select onchange="state.robots.rules[${i}].agent=this.value;saveState();render()">
+          <option value="*" ${r.agent==='*'?'selected':''}>* (All)</option>
+          <option value="Googlebot" ${r.agent==='Googlebot'?'selected':''}>Googlebot</option>
+          <option value="Googlebot-Image" ${r.agent==='Googlebot-Image'?'selected':''}>Googlebot-Image</option>
+          <option value="Bingbot" ${r.agent==='Bingbot'?'selected':''}>Bingbot</option>
+          <option value="DuckDuckBot" ${r.agent==='DuckDuckBot'?'selected':''}>DuckDuckBot</option>
+          <option value="Slurp" ${r.agent==='Slurp'?'selected':''}>Slurp (Yahoo)</option>
+          <option value="GPTBot" ${r.agent==='GPTBot'?'selected':''}>GPTBot</option>
+          <option value="ClaudeBot" ${r.agent==='ClaudeBot'?'selected':''}>ClaudeBot</option>
+          <option value="CCBot" ${r.agent==='CCBot'?'selected':''}>CCBot (Common Crawl)</option>
+          <option value="PerplexityBot" ${r.agent==='PerplexityBot'?'selected':''}>PerplexityBot</option>
+        </select>
+        <select onchange="state.robots.rules[${i}].dir=this.value;saveState();render()">
+          <option value="allow" ${r.dir==='allow'?'selected':''}>Allow</option>
+          <option value="disallow" ${r.dir==='disallow'?'selected':''}>Disallow</option>
+          <option value="crawl-delay" ${r.dir==='crawl-delay'?'selected':''}>Crawl-delay (sec)</option>
+        </select>
+        <input value="${escapeAttr(r.path)}" oninput="state.robots.rules[${i}].path=this.value;saveState();updateRobotsPreview()">
+        <button onclick="delRule(${i})">×</button>
+      </div>`).join('')}
+      <button class="add-row-btn" onclick="addRule()">+ Add rule</button>
+    </div></div>
+    <div class="field"><label>Sitemap URL</label><input id="robots-sitemap" value="${escapeAttr(state.robots.sitemap)}" oninput="state.robots.sitemap=this.value;saveState();updateRobotsPreview()" placeholder="https://example.com/sitemap.xml"></div>
+    <div class="section"><div class="section-hdr"><h3>Preview</h3>
+      <button class="cb-btn" onclick="navigator.clipboard.writeText(buildRobots());toast('Copied','success')">📋 Copy</button>
+      <button class="cb-btn primary" onclick="download(buildRobots(), 'robots.txt', 'text/plain')">⬇ Download</button>
+    </div><div class="section-body"><pre class="code-out" id="robots-preview">${escapeHtml(state.robotsText)}</pre></div></div>
+  `;
+}
+
+function updateRobotsPreview(){const el = document.getElementById('robots-preview'); if(el) el.innerHTML = escapeHtml(buildRobots());}
+
+function renderRobotsValidate(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Paste robots.txt or fetch from URL</h3></div><div class="section-body">
+      <div class="row2"><input id="fetch-url" placeholder="https://example.com/robots.txt"><button class="cb-btn primary" onclick="fetchRobots()">Fetch</button></div>
+      <div class="field" style="margin-top:10px"><label>robots.txt content</label><textarea id="validate-input" placeholder="User-agent: *&#10;Disallow: /admin/&#10;Sitemap: https://example.com/sitemap.xml" oninput="renderRobotsValidation()" style="min-height:200px;font-family:var(--mono);font-size:11.5px"></textarea></div>
+    </div></div>
+    <div id="validate-results"></div>
+  `;
+}
+
+async function fetchRobots(){
+  const url = document.getElementById('fetch-url').value.trim();
+  if(!url){ toast('Enter URL','err'); return; }
+  document.getElementById('ft-status').textContent = 'Fetching...';
+  try {
+    const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const text = await r.text();
+    document.getElementById('validate-input').value = text;
+    renderRobotsValidation();
+    document.getElementById('ft-status').textContent = 'Fetched';
+  } catch(e){ toast('Fetch failed: '+e.message,'err'); }
+}
+
+function renderRobotsValidation(){
+  const text = document.getElementById('validate-input').value;
+  const {checks, stats} = validateRobots(text);
+  const wrap = document.getElementById('validate-results');
+  if(!text){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sl">Total lines</div><div class="sv">${stats.lines}</div></div>
+      <div class="stat-card ${stats.directives>=2?'ok':'warn'}"><div class="sl">Directives</div><div class="sv">${stats.directives}</div></div>
+      <div class="stat-card ${stats.sitemaps>=1?'ok':'warn'}"><div class="sl">Sitemap refs</div><div class="sv">${stats.sitemaps}</div></div>
+      <div class="stat-card ${checks.filter(c=>c.sev==='fail').length===0?'ok':'bad'}"><div class="sl">Issues</div><div class="sv">${checks.filter(c=>c.sev==='fail').length} crit, ${checks.filter(c=>c.sev==='warn').length} warn</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Validation Checks</h3><span class="badge ${checks.some(c=>c.sev==='fail')?'danger':'ok'}">${checks.length}</span></div><div>
+      ${checks.map(c=>`<div class="check ${c.sev}"><div class="ic">${c.sev==='ok'?'✓':c.sev==='warn'?'!':c.sev==='info'?'i':'✕'}</div><div class="body"><div class="title">${c.title}</div><div class="desc">${c.desc}</div>${c.fix?`<div class="fix"><strong>Fix:</strong> ${c.fix}</div>`:''}</div></div>`).join('')}
+    </div></div>
+  `;
+}
+
+function renderSitemapBuild(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>URL List</h3></div><div class="section-body">
+      <div class="field"><label>Base URL (used to resolve relative paths)</label><input id="sm-base" value="${escapeAttr(state.sitemap.baseUrl)}" oninput="state.sitemap.baseUrl=this.value;saveState();updateSitemapPreview()" placeholder="https://example.com"></div>
+      <div class="field"><label>URLs — one per line. Full URLs or paths.</label><textarea id="sm-urls" oninput="state.sitemap.urls=this.value;saveState();updateSitemapPreview()" placeholder="/&#10;/about&#10;/contact&#10;https://example.com/services/">${escapeHtml(state.sitemap.urls)}</textarea></div>
+      <div class="row2">
+        <div class="field"><label>Change frequency</label><select id="sm-cf" onchange="state.sitemap.changefreq=this.value;saveState();updateSitemapPreview()">
+          <option value="always" ${state.sitemap.changefreq==='always'?'selected':''}>always</option>
+          <option value="hourly" ${state.sitemap.changefreq==='hourly'?'selected':''}>hourly</option>
+          <option value="daily" ${state.sitemap.changefreq==='daily'?'selected':''}>daily</option>
+          <option value="weekly" ${state.sitemap.changefreq==='weekly'?'selected':''}>weekly</option>
+          <option value="monthly" ${state.sitemap.changefreq==='monthly'?'selected':''}>monthly</option>
+          <option value="yearly" ${state.sitemap.changefreq==='yearly'?'selected':''}>yearly</option>
+          <option value="never" ${state.sitemap.changefreq==='never'?'selected':''}>never</option>
+        </select></div>
+        <div class="field"><label>Default priority (0.0-1.0)</label><input id="sm-pri" value="${escapeAttr(state.sitemap.priority)}" oninput="state.sitemap.priority=this.value;saveState();updateSitemapPreview()"></div>
+      </div>
+    </div></div>
+    <div class="section"><div class="section-hdr"><h3>Preview</h3>
+      <span class="badge" id="sm-count">0 URLs</span>
+      <button class="cb-btn" onclick="navigator.clipboard.writeText(buildSitemap());toast('Copied','success')">📋 Copy</button>
+      <button class="cb-btn primary" onclick="download(buildSitemap(), 'sitemap.xml', 'application/xml')">⬇ Download</button>
+    </div><div class="section-body"><pre class="code-out" id="sm-preview">${escapeHtml(buildSitemap())}</pre></div></div>
+  `;
+  updateSitemapPreview();
+}
+function updateSitemapPreview(){
+  const xml = buildSitemap();
+  const el = document.getElementById('sm-preview'); if(el) el.innerHTML = escapeHtml(xml);
+  const urls = (state.sitemap.urls||'').split('\n').filter(l=>l.trim()).length;
+  const cnt = document.getElementById('sm-count'); if(cnt) cnt.textContent = urls+' URL'+(urls===1?'':'s');
+}
+
+function renderSitemapValidate(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Paste XML or fetch from URL</h3></div><div class="section-body">
+      <div class="row2"><input id="fetch-sm-url" placeholder="https://example.com/sitemap.xml"><button class="cb-btn primary" onclick="fetchSitemap()">Fetch</button></div>
+      <div class="field" style="margin-top:10px"><label>Sitemap XML</label><textarea id="sm-val-input" oninput="renderSitemapValidation()" style="min-height:200px;font-family:var(--mono);font-size:11px" placeholder="<?xml version=&quot;1.0&quot;?>&#10;<urlset xmlns=&quot;...&quot;>..."></textarea></div>
+    </div></div>
+    <div id="sm-val-results"></div>
+  `;
+}
+async function fetchSitemap(){
+  const url = document.getElementById('fetch-sm-url').value.trim();
+  if(!url){ toast('Enter URL','err'); return; }
+  document.getElementById('ft-status').textContent = 'Fetching...';
+  try {
+    const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    document.getElementById('sm-val-input').value = await r.text();
+    renderSitemapValidation();
+  } catch(e){ toast('Fetch failed: '+e.message,'err'); }
+}
+function renderSitemapValidation(){
+  const text = document.getElementById('sm-val-input').value;
+  const wrap = document.getElementById('sm-val-results');
+  if(!text){ wrap.innerHTML = ''; return; }
+  const {checks, stats} = validateSitemap(text);
+  wrap.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sl">Type</div><div class="sv" style="font-size:14px;font-family:var(--font)">${stats.type||'?'}</div></div>
+      <div class="stat-card ${stats.items>0?'ok':'bad'}"><div class="sl">${stats.type==='index'?'Sitemaps':'URLs'}</div><div class="sv">${stats.items||0}</div></div>
+      <div class="stat-card"><div class="sl">Unique URLs</div><div class="sv">${stats.uniqueUrls||0}</div></div>
+      <div class="stat-card"><div class="sl">Size</div><div class="sv">${stats.sizeKB||0} KB</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Validation</h3><span class="badge ${checks.some(c=>c.sev==='fail')?'danger':'ok'}">${checks.length}</span></div><div>
+      ${checks.map(c=>`<div class="check ${c.sev}"><div class="ic">${c.sev==='ok'?'✓':c.sev==='warn'?'!':'✕'}</div><div class="body"><div class="title">${c.title}</div><div class="desc">${c.desc}</div>${c.fix?`<div class="fix"><strong>Fix:</strong> ${c.fix}</div>`:''}</div></div>`).join('')}
+    </div></div>
+  `;
+}
+
+function renderSitemapIndex(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>Sitemap Index Builder</h3></div><div class="section-body">
+      <div class="hint" style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px">A sitemap index is for big sites with multiple sitemaps. Paste a long URL list and split into 50k-URL chunks, or paste sitemap URLs to build the index manually.</div>
+      <div class="field"><label>Base URL (where sitemaps will live)</label><input id="ix-base" value="https://example.com" placeholder="https://example.com"></div>
+      <div class="field"><label>Mode</label><select id="ix-mode" onchange="document.querySelectorAll('.ix-section').forEach(el=>el.style.display='none');document.getElementById('ix-'+this.value).style.display=''">
+        <option value="split">Split big URL list into chunks</option>
+        <option value="manual">Manually list child sitemap URLs</option>
+      </select></div>
+      <div id="ix-split" class="ix-section">
+        <div class="field"><label>URLs (one per line)</label><textarea id="ix-urls" placeholder="https://example.com/page1&#10;https://example.com/page2"></textarea></div>
+        <div class="field"><label>URLs per file (max 50,000 per spec)</label><input type="number" id="ix-per" value="45000" min="1000" max="50000"></div>
+      </div>
+      <div id="ix-manual" class="ix-section" style="display:none">
+        <div class="field"><label>Child sitemap URLs (one per line)</label><textarea id="ix-manual-list" placeholder="https://example.com/sitemap-1.xml&#10;https://example.com/sitemap-2.xml"></textarea></div>
+      </div>
+      <button class="cb-btn primary" onclick="buildIndex()" style="margin-top:8px">Build Sitemap Index</button>
+    </div></div>
+    <div id="ix-output"></div>
+  `;
+}
+
+function buildIndex(){
+  const base = document.getElementById('ix-base').value.trim();
+  const mode = document.getElementById('ix-mode').value;
+  const today = new Date().toISOString().slice(0,10);
+  let indexXml = '', files = [];
+  if(mode==='split'){
+    const urls = document.getElementById('ix-urls').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    const perFile = parseInt(document.getElementById('ix-per').value)||45000;
+    if(!urls.length){ toast('Add URLs first','err'); return; }
+    const result = splitSitemap(urls, base, perFile);
+    files = result.files;
+    indexXml = result.indexXml;
+  } else {
+    const list = document.getElementById('ix-manual-list').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!list.length){ toast('Add sitemap URLs','err'); return; }
+    indexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map(u=>`  <sitemap>\n    <loc>${escapeXml(u)}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>`;
+  }
+  document.getElementById('ix-output').innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>sitemap-index.xml</h3><button class="cb-btn primary" onclick="download(${JSON.stringify(indexXml).replace(/"/g,'&quot;')}, 'sitemap-index.xml', 'application/xml')">⬇ Download</button></div><div class="section-body"><pre class="code-out">${escapeHtml(indexXml)}</pre></div></div>
+    ${files.length?`<div class="section"><div class="section-hdr"><h3>Child Sitemaps</h3><span class="badge">${files.length} files</span></div><div>${files.map(f=>`<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><div style="flex:1;font-family:var(--mono);font-size:11.5px">${escapeHtml(f.name)}</div><button class="cb-btn primary" onclick="download(${JSON.stringify(f.content).replace(/"/g,'&quot;')}, '${f.name}', 'application/xml')">⬇</button></div>`).join('')}</div></div>`:''}
+  `;
+}
+
+function renderGuide(body){
+  body.innerHTML = `
+    <div class="section"><div class="section-hdr"><h3>robots.txt — Common Mistakes</h3></div><div class="section-body" style="font-size:13px;line-height:1.7">
+      <h4 style="font-size:14px;font-weight:700">1. Blocking the entire site by accident</h4>
+      <p style="color:var(--text2);font-size:12px">The dreaded <code>Disallow: /</code> for <code>User-agent: *</code> blocks Google entirely. This is the #1 cause of "why did my traffic disappear" panic.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">2. Blocking CSS / JS</h4>
+      <p style="color:var(--text2);font-size:12px">Google needs CSS + JS to render and rank pages. Don't block <code>/wp-includes/js/</code> or similar paths.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">3. Using robots.txt for de-indexing</h4>
+      <p style="color:var(--text2);font-size:12px">Disallowed pages can still appear in search results if linked to. To remove from index, use <code>noindex</code> meta tag (not robots.txt).</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">4. Forgetting the sitemap reference</h4>
+      <p style="color:var(--text2);font-size:12px">Always add <code>Sitemap: https://yoursite.com/sitemap.xml</code> — easiest way for crawlers to find it.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">5. Not testing changes</h4>
+      <p style="color:var(--text2);font-size:12px">Always test robots.txt changes via <a href="https://search.google.com/search-console/robots-testing-tool" target="_blank" style="color:var(--accent)">GSC robots tester</a> before deploying.</p>
+    </div></div>
+
+    <div class="section"><div class="section-hdr"><h3>Sitemap — Common Mistakes</h3></div><div class="section-body" style="font-size:13px;line-height:1.7">
+      <h4 style="font-size:14px;font-weight:700">1. Including non-canonical URLs</h4>
+      <p style="color:var(--text2);font-size:12px">Only include the version you want indexed. No www/non-www mixing, no /index.html, no parameter variants.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">2. Listing 404 / redirected pages</h4>
+      <p style="color:var(--text2);font-size:12px">Wastes crawl budget. Only list <code>200 OK</code> URLs.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">3. Stale <code>&lt;lastmod&gt;</code></h4>
+      <p style="color:var(--text2);font-size:12px">Don't fake "today" on every URL. Use the actual last modified date — Google detects fakery and de-emphasizes the signal.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">4. Hitting 50k or 50MB limits</h4>
+      <p style="color:var(--text2);font-size:12px">Per spec, a single sitemap is capped at 50,000 URLs OR 50MB uncompressed. Bigger sites need a <strong>sitemap index</strong> pointing to multiple child sitemaps.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">5. Not submitting to Search Console</h4>
+      <p style="color:var(--text2);font-size:12px">Adding the sitemap to robots.txt is helpful but submitting via GSC gives you indexation reports.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">6. Mixing protocols / hostnames</h4>
+      <p style="color:var(--text2);font-size:12px">All URLs in a single sitemap should be on the same hostname + protocol (https). Use a sitemap index if you have multiple subdomains.</p>
+
+      <h4 style="font-size:14px;font-weight:700;margin-top:18px">7. Forgetting media sitemaps</h4>
+      <p style="color:var(--text2);font-size:12px">For image-heavy sites, build a separate <code>sitemap-images.xml</code>. For video-heavy, <code>sitemap-videos.xml</code>. Reference all from your index.</p>
+    </div></div>
+  `;
+}
+
+/* ---------- BOOT ---------- */
+setView(state.view||'robots-build');
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

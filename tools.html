@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Tools - Convert, Compress, Resize, Crop & Optimize</title>
+<meta name="description" content="Free browser-based image tools: PNG to JPG, WebP converter, smart compressor with target-size, bulk resizer, crop, web optimizer. 100% client-side, no uploads.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#2563eb; --accent-h:#1d4ed8; --accent-soft:rgba(37,99,235,.08);
+  --teal:#0d9488; --teal-h:#0f766e;
+  --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#3b82f6; --accent-h:#60a5fa; --accent-soft:rgba(59,130,246,.12);
+  --teal:#14b8a6; --teal-h:#2dd4bf;
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font); background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column; overflow:hidden;
+  font-size:13px; -webkit-font-smoothing:antialiased;
+  transition:background .25s, color .25s;
+}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* HEADER */
+#header{
+  height:56px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;
+  box-shadow:var(--shadow-sm);z-index:200;
+}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--purple),var(--accent));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(124,58,237,.3);
+}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--purple)}
+.logo-tag{
+  font-size:9.5px;font-family:var(--mono);font-weight:700;
+  color:var(--purple);border:1px solid var(--purple);
+  border-radius:4px;padding:1.5px 6px;letter-spacing:.6px;
+}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.saved strong{color:var(--success)}
+.hdr-spacer{flex:1}
+.hdr-link{
+  display:flex;align-items:center;gap:5px;padding:6px 12px;
+  border:1px solid var(--border);border-radius:7px;
+  background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;
+  text-decoration:none;transition:all .15s;
+}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{
+  display:flex;align-items:center;gap:6px;padding:6px 11px;
+  border:1px solid var(--border);border-radius:20px;
+  background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;
+  transition:all .2s;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+
+/* APP LAYOUT */
+#app{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  height:calc(100vh - 56px - 32px);
+}
+
+/* TOOL TABS */
+#tool-tabs{
+  display:flex;gap:4px;padding:8px 12px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+}
+#tool-tabs::-webkit-scrollbar{display:none}
+.tool-tab{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:8px;
+  background:transparent;border:1px solid transparent;
+  color:var(--text2);font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.tool-tab:hover{background:var(--bg3);color:var(--text)}
+.tool-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow-sm)}
+.tool-tab svg{width:14px;height:14px}
+.tool-tab .badge-count{
+  background:rgba(255,255,255,.2);font-family:var(--mono);
+  font-size:10px;font-weight:700;padding:1px 6px;border-radius:9px;
+  margin-left:2px;
+}
+.tool-tab:not(.active) .badge-count{
+  background:var(--bg3);color:var(--text3);
+}
+
+/* TOOL PANELS */
+.tool-panel{display:none;flex:1;overflow:hidden}
+.tool-panel.active{display:flex}
+.tool-grid{
+  flex:1;display:grid;grid-template-columns:340px 1fr;
+  overflow:hidden;
+}
+
+/* SETTINGS COLUMN */
+.tool-settings{
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.ts-head{padding:14px 14px 8px;border-bottom:1px solid var(--border)}
+.ts-title{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.ts-title svg{width:16px;height:16px;color:var(--accent)}
+.ts-sub{font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.45}
+.ts-body{flex:1;overflow-y:auto;padding:12px 14px}
+
+.drop-z{
+  border:2px dashed var(--border2);border-radius:10px;
+  padding:24px 14px;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--bg3);margin-bottom:14px;
+}
+.drop-z:hover, .drop-z.drag{
+  border-color:var(--accent);background:var(--accent-soft);
+}
+.drop-z svg{width:30px;height:30px;color:var(--accent);margin-bottom:6px}
+.drop-z p{font-size:11.5px;color:var(--text2);line-height:1.55}
+.drop-z strong{color:var(--text);font-weight:700;font-size:12.5px;display:block;margin-bottom:2px}
+.drop-z .formats{margin-top:5px;font-size:9.5px;font-family:var(--mono);color:var(--text3);font-weight:600;letter-spacing:.4px}
+
+.set-section{margin-bottom:16px}
+.set-h{
+  font-size:9.5px;font-family:var(--mono);font-weight:700;
+  text-transform:uppercase;letter-spacing:1.1px;color:var(--text2);
+  margin-bottom:7px;display:flex;align-items:center;gap:6px;
+}
+.set-h .dot{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+
+.frow{display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;margin-bottom:7px}
+.frow.col{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.flbl{font-size:10.5px;color:var(--text2);font-family:var(--mono)}
+.finp{
+  background:var(--bg3);border:1px solid var(--border);border-radius:5px;
+  padding:6px 9px;font-size:11.5px;font-family:var(--mono);
+  color:var(--text);width:100%;transition:all .15s;
+}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+select.finp{cursor:pointer}
+input[type="color"].finp{height:30px;padding:2px;cursor:pointer}
+
+/* SLIDER */
+.slider-wrap{display:flex;align-items:center;gap:8px}
+.slider-wrap input[type="range"]{
+  flex:1;height:5px;background:var(--bg3);border-radius:3px;
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+}
+.slider-wrap input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;background:var(--accent);
+  border-radius:50%;border:2px solid var(--bg2);
+  box-shadow:var(--shadow-sm);cursor:pointer;
+}
+.slider-wrap input[type="range"]::-moz-range-thumb{
+  width:16px;height:16px;background:var(--accent);
+  border-radius:50%;border:2px solid var(--bg2);
+  box-shadow:var(--shadow-sm);cursor:pointer;
+}
+.slider-val{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--accent);min-width:42px;text-align:right;
+}
+
+/* TOGGLE GROUP */
+.tgroup{
+  display:grid;gap:4px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:7px;padding:3px;
+}
+.tgroup.cols-2{grid-template-columns:1fr 1fr}
+.tgroup.cols-3{grid-template-columns:1fr 1fr 1fr}
+.tgroup.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.tgroup.stack{grid-template-columns:1fr}
+.tg-opt{
+  padding:6px 8px;border-radius:5px;background:transparent;
+  border:none;color:var(--text2);font-size:11px;font-weight:600;
+  text-align:center;cursor:pointer;transition:all .15s;font-family:var(--font);
+}
+.tg-opt:hover{color:var(--text)}
+.tg-opt.active{background:var(--accent);color:#fff;box-shadow:var(--shadow-sm)}
+
+.help-text{
+  font-size:10.5px;color:var(--text3);line-height:1.45;
+  margin-top:3px;font-family:var(--font);
+}
+
+.preset-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px;
+}
+.preset-card{
+  padding:9px 10px;border:1px solid var(--border);border-radius:7px;
+  background:var(--bg3);cursor:pointer;transition:all .15s;text-align:left;
+}
+.preset-card:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.preset-card.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.preset-card .pc-title{font-size:11.5px;font-weight:700;margin-bottom:2px}
+.preset-card .pc-sub{font-size:9.5px;font-family:var(--mono);opacity:.7}
+
+/* ACTION BAR */
+.ts-foot{
+  padding:11px 14px;border-top:1px solid var(--border);
+  background:var(--bg);display:flex;flex-direction:column;gap:6px;flex-shrink:0;
+}
+
+/* FILES COLUMN */
+.tool-files{
+  display:flex;flex-direction:column;overflow:hidden;background:var(--bg);
+}
+.files-toolbar{
+  padding:11px 14px;border-bottom:1px solid var(--border);
+  background:var(--bg2);display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.files-stats{font-size:11.5px;color:var(--text2);flex:1}
+.files-stats strong{color:var(--text);font-family:var(--mono);font-weight:700}
+.files-stats .saved{color:var(--success);font-weight:700;font-family:var(--mono)}
+
+#files-list, .files-list{
+  flex:1;overflow-y:auto;padding:8px;
+}
+.file-card{
+  display:flex;align-items:center;gap:11px;padding:10px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+  margin-bottom:6px;transition:all .15s;
+}
+.file-card:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.file-card.done{background:linear-gradient(90deg,rgba(22,163,74,.04),var(--bg2))}
+.file-card.error{background:linear-gradient(90deg,rgba(220,38,38,.05),var(--bg2));border-color:rgba(220,38,38,.3)}
+
+.fc-thumb{
+  width:54px;height:54px;border-radius:7px;
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;
+  font-family:var(--mono);font-weight:700;font-size:10px;color:var(--text2);
+}
+.fc-thumb img{width:100%;height:100%;object-fit:cover}
+
+.fc-info{flex:1;min-width:0}
+.fc-name{
+  font-size:12.5px;font-weight:600;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.fc-stats{
+  display:flex;gap:10px;flex-wrap:wrap;
+  font-size:10.5px;color:var(--text2);font-family:var(--mono);margin-top:3px;
+}
+.fc-stats .arrow{color:var(--text3)}
+.fc-stats .save-pct{color:var(--success);font-weight:700}
+.fc-stats .grow-pct{color:var(--amber);font-weight:700}
+.fc-stats .err{color:var(--danger);font-weight:700}
+
+.fc-bar{
+  height:3px;background:var(--bg3);border-radius:2px;
+  margin-top:5px;overflow:hidden;
+}
+.fc-bar-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));
+  width:0;transition:width .3s;
+}
+
+.fc-actions{display:flex;gap:5px;flex-shrink:0}
+.fc-btn{
+  width:28px;height:28px;border-radius:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;
+}
+.fc-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.fc-btn.danger:hover{background:var(--danger);border-color:var(--danger)}
+.fc-btn svg{width:14px;height:14px}
+.fc-btn:disabled{opacity:.4;cursor:not-allowed}
+.fc-btn:disabled:hover{background:var(--bg3);border-color:var(--border);color:var(--text2)}
+
+.flist-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;color:var(--text3);gap:10px;padding:30px;
+}
+.flist-empty svg{width:48px;height:48px;opacity:.25}
+.flist-empty .et{font-size:14px;color:var(--text2);font-weight:600}
+.flist-empty .es{font-size:11.5px;line-height:1.5;max-width:340px}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 14px;border-radius:var(--radius);
+  font-size:12.5px;font-weight:600;font-family:var(--font);
+  cursor:pointer;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);
+  transition:all .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--bg4);border-color:var(--text2);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-h);border-color:var(--accent-h)}
+.btn.success{background:var(--success);border-color:var(--success);color:#fff}
+.btn.success:hover{filter:brightness(1.08)}
+.btn.purple{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn.purple:hover{filter:brightness(1.08)}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+.btn.amber:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.danger:hover{filter:brightness(1.08)}
+.btn.sm{padding:6px 11px;font-size:11.5px}
+.btn.xs{padding:4px 9px;font-size:10.5px}
+.btn.full{width:100%}
+.btn svg{width:14px;height:14px}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:50px;right:18px;
+  padding:10px 18px;border-radius:8px;
+  background:var(--success);color:#fff;
+  font-size:12.5px;font-weight:600;
+  opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none;z-index:9999;
+  box-shadow:var(--shadow-lg);max-width:340px;
+  display:flex;align-items:center;gap:8px;
+}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{background:var(--danger)}
+#toast.info{background:var(--accent)}
+#toast.warn{background:var(--amber)}
+
+/* PROGRESS */
+#progress-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:8888;
+}
+#progress-overlay.visible{display:flex}
+.prog-box{
+  background:var(--bg2);border-radius:14px;padding:30px 40px;
+  text-align:center;min-width:300px;max-width:380px;box-shadow:var(--shadow-lg);
+  border:1px solid var(--border);
+}
+.prog-title{font-size:14.5px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.prog-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:9px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal),var(--purple));border-radius:3px;transition:width .25s;background-size:200% 100%;animation:slide 2s linear infinite}
+@keyframes slide{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.prog-sub{font-size:11.5px;color:var(--text2);font-family:var(--mono)}
+
+/* FOOTER */
+#footer{
+  height:32px;background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+  font-size:11px;color:var(--text2);flex-shrink:0;
+}
+#footer .dev-tag{display:flex;align-items:center;gap:5px;font-weight:600;color:var(--text)}
+#footer .dev-tag svg{width:12px;height:12px;color:var(--purple)}
+#footer .dev-tag strong{color:var(--purple);margin-left:3px;font-weight:700}
+#footer a{color:var(--text2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s}
+#footer a:hover{color:var(--accent)}
+#footer a svg{width:12px;height:12px}
+#footer .ft-spacer{flex:1}
+#footer .ft-stat{font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+/* RESPONSIVE */
+@media (max-width:980px){
+  .tool-grid{grid-template-columns:300px 1fr}
+}
+@media (max-width:760px){
+  #app{height:auto;overflow:auto}
+  .tool-grid{grid-template-columns:1fr}
+  .tool-settings{border-right:none;border-bottom:1px solid var(--border)}
+  .ts-body{max-height:none}
+  #footer{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    </div>
+    <span class="logo-name">Image<span>Tools</span></span>
+    <span class="logo-tag">PRO SUITE</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat">Files <strong id="h-count">0</strong></div>
+  <div class="hdr-stat">Done <strong id="h-done">0</strong></div>
+  <div class="hdr-stat saved">Saved <strong id="h-saved">0 KB</strong></div>
+  <div class="hdr-spacer"></div>
+  <a href="ai-seo-scanner.html" class="hdr-link" title="AI-powered bulk SEO scanner" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+    AI SEO Scanner
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="AI Content & Blog Writer (AEO/GEO/SXO/EEAT)" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    Content Writer
+  </a>
+  <a href="geotag-pro.html" class="hdr-link" title="Open GeoTag Pro">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    GeoTag Pro
+  </a>
+  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Citations
+  </a>
+  <a href="gbp-audit.html" class="hdr-link" title="GBP Local Audit" style="border-color:rgba(217,119,6,.4);color:#d97706">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    GBP Audit
+  </a>
+  <a href="schema-generator.html" class="hdr-link" title="LocalBusiness Schema Generator" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Schema
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+    <svg id="t-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <span id="t-label">Dark</span>
+  </button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOOL TABS -->
+  <div id="tool-tabs">
+    <button class="tool-tab active" data-tool="convert" onclick="switchTool('convert')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="m17 12-5 5-5-5"/><path d="M12 17V3"/></svg>
+      Convert
+    </button>
+    <button class="tool-tab" data-tool="compress" onclick="switchTool('compress')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 2 12l3 3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/></svg>
+      Compress
+    </button>
+    <button class="tool-tab" data-tool="resize" onclick="switchTool('resize')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 9 15"/><path d="M12 3H3v18h18v-9"/><path d="M16 3h5v5"/></svg>
+      Resize
+    </button>
+    <button class="tool-tab" data-tool="crop" onclick="switchTool('crop')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+      Crop
+    </button>
+    <button class="tool-tab" data-tool="optimize" onclick="switchTool('optimize')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>
+      Web Optimize
+    </button>
+    <button class="tool-tab" data-tool="base64" onclick="switchTool('base64')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Base64
+    </button>
+  </div>
+
+  <!-- ============ CONVERT ============ -->
+  <div class="tool-panel active" id="panel-convert">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="m17 12-5 5-5-5"/><path d="M12 17V3"/></svg>
+            Format Converter
+          </div>
+          <div class="ts-sub">PNG, JPG, WebP, BMP, GIF, TIFF, HEIC, AVIF, SVG &rarr; any web format</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-convert"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'convert')"
+            onclick="document.getElementById('input-convert').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop or click to add images</strong>Bulk convert multiple at once</p>
+            <div class="formats">PNG &middot; JPG &middot; WEBP &middot; BMP &middot; GIF &middot; TIFF &middot; HEIC &middot; AVIF &middot; SVG</div>
+          </div>
+          <input type="file" id="input-convert" multiple accept="image/*,.heic,.heif,.tif,.tiff" style="display:none" onchange="addFiles(this.files,'convert');this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Output Format</div>
+            <div class="tgroup cols-4">
+              <button class="tg-opt active" data-fmt="image/jpeg" onclick="setOpt('convert','format',this)">JPG</button>
+              <button class="tg-opt" data-fmt="image/png" onclick="setOpt('convert','format',this)">PNG</button>
+              <button class="tg-opt" data-fmt="image/webp" onclick="setOpt('convert','format',this)">WebP</button>
+              <button class="tg-opt" data-fmt="image/bmp" onclick="setOpt('convert','format',this)">BMP</button>
+            </div>
+          </div>
+
+          <div class="set-section" id="convert-quality-wrap">
+            <div class="set-h"><span class="dot"></span>Quality</div>
+            <div class="slider-wrap">
+              <input type="range" id="convert-quality" min="1" max="100" value="92" oninput="OPTS.convert.quality=+this.value;document.getElementById('convert-quality-val').textContent=this.value+'%'">
+              <span class="slider-val" id="convert-quality-val">92%</span>
+            </div>
+            <div class="help-text">Higher = better quality, larger file. 80-92 is the web sweet spot.</div>
+          </div>
+
+          <div class="set-section" id="convert-bg-wrap">
+            <div class="set-h"><span class="dot"></span>Background (for transparent &rarr; JPG)</div>
+            <div class="frow">
+              <label class="flbl">Color</label>
+              <input class="finp" type="color" id="convert-bg" value="#ffffff" oninput="OPTS.convert.bg=this.value">
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Filename</div>
+            <div class="frow">
+              <label class="flbl">Suffix</label>
+              <input class="finp" type="text" id="convert-suffix" placeholder="-converted (optional)" oninput="OPTS.convert.suffix=this.value">
+            </div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <button class="btn primary full" onclick="processAll('convert')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            Convert All
+          </button>
+          <button class="btn purple sm full" onclick="downloadZip('convert')">Download All as ZIP</button>
+        </div>
+      </div>
+      <div class="tool-files">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-convert">No files</span>
+          <button class="btn xs" onclick="clearTool('convert')">Clear All</button>
+        </div>
+        <div class="files-list" id="list-convert">
+          <div class="flist-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <div class="et">No files yet</div>
+            <div class="es">Drop images on the left to start converting between formats. PNG to JPG, JPG to WebP, HEIC to JPG, anything in any direction.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COMPRESS ============ -->
+  <div class="tool-panel" id="panel-compress">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 2 12l3 3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/></svg>
+            Smart Compressor
+          </div>
+          <div class="ts-sub">Reduce file size by quality or hit an exact target KB</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-compress"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'compress')"
+            onclick="document.getElementById('input-compress').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop or click to add images</strong>Compress dozens at once</p>
+            <div class="formats">JPG &middot; PNG &middot; WEBP &middot; BMP &middot; HEIC</div>
+          </div>
+          <input type="file" id="input-compress" multiple accept="image/*,.heic,.heif" style="display:none" onchange="addFiles(this.files,'compress');this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Mode</div>
+            <div class="tgroup cols-2">
+              <button class="tg-opt active" data-mode="quality" onclick="setOpt('compress','mode',this);toggleCompressFields()">By Quality</button>
+              <button class="tg-opt" data-mode="size" onclick="setOpt('compress','mode',this);toggleCompressFields()">Target Size</button>
+            </div>
+          </div>
+
+          <div class="set-section" id="compress-q-wrap">
+            <div class="set-h"><span class="dot"></span>Quality</div>
+            <div class="slider-wrap">
+              <input type="range" id="compress-quality" min="5" max="100" value="75" oninput="OPTS.compress.quality=+this.value;document.getElementById('compress-quality-val').textContent=this.value+'%'">
+              <span class="slider-val" id="compress-quality-val">75%</span>
+            </div>
+            <div class="help-text">Lower quality = smaller file. 60-80 typically yields 50-80% savings with no visible loss.</div>
+          </div>
+
+          <div class="set-section" id="compress-size-wrap" style="display:none">
+            <div class="set-h"><span class="dot"></span>Target Size (KB)</div>
+            <div class="frow col">
+              <input class="finp" type="number" id="compress-target" min="5" max="10000" value="200" oninput="OPTS.compress.target=+this.value">
+              <div class="help-text">Compressor will iteratively reduce quality to hit (or fall just under) this size.</div>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Output Format</div>
+            <div class="tgroup cols-3">
+              <button class="tg-opt active" data-fmt="" onclick="setOpt('compress','format',this)">Same</button>
+              <button class="tg-opt" data-fmt="image/jpeg" onclick="setOpt('compress','format',this)">JPG</button>
+              <button class="tg-opt" data-fmt="image/webp" onclick="setOpt('compress','format',this)">WebP</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Optional Resize</div>
+            <div class="frow">
+              <label class="flbl">Max width</label>
+              <input class="finp" type="number" id="compress-maxw" placeholder="leave blank to keep" min="50" max="10000" oninput="OPTS.compress.maxw=+this.value||null">
+            </div>
+            <div class="help-text">Capping width is the single biggest size reduction trick.</div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <button class="btn primary full" onclick="processAll('compress')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            Compress All
+          </button>
+          <button class="btn purple sm full" onclick="downloadZip('compress')">Download All as ZIP</button>
+        </div>
+      </div>
+      <div class="tool-files">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-compress">No files</span>
+          <button class="btn xs" onclick="clearTool('compress')">Clear All</button>
+        </div>
+        <div class="files-list" id="list-compress">
+          <div class="flist-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <div class="et">No files yet</div>
+            <div class="es">Drop images on the left. Choose a quality slider value or set an exact KB target — the engine will iterate to hit it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RESIZE ============ -->
+  <div class="tool-panel" id="panel-resize">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 9 15"/><path d="M12 3H3v18h18v-9"/><path d="M16 3h5v5"/></svg>
+            Image Resizer
+          </div>
+          <div class="ts-sub">Bulk resize by exact dims, percent, or max side</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-resize"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'resize')"
+            onclick="document.getElementById('input-resize').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop or click to add images</strong>Resize hundreds in seconds</p>
+            <div class="formats">JPG &middot; PNG &middot; WEBP &middot; BMP &middot; GIF &middot; TIFF &middot; HEIC</div>
+          </div>
+          <input type="file" id="input-resize" multiple accept="image/*,.heic,.heif,.tif,.tiff" style="display:none" onchange="addFiles(this.files,'resize');this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Resize Mode</div>
+            <div class="tgroup cols-3">
+              <button class="tg-opt active" data-mode="exact" onclick="setOpt('resize','mode',this);renderResizeFields()">Exact</button>
+              <button class="tg-opt" data-mode="percent" onclick="setOpt('resize','mode',this);renderResizeFields()">Percent</button>
+              <button class="tg-opt" data-mode="maxside" onclick="setOpt('resize','mode',this);renderResizeFields()">Max Side</button>
+            </div>
+            <div class="tgroup cols-3" style="margin-top:5px">
+              <button class="tg-opt" data-mode="maxw" onclick="setOpt('resize','mode',this);renderResizeFields()">Max W</button>
+              <button class="tg-opt" data-mode="maxh" onclick="setOpt('resize','mode',this);renderResizeFields()">Max H</button>
+              <button class="tg-opt" data-mode="fit" onclick="setOpt('resize','mode',this);renderResizeFields()">Fit Box</button>
+            </div>
+          </div>
+
+          <div class="set-section" id="resize-fields"></div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Output Format</div>
+            <div class="tgroup cols-4">
+              <button class="tg-opt active" data-fmt="" onclick="setOpt('resize','format',this)">Same</button>
+              <button class="tg-opt" data-fmt="image/jpeg" onclick="setOpt('resize','format',this)">JPG</button>
+              <button class="tg-opt" data-fmt="image/png" onclick="setOpt('resize','format',this)">PNG</button>
+              <button class="tg-opt" data-fmt="image/webp" onclick="setOpt('resize','format',this)">WebP</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Quality</div>
+            <div class="slider-wrap">
+              <input type="range" id="resize-quality" min="1" max="100" value="90" oninput="OPTS.resize.quality=+this.value;document.getElementById('resize-quality-val').textContent=this.value+'%'">
+              <span class="slider-val" id="resize-quality-val">90%</span>
+            </div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <button class="btn primary full" onclick="processAll('resize')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            Resize All
+          </button>
+          <button class="btn purple sm full" onclick="downloadZip('resize')">Download All as ZIP</button>
+        </div>
+      </div>
+      <div class="tool-files">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-resize">No files</span>
+          <button class="btn xs" onclick="clearTool('resize')">Clear All</button>
+        </div>
+        <div class="files-list" id="list-resize">
+          <div class="flist-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <div class="et">No files yet</div>
+            <div class="es">Drop images and pick a resize mode. Aspect ratio is preserved automatically except in Exact mode.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CROP ============ -->
+  <div class="tool-panel" id="panel-crop">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+            Aspect Ratio Crop
+          </div>
+          <div class="ts-sub">Auto-crop to social/web aspect ratios with smart center positioning</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-crop"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'crop')"
+            onclick="document.getElementById('input-crop').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop or click to add images</strong>Bulk crop to a target ratio</p>
+            <div class="formats">JPG &middot; PNG &middot; WEBP &middot; BMP &middot; GIF &middot; TIFF</div>
+          </div>
+          <input type="file" id="input-crop" multiple accept="image/*,.heic,.heif,.tif,.tiff" style="display:none" onchange="addFiles(this.files,'crop');this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Aspect Ratio</div>
+            <div class="tgroup cols-4">
+              <button class="tg-opt active" data-ratio="1:1" onclick="setOpt('crop','ratio',this);renderCropFields()">1:1</button>
+              <button class="tg-opt" data-ratio="16:9" onclick="setOpt('crop','ratio',this);renderCropFields()">16:9</button>
+              <button class="tg-opt" data-ratio="4:3" onclick="setOpt('crop','ratio',this);renderCropFields()">4:3</button>
+              <button class="tg-opt" data-ratio="3:2" onclick="setOpt('crop','ratio',this);renderCropFields()">3:2</button>
+            </div>
+            <div class="tgroup cols-4" style="margin-top:5px">
+              <button class="tg-opt" data-ratio="9:16" onclick="setOpt('crop','ratio',this);renderCropFields()">9:16</button>
+              <button class="tg-opt" data-ratio="4:5" onclick="setOpt('crop','ratio',this);renderCropFields()">4:5</button>
+              <button class="tg-opt" data-ratio="2:3" onclick="setOpt('crop','ratio',this);renderCropFields()">2:3</button>
+              <button class="tg-opt" data-ratio="custom" onclick="setOpt('crop','ratio',this);renderCropFields()">Custom</button>
+            </div>
+          </div>
+
+          <div class="set-section" id="crop-custom" style="display:none">
+            <div class="set-h"><span class="dot"></span>Custom Ratio</div>
+            <div class="frow">
+              <label class="flbl">Width</label>
+              <input class="finp" type="number" id="crop-cw" min="1" value="1" oninput="OPTS.crop.cw=+this.value">
+            </div>
+            <div class="frow">
+              <label class="flbl">Height</label>
+              <input class="finp" type="number" id="crop-ch" min="1" value="1" oninput="OPTS.crop.ch=+this.value">
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Crop Anchor</div>
+            <div class="tgroup cols-3">
+              <button class="tg-opt" data-anchor="top" onclick="setOpt('crop','anchor',this)">Top</button>
+              <button class="tg-opt active" data-anchor="center" onclick="setOpt('crop','anchor',this)">Center</button>
+              <button class="tg-opt" data-anchor="bottom" onclick="setOpt('crop','anchor',this)">Bottom</button>
+            </div>
+            <div class="help-text">Where to crop from when the source aspect doesn't match.</div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Output Format</div>
+            <div class="tgroup cols-4">
+              <button class="tg-opt active" data-fmt="" onclick="setOpt('crop','format',this)">Same</button>
+              <button class="tg-opt" data-fmt="image/jpeg" onclick="setOpt('crop','format',this)">JPG</button>
+              <button class="tg-opt" data-fmt="image/png" onclick="setOpt('crop','format',this)">PNG</button>
+              <button class="tg-opt" data-fmt="image/webp" onclick="setOpt('crop','format',this)">WebP</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Quality</div>
+            <div class="slider-wrap">
+              <input type="range" id="crop-quality" min="1" max="100" value="92" oninput="OPTS.crop.quality=+this.value;document.getElementById('crop-quality-val').textContent=this.value+'%'">
+              <span class="slider-val" id="crop-quality-val">92%</span>
+            </div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <button class="btn primary full" onclick="processAll('crop')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            Crop All
+          </button>
+          <button class="btn purple sm full" onclick="downloadZip('crop')">Download All as ZIP</button>
+        </div>
+      </div>
+      <div class="tool-files">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-crop">No files</span>
+          <button class="btn xs" onclick="clearTool('crop')">Clear All</button>
+        </div>
+        <div class="files-list" id="list-crop">
+          <div class="flist-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <div class="et">No files yet</div>
+            <div class="es">Drop images then pick a target aspect ratio. Crop is taken from the chosen anchor and centered horizontally.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OPTIMIZE ============ -->
+  <div class="tool-panel" id="panel-optimize">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>
+            Web Optimizer
+          </div>
+          <div class="ts-sub">One-shot resize + compress + convert with battle-tested presets</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-optimize"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'optimize')"
+            onclick="document.getElementById('input-optimize').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop or click to add images</strong>Make them production-ready</p>
+            <div class="formats">JPG &middot; PNG &middot; WEBP &middot; BMP &middot; GIF &middot; TIFF &middot; HEIC</div>
+          </div>
+          <input type="file" id="input-optimize" multiple accept="image/*,.heic,.heif,.tif,.tiff" style="display:none" onchange="addFiles(this.files,'optimize');this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Preset</div>
+            <div class="preset-grid">
+              <div class="preset-card active" data-preset="hero" onclick="applyOptPreset('hero',this)">
+                <div class="pc-title">Hero / Banner</div>
+                <div class="pc-sub">1920w &middot; JPG 85</div>
+              </div>
+              <div class="preset-card" data-preset="content" onclick="applyOptPreset('content',this)">
+                <div class="pc-title">Article / Blog</div>
+                <div class="pc-sub">1200w &middot; JPG 82</div>
+              </div>
+              <div class="preset-card" data-preset="thumb" onclick="applyOptPreset('thumb',this)">
+                <div class="pc-title">Thumbnail</div>
+                <div class="pc-sub">400w &middot; JPG 80</div>
+              </div>
+              <div class="preset-card" data-preset="og" onclick="applyOptPreset('og',this)">
+                <div class="pc-title">Social / OG</div>
+                <div class="pc-sub">1200x630 &middot; JPG 85</div>
+              </div>
+              <div class="preset-card" data-preset="webp" onclick="applyOptPreset('webp',this)">
+                <div class="pc-title">Modern WebP</div>
+                <div class="pc-sub">1600w &middot; WebP 80</div>
+              </div>
+              <div class="preset-card" data-preset="custom" onclick="applyOptPreset('custom',this)">
+                <div class="pc-title">Custom</div>
+                <div class="pc-sub">Pick your own</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Max Width</div>
+            <div class="frow col">
+              <input class="finp" type="number" id="opt-maxw" min="50" max="10000" value="1920" oninput="OPTS.optimize.maxw=+this.value">
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Output Format</div>
+            <div class="tgroup cols-3">
+              <button class="tg-opt active" data-fmt="image/jpeg" onclick="setOpt('optimize','format',this)">JPG</button>
+              <button class="tg-opt" data-fmt="image/webp" onclick="setOpt('optimize','format',this)">WebP</button>
+              <button class="tg-opt" data-fmt="image/png" onclick="setOpt('optimize','format',this)">PNG</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Quality</div>
+            <div class="slider-wrap">
+              <input type="range" id="opt-quality" min="1" max="100" value="85" oninput="OPTS.optimize.quality=+this.value;document.getElementById('opt-quality-val').textContent=this.value+'%'">
+              <span class="slider-val" id="opt-quality-val">85%</span>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Force Aspect (optional)</div>
+            <div class="frow">
+              <label class="flbl">Width</label>
+              <input class="finp" type="number" id="opt-fixw" placeholder="auto" min="0" oninput="OPTS.optimize.fixw=+this.value||null">
+            </div>
+            <div class="frow">
+              <label class="flbl">Height</label>
+              <input class="finp" type="number" id="opt-fixh" placeholder="auto" min="0" oninput="OPTS.optimize.fixh=+this.value||null">
+            </div>
+            <div class="help-text">Set both to crop to that exact size (e.g. 1200x630 for OG).</div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <button class="btn primary full" onclick="processAll('optimize')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            Optimize All
+          </button>
+          <button class="btn purple sm full" onclick="downloadZip('optimize')">Download All as ZIP</button>
+        </div>
+      </div>
+      <div class="tool-files">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-optimize">No files</span>
+          <button class="btn xs" onclick="clearTool('optimize')">Clear All</button>
+        </div>
+        <div class="files-list" id="list-optimize">
+          <div class="flist-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <div class="et">No files yet</div>
+            <div class="es">Drop oversized photos here. The optimizer downsizes, recompresses and converts in one pass — perfect for getting blog or product images web-ready.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BASE64 ============ -->
+  <div class="tool-panel" id="panel-base64">
+    <div class="tool-grid">
+      <div class="tool-settings">
+        <div class="ts-head">
+          <div class="ts-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Image &lt;-&gt; Base64
+          </div>
+          <div class="ts-sub">Encode any image to a data URL or paste a Base64 to decode</div>
+        </div>
+        <div class="ts-body">
+          <div class="drop-z" id="dz-base64"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event,'base64')"
+            onclick="document.getElementById('input-base64').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p><strong>Drop image to encode</strong>Get a ready-to-paste data URL</p>
+            <div class="formats">ANY IMAGE</div>
+          </div>
+          <input type="file" id="input-base64" accept="image/*" style="display:none" onchange="encodeBase64(this.files[0]);this.value='';">
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Wrap Format</div>
+            <div class="tgroup cols-3">
+              <button class="tg-opt active" data-wrap="dataurl" onclick="setOpt('base64','wrap',this);refreshBase64Out()">Data URL</button>
+              <button class="tg-opt" data-wrap="raw" onclick="setOpt('base64','wrap',this);refreshBase64Out()">Raw Base64</button>
+              <button class="tg-opt" data-wrap="css" onclick="setOpt('base64','wrap',this);refreshBase64Out()">CSS</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <div class="set-h"><span class="dot"></span>Decode Base64</div>
+            <textarea class="finp" id="base64-decode-in" rows="5" placeholder="Paste a data URL or raw Base64 here..." style="resize:vertical;font-family:var(--mono);font-size:10.5px;line-height:1.5"></textarea>
+            <div style="margin-top:6px"><button class="btn full sm" onclick="decodeBase64()">Decode &amp; Preview</button></div>
+          </div>
+        </div>
+        <div class="ts-foot">
+          <div style="font-size:10.5px;color:var(--text2);text-align:center">Encoded text appears in the right pane.</div>
+        </div>
+      </div>
+      <div class="tool-files" style="background:var(--bg2)">
+        <div class="files-toolbar">
+          <span class="files-stats" id="stats-base64">No file encoded</span>
+          <button class="btn xs" onclick="clearBase64()">Clear</button>
+          <button class="btn xs primary" onclick="copyBase64()">Copy</button>
+        </div>
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px;gap:10px">
+          <div id="base64-preview" style="display:none;text-align:center;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px"></div>
+          <textarea id="base64-out" readonly style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--mono);font-size:10.5px;line-height:1.55;color:var(--text);resize:none;word-break:break-all" placeholder="Drop an image to encode it here..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <span class="dev-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Developed by <strong>Mukesh Kr</strong>
+  </span>
+  <span style="color:var(--text3)">|</span>
+  <a href="tel:+919797366099" title="Call">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +91 97973 66099
+  </a>
+  <a href="mailto:itsmukeshweb@gmail.com" title="Email">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    itsmukeshweb@gmail.com
+  </a>
+  <span class="ft-spacer"></span>
+  <span class="ft-stat">100% client-side &middot; No uploads &middot; Privacy first</span>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-overlay">
+  <div class="prog-box">
+    <div class="prog-title" id="prog-title">Processing...</div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-sub" id="prog-sub">Please wait</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// =========================================================
+//  STATE
+// =========================================================
+const TOOLS = ['convert','compress','resize','crop','optimize','base64'];
+const QUEUES = { convert:[], compress:[], resize:[], crop:[], optimize:[], base64:[] };
+let CURRENT_TOOL = 'convert';
+let TOTAL_SAVED = 0;
+let _heicLoading = null;
+
+const OPTS = {
+  convert:  { format:'image/jpeg', quality:92, bg:'#ffffff', suffix:'' },
+  compress: { mode:'quality', quality:75, target:200, format:'', maxw:null },
+  resize:   { mode:'exact', w:1200, h:800, percent:50, max:1920, quality:90, format:'', keep:true },
+  crop:     { ratio:'1:1', cw:1, ch:1, anchor:'center', format:'', quality:92 },
+  optimize: { preset:'hero', maxw:1920, format:'image/jpeg', quality:85, fixw:null, fixh:null }
+};
+
+// =========================================================
+//  THEME
+// =========================================================
+function applyThemeIcon(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const icon = document.getElementById('t-icon');
+  document.getElementById('t-label').textContent = isDark ? 'Light' : 'Dark';
+  icon.innerHTML = isDark
+    ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+}
+function toggleTheme(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('seohub_theme_v1', next);
+  applyThemeIcon();
+}
+applyThemeIcon();
+
+// =========================================================
+//  TOOL TABS
+// =========================================================
+function switchTool(name){
+  CURRENT_TOOL = name;
+  document.querySelectorAll('.tool-tab').forEach(b => b.classList.toggle('active', b.dataset.tool === name));
+  document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+// =========================================================
+//  GENERIC TOGGLE-GROUP HANDLER
+// =========================================================
+function setOpt(tool, key, btn){
+  // siblings in same .tgroup get deactivated
+  const group = btn.closest('.tgroup');
+  if(group) group.querySelectorAll('.tg-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Map dataset attributes -> store
+  const ds = btn.dataset;
+  if(key === 'format' || key === 'fmt') OPTS[tool].format = ds.fmt ?? '';
+  else if(key === 'mode') OPTS[tool].mode = ds.mode;
+  else if(key === 'ratio') OPTS[tool].ratio = ds.ratio;
+  else if(key === 'anchor') OPTS[tool].anchor = ds.anchor;
+  else if(key === 'wrap') OPTS[tool].wrap = ds.wrap;
+  // dynamic UI
+  if(tool === 'convert' && key === 'format') refreshConvertUI();
+  if(tool === 'optimize' && key === 'format') OPTS.optimize.format = ds.fmt;
+}
+
+function refreshConvertUI(){
+  const showQ = OPTS.convert.format === 'image/jpeg' || OPTS.convert.format === 'image/webp';
+  document.getElementById('convert-quality-wrap').style.display = showQ ? '' : 'none';
+  document.getElementById('convert-bg-wrap').style.display = OPTS.convert.format === 'image/jpeg' ? '' : 'none';
+}
+
+function toggleCompressFields(){
+  document.getElementById('compress-q-wrap').style.display = OPTS.compress.mode === 'quality' ? '' : 'none';
+  document.getElementById('compress-size-wrap').style.display = OPTS.compress.mode === 'size' ? '' : 'none';
+}
+
+function renderResizeFields(){
+  const m = OPTS.resize.mode;
+  const wrap = document.getElementById('resize-fields');
+  wrap.innerHTML = '<div class="set-h"><span class="dot"></span>Dimensions</div>';
+  const html = [];
+  if(m === 'exact'){
+    html.push(`<div class="frow"><label class="flbl">Width (px)</label><input class="finp" type="number" min="1" value="${OPTS.resize.w}" oninput="OPTS.resize.w=+this.value"></div>`);
+    html.push(`<div class="frow"><label class="flbl">Height (px)</label><input class="finp" type="number" min="1" value="${OPTS.resize.h}" oninput="OPTS.resize.h=+this.value"></div>`);
+    html.push(`<div class="help-text">Exact mode stretches to fit (does not preserve aspect ratio).</div>`);
+  } else if(m === 'percent'){
+    html.push(`<div class="slider-wrap"><input type="range" min="5" max="200" value="${OPTS.resize.percent}" oninput="OPTS.resize.percent=+this.value;document.getElementById('resize-pct-val').textContent=this.value+'%'"><span class="slider-val" id="resize-pct-val">${OPTS.resize.percent}%</span></div>`);
+    html.push(`<div class="help-text">100% = original size. Below 100 shrinks, above grows.</div>`);
+  } else if(m === 'maxside' || m === 'maxw' || m === 'maxh'){
+    const lbl = m === 'maxside' ? 'Long Side (px)' : m === 'maxw' ? 'Max Width (px)' : 'Max Height (px)';
+    html.push(`<div class="frow"><label class="flbl">${lbl}</label><input class="finp" type="number" min="1" value="${OPTS.resize.max}" oninput="OPTS.resize.max=+this.value"></div>`);
+    html.push(`<div class="help-text">Aspect ratio is preserved. Smaller images are not enlarged.</div>`);
+  } else if(m === 'fit'){
+    html.push(`<div class="frow"><label class="flbl">Box Width</label><input class="finp" type="number" min="1" value="${OPTS.resize.w}" oninput="OPTS.resize.w=+this.value"></div>`);
+    html.push(`<div class="frow"><label class="flbl">Box Height</label><input class="finp" type="number" min="1" value="${OPTS.resize.h}" oninput="OPTS.resize.h=+this.value"></div>`);
+    html.push(`<div class="help-text">Fits inside the box, preserving aspect ratio.</div>`);
+  }
+  wrap.innerHTML += html.join('');
+}
+function renderCropFields(){
+  document.getElementById('crop-custom').style.display = OPTS.crop.ratio === 'custom' ? '' : 'none';
+}
+
+function applyOptPreset(name, btn){
+  document.querySelectorAll('#panel-optimize .preset-card').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const presets = {
+    hero:    { maxw:1920, format:'image/jpeg', quality:85, fixw:null, fixh:null },
+    content: { maxw:1200, format:'image/jpeg', quality:82, fixw:null, fixh:null },
+    thumb:   { maxw:400,  format:'image/jpeg', quality:80, fixw:null, fixh:null },
+    og:      { maxw:1200, format:'image/jpeg', quality:85, fixw:1200, fixh:630 },
+    webp:    { maxw:1600, format:'image/webp', quality:80, fixw:null, fixh:null },
+    custom:  null
+  };
+  if(presets[name]){
+    Object.assign(OPTS.optimize, presets[name]);
+    document.getElementById('opt-maxw').value = OPTS.optimize.maxw;
+    document.getElementById('opt-quality').value = OPTS.optimize.quality;
+    document.getElementById('opt-quality-val').textContent = OPTS.optimize.quality + '%';
+    document.getElementById('opt-fixw').value = OPTS.optimize.fixw || '';
+    document.getElementById('opt-fixh').value = OPTS.optimize.fixh || '';
+    // Sync format toggle
+    document.querySelectorAll('#panel-optimize .tg-opt').forEach(b => {
+      if(b.dataset.fmt !== undefined) b.classList.toggle('active', b.dataset.fmt === OPTS.optimize.format);
+    });
+  }
+  OPTS.optimize.preset = name;
+}
+
+// =========================================================
+//  FILE LOADING
+// =========================================================
+function onDrop(e, tool){
+  e.preventDefault();
+  document.getElementById(`dz-${tool}`).classList.remove('drag');
+  if(tool === 'base64'){
+    if(e.dataTransfer.files[0]) encodeBase64(e.dataTransfer.files[0]);
+    return;
+  }
+  addFiles(e.dataTransfer.files, tool);
+}
+
+function isImageFile(f){
+  if(!f) return false;
+  const t = (f.type || '').toLowerCase();
+  if(t.startsWith('image/')) return true;
+  const ext = (f.name||'').split('.').pop().toLowerCase();
+  return ['jpg','jpeg','png','gif','bmp','webp','tif','tiff','heic','heif','avif','svg','ico'].includes(ext);
+}
+
+async function addFiles(fileList, tool){
+  const arr = Array.from(fileList).filter(isImageFile);
+  if(!arr.length){ toast('No image files found', 'warn'); return; }
+  const queue = QUEUES[tool];
+  let added = 0;
+  for(const file of arr){
+    if(queue.some(q => q && q.name === file.name && q.size === file.size)) continue;
+    const idx = queue.length;
+    const item = {
+      file, name:file.name, size:file.size,
+      ext:file.name.split('.').pop().toLowerCase(),
+      thumb:null, srcW:0, srcH:0,
+      outBlob:null, outName:null, outSize:0,
+      status:'pending', error:null, progress:0
+    };
+    queue.push(item);
+    renderFileCard(tool, idx);
+    added++;
+    // Async: get thumb + dims
+    loadThumbAndDims(item).then(() => updateFileCard(tool, idx));
+  }
+  if(added){
+    toast(`Added ${added} image${added>1?'s':''} to ${tool}`);
+    updateStats();
+    updateToolStats(tool);
+    refreshEmptyState(tool);
+  }
+}
+
+async function loadThumbAndDims(item){
+  try{
+    const img = await decodeAnyImage(item.file);
+    item.srcW = img.naturalWidth || img.width;
+    item.srcH = img.naturalHeight || img.height;
+    const sz = 110;
+    const c = document.createElement('canvas');
+    c.width = sz; c.height = sz;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0001';
+    ctx.fillRect(0,0,sz,sz);
+    const r = Math.min(sz/item.srcW, sz/item.srcH);
+    const w = item.srcW*r, h = item.srcH*r;
+    ctx.drawImage(img, (sz-w)/2, (sz-h)/2, w, h);
+    item.thumb = c.toDataURL('image/jpeg', .78);
+  } catch(e){
+    item.error = e.message || 'Could not decode';
+  }
+}
+
+// Decode any image - handles HEIC/HEIF via heic2any, TIFF natively if browser supports
+async function decodeAnyImage(file){
+  const ext = (file.name||'').split('.').pop().toLowerCase();
+  const isHeic = ext === 'heic' || ext === 'heif' || (file.type||'').includes('heic') || (file.type||'').includes('heif');
+  if(isHeic){
+    await loadHeicLib();
+    const blob = await window.heic2any({ blob:file, toType:'image/jpeg', quality:.95 });
+    return loadImageFromBlob(blob);
+  }
+  return loadImageFromBlob(file);
+}
+
+async function loadImageFromBlob(blob){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to decode image')); };
+    img.src = url;
+  });
+}
+
+async function loadHeicLib(){
+  if(window.heic2any) return;
+  if(_heicLoading) return _heicLoading;
+  _heicLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    s.onload = resolve; s.onerror = () => reject(new Error('Could not load HEIC support library'));
+    document.head.appendChild(s);
+  });
+  return _heicLoading;
+}
+
+// =========================================================
+//  FILE CARD RENDER
+// =========================================================
+function renderFileCard(tool, idx){
+  const list = document.getElementById(`list-${tool}`);
+  const empty = list.querySelector('.flist-empty');
+  if(empty) empty.remove();
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  card.id = `card-${tool}-${idx}`;
+  card.innerHTML = `
+    <div class="fc-thumb" id="thumb-${tool}-${idx}">${escapeHtml(QUEUES[tool][idx].ext.toUpperCase())}</div>
+    <div class="fc-info">
+      <div class="fc-name">${escapeHtml(QUEUES[tool][idx].name)}</div>
+      <div class="fc-stats" id="stats-${tool}-${idx}">
+        <span>${formatBytes(QUEUES[tool][idx].size)}</span>
+        <span>...</span>
+      </div>
+      <div class="fc-bar"><div class="fc-bar-fill" id="bar-${tool}-${idx}"></div></div>
+    </div>
+    <div class="fc-actions">
+      <button class="fc-btn" id="dlbtn-${tool}-${idx}" disabled onclick="downloadOne('${tool}',${idx})" title="Download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      </button>
+      <button class="fc-btn danger" onclick="removeOne('${tool}',${idx})" title="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </div>
+  `;
+  list.appendChild(card);
+}
+
+function updateFileCard(tool, idx){
+  const item = QUEUES[tool][idx];
+  if(!item) return;
+  const card = document.getElementById(`card-${tool}-${idx}`);
+  if(!card) return;
+  const thumb = document.getElementById(`thumb-${tool}-${idx}`);
+  if(thumb && item.thumb){
+    thumb.innerHTML = `<img src="${item.thumb}" alt="">`;
+  }
+  const stats = document.getElementById(`stats-${tool}-${idx}`);
+  if(stats){
+    let html = `<span>${formatBytes(item.size)}${item.srcW ? ` &middot; ${item.srcW}x${item.srcH}` : ''}</span>`;
+    if(item.error){
+      html += `<span class="err">Error: ${escapeHtml(item.error)}</span>`;
+      card.classList.add('error');
+    } else if(item.status === 'processing'){
+      html += `<span style="color:var(--accent);font-weight:700">Processing... ${item.progress||0}%</span>`;
+    } else if(item.status === 'done' && item.outBlob){
+      const dims = item.outW ? ` &middot; ${item.outW}x${item.outH}` : '';
+      const pct = ((item.size - item.outSize) / item.size * 100);
+      const cls = pct >= 0 ? 'save-pct' : 'grow-pct';
+      const sign = pct >= 0 ? '-' : '+';
+      html += `<span class="arrow">&rarr;</span><span>${formatBytes(item.outSize)}${dims}</span><span class="${cls}">${sign}${Math.abs(pct).toFixed(1)}%</span>`;
+      card.classList.add('done');
+    }
+    stats.innerHTML = html;
+  }
+  const bar = document.getElementById(`bar-${tool}-${idx}`);
+  if(bar) bar.style.width = (item.status === 'done' ? 100 : item.progress || 0) + '%';
+  const dl = document.getElementById(`dlbtn-${tool}-${idx}`);
+  if(dl) dl.disabled = !(item.status === 'done' && item.outBlob);
+}
+
+function removeOne(tool, idx){
+  QUEUES[tool][idx] = null;
+  document.getElementById(`card-${tool}-${idx}`)?.remove();
+  refreshEmptyState(tool);
+  updateStats();
+  updateToolStats(tool);
+}
+function clearTool(tool){
+  if(!QUEUES[tool].some(Boolean)) return;
+  if(!confirm(`Clear all files from ${tool}?`)) return;
+  QUEUES[tool].length = 0;
+  document.getElementById(`list-${tool}`).innerHTML = '';
+  refreshEmptyState(tool);
+  updateStats();
+  updateToolStats(tool);
+}
+
+function refreshEmptyState(tool){
+  const list = document.getElementById(`list-${tool}`);
+  if(QUEUES[tool].some(Boolean)) return;
+  list.innerHTML = `
+    <div class="flist-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <div class="et">No files yet</div>
+      <div class="es">Drop or click on the left to add images.</div>
+    </div>`;
+}
+
+// =========================================================
+//  PROCESSING
+// =========================================================
+async function processAll(tool){
+  const queue = QUEUES[tool].filter(Boolean);
+  if(!queue.length){ toast('No files to process', 'err'); return; }
+  showProgress(`Processing with ${tool}...`, 0);
+  let done = 0, errors = 0, savedBytes = 0;
+  for(const item of queue){
+    if(!item) continue;
+    item.status = 'processing'; item.progress = 0; item.error = null;
+    const idx = QUEUES[tool].indexOf(item);
+    updateFileCard(tool, idx);
+    try{
+      const result = await processOne(tool, item);
+      item.outBlob = result.blob;
+      item.outName = result.name;
+      item.outSize = result.blob.size;
+      item.outW = result.width;
+      item.outH = result.height;
+      item.status = 'done';
+      item.progress = 100;
+      const diff = item.size - item.outSize;
+      if(diff > 0) { savedBytes += diff; TOTAL_SAVED += diff; }
+    } catch(err){
+      console.error(err);
+      item.error = err.message || 'Failed';
+      item.status = 'error';
+      errors++;
+    }
+    updateFileCard(tool, idx);
+    done++;
+    updateProgress(Math.round(done / queue.length * 100), `${done} of ${queue.length} done`);
+  }
+  hideProgress();
+  updateStats();
+  updateToolStats(tool);
+  const msg = errors ? `${done - errors}/${done} processed (${errors} failed)` : `Processed ${done} files`;
+  toast(`${msg}${savedBytes > 0 ? ' &middot; saved ' + formatBytes(savedBytes) : ''}`, errors ? 'warn' : 'success');
+}
+
+async function processOne(tool, item){
+  const img = await decodeAnyImage(item.file);
+  const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+
+  if(tool === 'convert'){
+    const o = OPTS.convert;
+    const canvas = drawTo(img, sw, sh, o.format === 'image/jpeg' ? o.bg : null);
+    const blob = await canvasToBlob(canvas, o.format, (o.quality||90)/100);
+    return wrapResult(item, blob, o.format, sw, sh, o.suffix);
+  }
+
+  if(tool === 'compress'){
+    const o = OPTS.compress;
+    const fmt = o.format || guessFormat(item) || 'image/jpeg';
+    let outW = sw, outH = sh;
+    if(o.maxw && sw > o.maxw){
+      const r = o.maxw / sw;
+      outW = o.maxw; outH = Math.round(sh * r);
+    }
+    let blob;
+    if(o.mode === 'quality'){
+      const canvas = drawTo(img, outW, outH, fmt === 'image/jpeg' ? '#ffffff' : null);
+      blob = await canvasToBlob(canvas, fmt, (o.quality||75)/100);
+    } else {
+      blob = await compressToTarget(img, outW, outH, fmt, o.target);
+    }
+    return wrapResult(item, blob, fmt, outW, outH, '-compressed');
+  }
+
+  if(tool === 'resize'){
+    const o = OPTS.resize;
+    let outW = sw, outH = sh;
+    if(o.mode === 'exact'){ outW = o.w; outH = o.h; }
+    else if(o.mode === 'percent'){ const r = o.percent/100; outW = Math.round(sw*r); outH = Math.round(sh*r); }
+    else if(o.mode === 'maxside'){
+      const long = Math.max(sw,sh);
+      if(long > o.max){ const r = o.max/long; outW = Math.round(sw*r); outH = Math.round(sh*r); }
+    } else if(o.mode === 'maxw'){
+      if(sw > o.max){ const r = o.max/sw; outW = o.max; outH = Math.round(sh*r); }
+    } else if(o.mode === 'maxh'){
+      if(sh > o.max){ const r = o.max/sh; outH = o.max; outW = Math.round(sw*r); }
+    } else if(o.mode === 'fit'){
+      const r = Math.min(o.w/sw, o.h/sh, 1);
+      outW = Math.round(sw*r); outH = Math.round(sh*r);
+    }
+    outW = Math.max(1, outW); outH = Math.max(1, outH);
+    const fmt = o.format || guessFormat(item) || 'image/jpeg';
+    const canvas = drawTo(img, outW, outH, fmt === 'image/jpeg' ? '#ffffff' : null);
+    const blob = await canvasToBlob(canvas, fmt, (o.quality||90)/100);
+    return wrapResult(item, blob, fmt, outW, outH, '-resized');
+  }
+
+  if(tool === 'crop'){
+    const o = OPTS.crop;
+    let rW, rH;
+    if(o.ratio === 'custom'){ rW = o.cw; rH = o.ch; }
+    else { const [a,b] = o.ratio.split(':').map(Number); rW = a; rH = b; }
+    if(!rW || !rH) throw new Error('Invalid ratio');
+    // Compute largest crop rect of ratio rW:rH that fits inside source
+    const srcRatio = sw / sh;
+    const tgtRatio = rW / rH;
+    let cropW, cropH, cropX, cropY;
+    if(srcRatio > tgtRatio){
+      // wider than target: crop sides
+      cropH = sh; cropW = Math.round(sh * tgtRatio);
+      cropY = 0;
+      cropX = Math.round((sw - cropW) / 2);
+    } else {
+      cropW = sw; cropH = Math.round(sw / tgtRatio);
+      cropX = 0;
+      if(o.anchor === 'top') cropY = 0;
+      else if(o.anchor === 'bottom') cropY = sh - cropH;
+      else cropY = Math.round((sh - cropH) / 2);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = cropW; canvas.height = cropH;
+    const ctx = canvas.getContext('2d');
+    const fmt = o.format || guessFormat(item) || 'image/jpeg';
+    if(fmt === 'image/jpeg'){ ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,cropW,cropH); }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    const blob = await canvasToBlob(canvas, fmt, (o.quality||92)/100);
+    return wrapResult(item, blob, fmt, cropW, cropH, '-' + o.ratio.replace(':','x'));
+  }
+
+  if(tool === 'optimize'){
+    const o = OPTS.optimize;
+    const fmt = o.format || 'image/jpeg';
+    let outW, outH;
+    if(o.fixw && o.fixh){
+      // Center-crop to exact box
+      const tgtRatio = o.fixw / o.fixh, srcRatio = sw / sh;
+      let cropW, cropH, cropX, cropY;
+      if(srcRatio > tgtRatio){ cropH = sh; cropW = Math.round(sh * tgtRatio); cropY = 0; cropX = Math.round((sw - cropW) / 2); }
+      else { cropW = sw; cropH = Math.round(sw / tgtRatio); cropX = 0; cropY = Math.round((sh - cropH) / 2); }
+      const canvas = document.createElement('canvas');
+      canvas.width = o.fixw; canvas.height = o.fixh;
+      const ctx = canvas.getContext('2d');
+      if(fmt === 'image/jpeg'){ ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,o.fixw,o.fixh); }
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, o.fixw, o.fixh);
+      const blob = await canvasToBlob(canvas, fmt, (o.quality||85)/100);
+      return wrapResult(item, blob, fmt, o.fixw, o.fixh, '-optimized');
+    } else {
+      // Cap by max width
+      outW = sw; outH = sh;
+      if(o.maxw && sw > o.maxw){ const r = o.maxw / sw; outW = o.maxw; outH = Math.round(sh * r); }
+      const canvas = drawTo(img, outW, outH, fmt === 'image/jpeg' ? '#ffffff' : null);
+      const blob = await canvasToBlob(canvas, fmt, (o.quality||85)/100);
+      return wrapResult(item, blob, fmt, outW, outH, '-optimized');
+    }
+  }
+
+  throw new Error('Unknown tool');
+}
+
+function drawTo(img, w, h, bg){
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  if(bg){ ctx.fillStyle = bg; ctx.fillRect(0,0,w,h); }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, w, h);
+  return c;
+}
+async function canvasToBlob(canvas, type, q){
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if(blob) resolve(blob);
+      else reject(new Error('Encoding failed (browser may not support ' + type + ')'));
+    }, type, q);
+  });
+}
+async function compressToTarget(img, w, h, fmt, targetKB){
+  // Binary search quality 0.05..0.95 to land at or just below target
+  let lo = 0.05, hi = 0.95, best = null;
+  let blob;
+  for(let i = 0; i < 9; i++){
+    const q = (lo + hi) / 2;
+    const canvas = drawTo(img, w, h, fmt === 'image/jpeg' ? '#ffffff' : null);
+    blob = await canvasToBlob(canvas, fmt, q);
+    if(blob.size / 1024 > targetKB) hi = q;
+    else { best = blob; lo = q; }
+  }
+  return best || blob;
+}
+function guessFormat(item){
+  const ext = item.ext;
+  if(ext === 'png') return 'image/png';
+  if(ext === 'webp') return 'image/webp';
+  if(ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  if(ext === 'bmp') return 'image/bmp';
+  return 'image/jpeg';
+}
+function extForFormat(fmt){
+  return ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/bmp':'bmp','image/gif':'gif'})[fmt] || 'jpg';
+}
+function wrapResult(item, blob, fmt, w, h, suffix){
+  const base = item.name.replace(/\.[^.]+$/,'');
+  const newExt = extForFormat(fmt);
+  const sfx = suffix || '';
+  const name = `${base}${sfx}.${newExt}`;
+  return { blob, name, width:w, height:h, format:fmt };
+}
+
+// =========================================================
+//  DOWNLOAD
+// =========================================================
+function downloadOne(tool, idx){
+  const item = QUEUES[tool][idx];
+  if(!item || !item.outBlob) return;
+  const url = URL.createObjectURL(item.outBlob);
+  triggerDownload(url, item.outName);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(`Downloaded ${item.outName}`);
+}
+function triggerDownload(href, name){
+  const a = document.createElement('a');
+  a.href = href; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function downloadZip(tool){
+  const queue = QUEUES[tool].filter(Boolean);
+  const ready = queue.filter(q => q.outBlob);
+  if(!ready.length){ toast('Process files before downloading ZIP', 'err'); return; }
+  if(typeof JSZip === 'undefined'){ toast('ZIP library not loaded', 'err'); return; }
+  showProgress('Building ZIP...', 0);
+  const zip = new JSZip();
+  // Avoid duplicate filenames
+  const seen = new Set();
+  for(let i = 0; i < ready.length; i++){
+    const r = ready[i];
+    let name = r.outName;
+    let n = 1;
+    while(seen.has(name)){
+      const dot = r.outName.lastIndexOf('.');
+      name = r.outName.slice(0, dot) + `-${n}` + r.outName.slice(dot);
+      n++;
+    }
+    seen.add(name);
+    zip.file(name, await r.outBlob.arrayBuffer());
+    updateProgress(Math.round((i+1)/ready.length * 90), `Adding ${name}...`);
+  }
+  updateProgress(95, 'Compressing...');
+  try{
+    const blob = await zip.generateAsync({ type:'blob', compression:'DEFLATE', compressionOptions:{level:6} });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,10);
+    triggerDownload(url, `${tool}-${stamp}.zip`);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    hideProgress();
+    toast(`ZIP downloaded (${ready.length} files)`);
+  } catch(err){
+    hideProgress();
+    toast('ZIP failed: ' + err.message, 'err');
+  }
+}
+
+// =========================================================
+//  BASE64
+// =========================================================
+let _b64Cache = { dataUrl:'', mime:'', name:'' };
+async function encodeBase64(file){
+  if(!file){ return; }
+  if(!isImageFile(file)){ toast('Only image files', 'err'); return; }
+  toast('Encoding...', 'info');
+  try{
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = () => rej(new Error('Read failed'));
+      r.readAsDataURL(file);
+    });
+    _b64Cache = { dataUrl, mime:file.type, name:file.name };
+    refreshBase64Out();
+    document.getElementById('stats-base64').innerHTML = `<strong>${escapeHtml(file.name)}</strong> &middot; ${formatBytes(file.size)} &middot; <span style="color:var(--accent)">${formatBytes(dataUrl.length)} as Base64</span>`;
+    const prev = document.getElementById('base64-preview');
+    prev.style.display = 'block';
+    prev.innerHTML = `<img src="${dataUrl}" style="max-height:160px;max-width:100%;border-radius:6px"/>`;
+    toast('Encoded');
+  } catch(e){ toast('Encode failed: ' + e.message, 'err'); }
+}
+function refreshBase64Out(){
+  if(!_b64Cache.dataUrl) return;
+  const wrap = OPTS.base64?.wrap || 'dataurl';
+  const ta = document.getElementById('base64-out');
+  if(wrap === 'dataurl') ta.value = _b64Cache.dataUrl;
+  else if(wrap === 'raw') ta.value = _b64Cache.dataUrl.split(',')[1] || '';
+  else if(wrap === 'css') ta.value = `background-image: url("${_b64Cache.dataUrl}");`;
+}
+function copyBase64(){
+  const ta = document.getElementById('base64-out');
+  if(!ta.value){ toast('Nothing to copy', 'err'); return; }
+  navigator.clipboard?.writeText(ta.value)
+    .then(() => toast('Copied to clipboard'))
+    .catch(() => { ta.select(); document.execCommand('copy'); toast('Copied'); });
+}
+function clearBase64(){
+  _b64Cache = { dataUrl:'', mime:'', name:'' };
+  document.getElementById('base64-out').value = '';
+  document.getElementById('base64-preview').style.display = 'none';
+  document.getElementById('base64-preview').innerHTML = '';
+  document.getElementById('stats-base64').textContent = 'No file encoded';
+  document.getElementById('base64-decode-in').value = '';
+}
+function decodeBase64(){
+  const v = document.getElementById('base64-decode-in').value.trim();
+  if(!v){ toast('Paste Base64 first', 'err'); return; }
+  let dataUrl = v;
+  if(!v.startsWith('data:')){
+    // Plain base64 -> assume image/png
+    dataUrl = `data:image/png;base64,${v.replace(/\s+/g,'')}`;
+  }
+  // Try to load it
+  const img = new Image();
+  img.onload = () => {
+    _b64Cache = { dataUrl, mime:'image/png', name:'decoded.png' };
+    document.getElementById('base64-out').value = dataUrl;
+    const prev = document.getElementById('base64-preview');
+    prev.style.display = 'block';
+    prev.innerHTML = `<img src="${dataUrl}" style="max-height:160px;max-width:100%;border-radius:6px"/>
+      <div style="margin-top:8px"><button class="btn sm primary" onclick="downloadDecoded()">Download as PNG</button></div>`;
+    document.getElementById('stats-base64').innerHTML = `<strong>Decoded</strong> &middot; ${img.naturalWidth}x${img.naturalHeight} &middot; ${formatBytes(dataUrl.length)} as Base64`;
+    toast('Decoded successfully');
+  };
+  img.onerror = () => toast('Invalid Base64 image data', 'err');
+  img.src = dataUrl;
+}
+function downloadDecoded(){
+  if(!_b64Cache.dataUrl) return;
+  triggerDownload(_b64Cache.dataUrl, _b64Cache.name || 'decoded.png');
+}
+
+// =========================================================
+//  STATS
+// =========================================================
+function updateStats(){
+  const total = TOOLS.reduce((s,t) => s + QUEUES[t].filter(Boolean).length, 0);
+  const done = TOOLS.reduce((s,t) => s + QUEUES[t].filter(f => f && f.status === 'done').length, 0);
+  document.getElementById('h-count').textContent = total;
+  document.getElementById('h-done').textContent = done;
+  document.getElementById('h-saved').textContent = formatBytes(TOTAL_SAVED);
+}
+function updateToolStats(tool){
+  const queue = QUEUES[tool].filter(Boolean);
+  const done = queue.filter(f => f.status === 'done').length;
+  const saved = queue.filter(f => f.outBlob).reduce((s,f) => s + (f.size - f.outSize), 0);
+  const el = document.getElementById(`stats-${tool}`);
+  if(!el) return;
+  if(!queue.length){ el.textContent = 'No files'; return; }
+  el.innerHTML = `<strong>${queue.length}</strong> file${queue.length>1?'s':''} &middot; <strong>${done}</strong> done${saved > 0 ? ` &middot; <span class="saved">${formatBytes(saved)} saved</span>` : ''}`;
+}
+
+// =========================================================
+//  HELPERS
+// =========================================================
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.className = 'show ' + (type || 'success');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.className = '', 3500);
+}
+function showProgress(title, pct){
+  document.getElementById('prog-title').textContent = title;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-sub').textContent = '';
+  document.getElementById('progress-overlay').classList.add('visible');
+}
+function updateProgress(pct, sub){
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-sub').textContent = sub;
+}
+function hideProgress(){ document.getElementById('progress-overlay').classList.remove('visible'); }
+function formatBytes(bytes){
+  if(!bytes) return '0 B';
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1048576) return (bytes/1024).toFixed(1)+' KB';
+  if(bytes < 1073741824) return (bytes/1048576).toFixed(2)+' MB';
+  return (bytes/1073741824).toFixed(2)+' GB';
+}
+function escapeHtml(s){
+  return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// =========================================================
+//  KEYBOARD
+// =========================================================
+document.addEventListener('keydown', e => {
+  if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  const num = parseInt(e.key);
+  if(num >= 1 && num <= TOOLS.length){
+    switchTool(TOOLS[num - 1]);
+  } else if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+    processAll(CURRENT_TOOL);
+  }
+});
+
+// =========================================================
+//  INIT
+// =========================================================
+renderResizeFields();
+renderCropFields();
+toggleCompressFields();
+refreshConvertUI();
+OPTS.base64 = { wrap:'dataurl' };
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

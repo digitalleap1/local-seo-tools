@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Local SEO Strategy Generator - Complete Multi-Week Strategy from All Your Data</title>
+<meta name="description" content="The capstone tool: reads localStorage from ALL 29 other tools in the toolkit and generates a complete local SEO strategy document with phased weekly tasks, KPIs, owner assignments, and budget estimates. AI-powered with full cross-tool context.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#7c3aed; --accent-h:#6d28d9; --accent-soft:rgba(124,58,237,.08);
+  --primary:#2563eb;
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --gradient:linear-gradient(135deg,#7c3aed,#db2777,#0891b2);
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#a78bfa; --accent-h:#c4b5fd; --accent-soft:rgba(167,139,250,.14);
+  --primary:#3b82f6;
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:var(--gradient);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:800;color:var(--purple);border:1px solid var(--purple);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.sources strong{color:var(--success)}
+.hdr-stat.size strong{color:var(--primary)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+/* LEFT */
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:6px}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;flex:1}
+
+#left-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{font-family:var(--font);min-height:60px;resize:vertical;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.pp-row{display:flex;flex-wrap:wrap;gap:4px}
+.pp{padding:5px 9px;border-radius:5px;font-size:10px;font-family:var(--mono);font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.pp:hover{border-color:var(--accent);color:var(--accent)}
+.pp.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* DATA SOURCE LIST */
+.src-list{display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto}
+.src-row{display:flex;align-items:center;gap:7px;padding:5px 8px;background:var(--bg2);border-radius:5px;font-size:11px}
+.src-row .dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.src-row .dot.has{background:var(--success)}
+.src-row .name{flex:1;color:var(--text);font-weight:600;font-family:var(--mono);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.src-row .summary{font-size:9.5px;color:var(--text3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.src-row input[type=checkbox]{margin:0}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:12px;border-radius:8px;background:var(--gradient);color:#fff;font-size:13px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.3px;box-shadow:0 4px 12px rgba(124,58,237,.3);transition:all .15s}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,.4)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab svg{width:13px;height:13px}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+/* STRATEGY OUTPUT */
+.strategy{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;box-shadow:var(--shadow-sm);overflow:hidden}
+.strategy-hero{padding:24px 28px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border-bottom:1px solid var(--border)}
+.strategy-hero h1{font-size:22px;font-weight:900;margin-bottom:6px;letter-spacing:-.4px}
+.strategy-hero .sub{font-size:12.5px;color:var(--text2);font-family:var(--mono)}
+.strategy-body{padding:24px 28px;font-size:13.5px;line-height:1.7;color:var(--text)}
+.strategy-body h2{font-size:18px;font-weight:800;margin:24px 0 10px;color:var(--accent);border-bottom:2px solid var(--accent-soft);padding-bottom:6px}
+.strategy-body h2:first-child{margin-top:0}
+.strategy-body h3{font-size:15px;font-weight:700;margin:18px 0 8px;color:var(--text)}
+.strategy-body h4{font-size:13.5px;font-weight:700;margin:14px 0 6px;color:var(--text2)}
+.strategy-body p{margin:8px 0}
+.strategy-body ul,.strategy-body ol{margin:8px 0;padding-left:24px}
+.strategy-body li{margin-bottom:5px;line-height:1.65}
+.strategy-body code{background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--accent)}
+.strategy-body strong{font-weight:700;color:var(--text)}
+.strategy-body blockquote{border-left:3px solid var(--accent);padding:9px 14px;margin:10px 0;color:var(--text2);background:var(--accent-soft);border-radius:0 6px 6px 0}
+.strategy-body table{width:100%;border-collapse:collapse;margin:14px 0;font-size:12px}
+.strategy-body th{background:var(--bg3);text-align:left;padding:9px 12px;font-weight:700;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
+.strategy-body td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.strategy-body tr:hover td{background:var(--bg3)}
+
+/* PHASE CARDS */
+.phase-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:12px 0}
+.phase-card .ph-hdr{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.phase-card .ph-num{width:32px;height:32px;border-radius:50%;background:var(--gradient);color:#fff;font-family:var(--mono);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+.phase-card .ph-name{flex:1;font-size:15px;font-weight:800;color:var(--text)}
+.phase-card .ph-week{font-size:11px;font-family:var(--mono);color:var(--text2);background:var(--bg3);padding:3px 9px;border-radius:4px;font-weight:700}
+
+/* STATUS / PROGRESS */
+#prog-area{padding:0;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:none}
+#prog-area.show{display:block}
+.progress-line{height:3px;background:var(--bg3);overflow:hidden}
+.progress-line .fill{height:100%;background:var(--gradient);width:0;transition:width .3s}
+.streaming-indicator{padding:8px 14px;font-size:11px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.streaming-indicator .dots{display:flex;gap:3px}
+.streaming-indicator .dots span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:tdot 1.2s infinite}
+.streaming-indicator .dots span:nth-child(2){animation-delay:.2s}
+.streaming-indicator .dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,100%{opacity:.3}50%{opacity:1}}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:600px}
+.empty .hint-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;width:100%;max-width:720px;margin-top:12px}
+.empty .hint-list a{padding:11px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;text-decoration:none;color:var(--text);text-align:left;font-size:11.5px;transition:all .15s}
+.empty .hint-list a:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.empty .hint-list a strong{display:block;margin-bottom:3px}
+.empty .hint-list a span{color:var(--text2);font-size:11px;line-height:1.4}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <div><div class="logo-name">Strategy<span>AI</span></div></div>
+    <span class="logo-tag">CAPSTONE</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat sources"><strong id="stat-sources">0</strong>/29 data sources</div>
+  <div class="hdr-stat size"><strong id="stat-size">0</strong> KB context</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+    AI Chat
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="lh-bar"><h3>Strategy Inputs</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business Profile</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business name</label><input id="i-name" placeholder="Acme Plumbing" oninput="saveInputs()"></div>
+          <div class="row2">
+            <div class="f"><label>Industry</label><input id="i-industry" placeholder="plumbing"></div>
+            <div class="f"><label>City</label><input id="i-city" placeholder="Boston"></div>
+          </div>
+          <div class="f"><label>Website</label><input id="i-website" placeholder="acmeplumbing.com" oninput="saveInputs()"></div>
+          <button class="btn-sub" onclick="syncFromTools()">↻ Auto-fill from other tools</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Strategy Parameters</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="row2">
+            <div class="f"><label>Time horizon</label><select id="i-horizon" onchange="saveInputs()">
+              <option value="30">30 days (quick wins)</option>
+              <option value="60">60 days (focused)</option>
+              <option value="90" selected>90 days (recommended)</option>
+              <option value="180">6 months</option>
+            </select></div>
+            <div class="f"><label>Budget tier</label><select id="i-budget" onchange="saveInputs()">
+              <option value="diy">DIY / $0</option>
+              <option value="low" selected>Low ($500-2k/mo)</option>
+              <option value="mid">Mid ($2k-5k/mo)</option>
+              <option value="high">High ($5k+/mo)</option>
+            </select></div>
+          </div>
+          <div class="f"><label>Top business goal</label><select id="i-goal" onchange="saveInputs()">
+            <option value="leads">More leads / calls</option>
+            <option value="rankings">Pack & organic rankings</option>
+            <option value="reputation">Reviews & reputation</option>
+            <option value="expansion">Expand to new locations</option>
+            <option value="recovery">Recover from drop / suspension</option>
+          </select></div>
+          <div class="f"><label>Team capacity</label><select id="i-team" onchange="saveInputs()">
+            <option value="solo">Solo owner — 2-5 hrs/week</option>
+            <option value="part" selected>Part-time helper — 10-15 hrs/wk</option>
+            <option value="full">Dedicated SEO person</option>
+            <option value="agency">External agency</option>
+          </select></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Data Sources to Include</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="src-list" class="src-list"></div>
+          <button class="btn-sub" onclick="refreshSources()">↻ Reload data</button>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>AI Provider</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="pp-row" id="ai-pills"></div>
+          <div id="ai-cfg"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="generate()" id="btn-go">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Generate Strategy
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="copyMD()" id="btn-copy" disabled>📋 Copy MD</button>
+        <button class="btn-sub" onclick="downloadMD()" id="btn-md" disabled>⬇ MD</button>
+        <button class="btn-sub" onclick="downloadHTML()" id="btn-html" disabled>⬇ HTML</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="prog-area">
+      <div class="streaming-indicator"><div class="dots"><span></span><span></span><span></span></div><span id="prog-text">Building strategy...</span></div>
+      <div class="progress-line"><div class="fill" id="prog-fill"></div></div>
+    </div>
+    <div id="cbar">
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready — set inputs and Generate</span>
+  </div>
+  <div class="ft-item"><span>AI: <strong id="ft-ai">not configured</strong></span></div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item"><span>Built by <strong>Mukesh Kr</strong></span></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * AI LOCAL SEO STRATEGY GENERATOR (CAPSTONE)
+ * Reads localStorage from ALL 29 other tools and generates a complete strategy doc
+ * ========================================================================== */
+
+/* ---------- ALL TOOL SOURCES ---------- */
+const SOURCES = [
+  {id:'cf',  key:'cf_state_v1',  label:'Citation Finder',     icon:'📍'},
+  {id:'nap', key:'nap_state_v1', label:'NAP Checker',         icon:'✓'},
+  {id:'sch', key:'sch_state_v1', label:'Schema Generator',    icon:'{}'},
+  {id:'gbp', key:'gbp_state_v1', label:'GBP Audit',           icon:'🏷'},
+  {id:'rev', key:'rr_state_v1',  label:'Review Replies',      icon:'💬'},
+  {id:'gg',  key:'gg_state_v1',  label:'Geo-Grid',            icon:'🗺'},
+  {id:'cg',  key:'cg_state_v1',  label:'Competitor Gap',      icon:'⚔'},
+  {id:'sa',  key:'sa_state_v1',  label:'Schema Auditor',      icon:'🔍'},
+  {id:'db',  key:'db_state_v1',  label:'Dashboard',           icon:'📊'},
+  {id:'kw',  key:'kw_state_v1',  label:'Keyword Research',    icon:'🔎'},
+  {id:'ps',  key:'ps_state_v1',  label:'Post Scheduler',      icon:'📢'},
+  {id:'sm',  key:'sm_state_v1',  label:'Sentiment Monitor',   icon:'📈'},
+  {id:'pa',  key:'pa_state_v1',  label:'Page Auditor',        icon:'📄'},
+  {id:'sr',  key:'sr_state_v1',  label:'Suspension Risk',     icon:'🛡'},
+  {id:'ml',  key:'ml_state_v1',  label:'Multi-Location',      icon:'🌐'},
+  {id:'bl',  key:'bl_state_v1',  label:'Backlink Profile',    icon:'🔗'},
+  {id:'sc',  key:'sc_state_v1',  label:'Site Crawler',        icon:'🕷'},
+  {id:'cb',  key:'cb_state_v1',  label:'Content Brief',       icon:'📋'},
+  {id:'pt',  key:'pt_state_v1',  label:'Pack Tracker',        icon:'🏆'},
+  {id:'ctr', key:'ctr_state_v1', label:'CTR Title Lab',       icon:'⚡'},
+  {id:'vf',  key:'vf_state_v1',  label:'Voice & FAQ',         icon:'🎤'},
+  {id:'rs',  key:'rs_state_v1',  label:'Robots/Sitemap',      icon:'🤖'},
+  {id:'gp',  key:'gp_state_v1',  label:'GBP Performance',     icon:'📉'},
+  {id:'qa',  key:'qa_state_v1',  label:'GBP Q&A Manager',     icon:'❓'},
+  {id:'roi', key:'roi_state_v1', label:'ROI Calculator',      icon:'$'},
+  {id:'bs',  key:'bs_state_v1',  label:'Brand SERP Auditor',  icon:'🔎'},
+  {id:'agg', key:'agg_state_v1', label:'Aggregator Tracker',  icon:'🌐'},
+  {id:'geo', key:'geo_state_v1', label:'GEO/AEO Optimizer',   icon:'⭐'},
+  {id:'lo',  key:'lo_state_v1',  label:'Link Outreach',       icon:'🔗'},
+  {id:'iseo',key:'iseo_state_v1',label:'Image SEO Auditor',   icon:'🖼'},
+  {id:'cc',  key:'cc_state_v1',  label:'Content Calendar',    icon:'📅'},
+  {id:'il',  key:'il_state_v1',  label:'Internal Links',      icon:'🕸'},
+  {id:'snip',key:'snip_state_v1',label:'SERP Snippet Lab',    icon:'✂'},
+  {id:'ss',  key:'ss_state_v1',  label:'Spam Sentinel',       icon:'🛡'},
+  {id:'wlr', key:'wlr_state_v1', label:'White-Label Report',  icon:'📄'},
+  {id:'sam', key:'sam_state_v1', label:'Service Area Mapper', icon:'📍'},
+  {id:'mux', key:'mux_state_v1', label:'Mobile UX Auditor',   icon:'📱'},
+  {id:'fc',  key:'fc_state_v1',  label:'Position Forecaster', icon:'📈'},
+  {id:'gbpp',key:'gbpp_state_v1',label:'GBP Photo Strategy',  icon:'🖼'},
+  {id:'ha',  key:'ha_state_v1',  label:'Heading Hierarchy',   icon:'#️⃣'},
+  {id:'dis', key:'dis_state_v1', label:'Disavow Builder',     icon:'🚫'},
+  {id:'nc',  key:'nc_state_v1',  label:'Niche Citations',     icon:'🏥'},
+  {id:'bm',  key:'bm_state_v1',  label:'Brand Mentions',      icon:'💬'},
+  {id:'lcl', key:'lc_state_v1',  label:'Local SEO Checklist', icon:'✅'},
+  {id:'cp',  key:'cp_state_v1',  label:'Conversion Paths',    icon:'🔀'},
+  {id:'bsch',key:'bsch_state_v1',label:'Bulk Schema',         icon:'{}'},
+  {id:'km',  key:'km_state_v1',  label:'Keyword Mapper',      icon:'🗺'},
+  {id:'hm',  key:'hm_state_v1',  label:'Health Monitor',      icon:'📊'},
+  {id:'gpi', key:'gpi_state_v1', label:'GBP Insights',        icon:'📈'},
+  {id:'ob',  key:'ob_state_v1',  label:'Onboarding Wizard',   icon:'🚀'},
+  {id:'ba',  key:'ba_state_v1',  label:'Multi-Page Audit',    icon:'📄'},
+  {id:'at',  key:'at_state_v1',  label:'Anchor Text Analyzer',icon:'🔗'},
+  {id:'hl',  key:'hl_state_v1',  label:'Hreflang',            icon:'🌐'},
+  {id:'bv',  key:'bv_state_v1',  label:'Backlink Velocity',   icon:'📈'},
+  {id:'kp',  key:'kp_state_v1',  label:'Knowledge Panel',     icon:'🎴'},
+  {id:'press',key:'press_state_v1',label:'Press Pitch',       icon:'📰'},
+  {id:'hol', key:'holidays_state_v1',label:'Holiday Hours',   icon:'📅'},
+  {id:'gbpcat',key:'gbpcat_state_v1',label:'GBP Categories',  icon:'🏷'},
+  {id:'gbpsv',key:'gbpsv_state_v1',label:'GBP Services',      icon:'🛠'},
+  {id:'rd',  key:'rd_state_v1',  label:'301 Redirects',       icon:'🔀'},
+  {id:'gsc', key:'gsc_state_v1', label:'GSC Analyzer',        icon:'📊'},
+];
+
+/* ---------- AI PROVIDERS WITH STREAMING ---------- */
+const AI_PROVIDERS = {
+  gemini: {label:'Gemini', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    note:'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+    async stream(prompt, keys, onToken){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${encodeURIComponent(keys.key)}&alt=sse`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.6}})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const reader = res.body.getReader(); const dec = new TextDecoder();
+      let acc='', buf='';
+      while(true){
+        const {done,value} = await reader.read(); if(done) break;
+        buf += dec.decode(value, {stream:true});
+        const lines = buf.split('\n'); buf = lines.pop()||'';
+        for(const line of lines){
+          if(!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim(); if(!data) continue;
+          try { const j = JSON.parse(data); const tok = j.candidates?.[0]?.content?.parts?.[0]?.text||''; if(tok){acc+=tok; onToken?.(tok, acc);} } catch(e){}
+        }
+      }
+      return acc;
+    }
+  },
+  openai: {label:'OpenAI', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async stream(prompt, keys, onToken){
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.6, stream:true})});
+      if(!res.ok) throw new Error('OpenAI '+res.status);
+      return await readSSE(res, onToken);
+    }
+  },
+  claude: {label:'Claude', free:'paid', fields:[{key:'key',label:'API Key',type:'password'}],
+    async stream(prompt, keys, onToken){
+      const res = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user',content:prompt}], stream:true})});
+      if(!res.ok) throw new Error('Claude '+res.status);
+      const reader = res.body.getReader(); const dec = new TextDecoder();
+      let acc='', buf='';
+      while(true){
+        const {done,value} = await reader.read(); if(done) break;
+        buf += dec.decode(value, {stream:true});
+        const lines = buf.split('\n'); buf = lines.pop()||'';
+        for(const line of lines){
+          if(!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim(); if(!data) continue;
+          try { const j = JSON.parse(data); if(j.type==='content_block_delta' && j.delta?.text){acc+=j.delta.text; onToken?.(j.delta.text, acc);} } catch(e){}
+        }
+      }
+      return acc;
+    }
+  },
+  groq: {label:'Groq', free:'free', fields:[{key:'key',label:'API Key',type:'password'}],
+    async stream(prompt, keys, onToken){
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.6, stream:true})});
+      if(!res.ok) throw new Error('Groq '+res.status);
+      return await readSSE(res, onToken);
+    }
+  },
+};
+
+async function readSSE(res, onToken){
+  const reader = res.body.getReader(); const dec = new TextDecoder();
+  let acc='', buf='';
+  while(true){
+    const {done,value} = await reader.read(); if(done) break;
+    buf += dec.decode(value, {stream:true});
+    const lines = buf.split('\n'); buf = lines.pop()||'';
+    for(const line of lines){
+      if(!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim(); if(!data || data==='[DONE]') continue;
+      try { const j = JSON.parse(data); const tok = j.choices?.[0]?.delta?.content||''; if(tok){acc+=tok; onToken?.(tok, acc);} } catch(e){}
+    }
+  }
+  return acc;
+}
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'sg_state_v1';
+const defaultState = {
+  inputs: {name:'', industry:'', city:'', website:'', horizon:90, budget:'low', goal:'leads', team:'part'},
+  ai: {provider:'gemini', keys:{}},
+  scopes: {},  // {sourceId: true/false}
+  strategy: '',
+};
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+// Inherit
+(function inherit(){
+  try {
+    if(!Object.keys(state.ai.keys).length){
+      ['gbp_state_v1','rr_state_v1','ai_state_v1','kw_state_v1','ps_state_v1','sm_state_v1','cb_state_v1','ctr_state_v1','vf_state_v1','sr_state_v1'].forEach(k=>{
+        const o = JSON.parse(localStorage.getItem(k)||'null');
+        if(o?.ai?.keys){ Object.entries(o.ai.keys).forEach(([id, keys])=>{if(keys.key && !state.ai.keys[id]?.key) state.ai.keys[id] = clone(keys);}); }
+      });
+    }
+    if(!state.inputs.name){
+      const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+      const b = cf?.businesses?.[0];
+      if(b){ state.inputs.name = b.name; state.inputs.city = b.city||''; state.inputs.industry = b.category||''; state.inputs.website = (b.website||'').replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,''); }
+    }
+  } catch(e){}
+  saveState();
+})();
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+
+/* ---------- DATA CONTEXT BUILDER ---------- */
+function loadSourceData(){
+  const out = {};
+  SOURCES.forEach(s=>{ try { out[s.id] = JSON.parse(localStorage.getItem(s.key)||'null'); } catch(e){ out[s.id]=null; } });
+  return out;
+}
+
+function buildContext(){
+  const data = loadSourceData();
+  const parts = [];
+  let totalSize = 0;
+  SOURCES.forEach(src=>{
+    if(state.scopes[src.id] === false) return;
+    const d = data[src.id]; if(!d) return;
+    const section = summarize(src.id, d);
+    if(section){ parts.push(`### ${src.label}\n${section}`); totalSize += section.length; }
+  });
+  return {context: parts.join('\n\n'), size: totalSize};
+}
+
+function summarize(id, d){
+  if(id==='cf'){
+    const b = d.businesses?.find(x=>x.id===d.activeBizId) || d.businesses?.[0]; if(!b) return '';
+    const cits = Object.entries(b.citations||{});
+    const found = cits.filter(([_,c])=>c.status==='found'||c.status==='partial').length;
+    const miss = cits.filter(([_,c])=>c.status==='miss').length;
+    return `Business: ${b.name} (${b.city||'?'}, ${b.category||'?'})\nPhone: ${b.phone}\nWebsite: ${b.website||'—'}\nCitations: ${found} found, ${miss} missing across ${cits.length} directories scanned\nMissing high-DA: ${cits.filter(([_,c])=>c.status==='miss').slice(0,8).map(([id])=>id).join(', ')||'none'}`;
+  }
+  if(id==='nap'){
+    if(!d.citations?.length) return '';
+    return `Reference NAP: ${d.ref?.name} · ${d.ref?.phone} · ${[d.ref?.addr,d.ref?.city,d.ref?.state,d.ref?.zip].filter(Boolean).join(', ')}\n${d.citations.length} citations audited`;
+  }
+  if(id==='sch'){
+    if(!d.name) return '';
+    return `Type: ${d.type}\nFields: name=${!!d.name}, address=${!!d.addr}, phone=${!!d.phone}, geo=${!!(d.lat&&d.lng)}, hours=${(d.hours||[]).filter(h=>!h.closed&&h.opens).length}/7, sameAs=${(d.sameAs||[]).length}, rating=${d.rating?d.rating+'★':'none'}`;
+  }
+  if(id==='gbp'){
+    if(!d.biz?.name) return '';
+    const ans = d.answers||{};
+    const pass = Object.values(ans).filter(v=>v==='pass').length;
+    const fail = Object.values(ans).filter(v=>v==='fail').length;
+    const failIds = Object.entries(ans).filter(([_,v])=>v==='fail').map(([id])=>id);
+    return `Business: ${d.biz.name} (${d.biz.cat}, ${d.biz.type})\nGBP audit: ${pass} pass, ${fail} fail out of ${Object.keys(ans).length} answered\nFailed checks: ${failIds.slice(0,12).join(', ')}`;
+  }
+  if(id==='rev'){
+    if(!d.reviews?.length) return '';
+    const stars = [0,0,0,0,0,0]; d.reviews.forEach(r=>stars[r.stars]++);
+    const avg = d.reviews.reduce((s,r)=>s+r.stars,0)/d.reviews.length;
+    const replied = d.reviews.filter(r=>r.reply).length;
+    return `${d.reviews.length} reviews · avg ${avg.toFixed(1)}★ · ${replied} replied (${Math.round(replied/d.reviews.length*100)}%)\nDistribution: 1★ ${stars[1]} | 2★ ${stars[2]} | 3★ ${stars[3]} | 4★ ${stars[4]} | 5★ ${stars[5]}`;
+  }
+  if(id==='gg'){
+    if(!Object.keys(d.results||{}).length) return '';
+    const kws = Object.keys(d.results);
+    const summary = kws.slice(0,5).map(kw=>{const r=d.results[kw]; const done=r.points.filter(p=>p.status==='done'); const found=done.filter(p=>p.rank); const avg=found.length?Math.round(found.reduce((s,p)=>s+p.rank,0)/found.length*10)/10:null; return `"${kw}": ${found.length}/${done.length} ranked, avg ${avg?'#'+avg:'—'}`;}).join('; ');
+    return `${kws.length} keywords tracked, grid ${d.cfg?.gridSize}x${d.cfg?.gridSize}\n${summary}`;
+  }
+  if(id==='cg'){
+    if(!d.you?.name) return '';
+    const youCits = Object.values(d.you.citations||{}).filter(c=>c.status==='found'||c.status==='partial').length;
+    const compCount = d.competitors?.length||0;
+    return `You: ${d.you.name} (${youCits} citations found)\nCompetitors tracked: ${compCount}\n${compCount?'Names: '+(d.competitors||[]).slice(0,5).map(c=>c.name).join(', '):''}`;
+  }
+  if(id==='sa'){
+    if(!d.url) return '';
+    return `Audited: ${d.url} · Schemas: ${d.schemas?.length||0}\nTypes: ${(d.schemas||[]).map(s=>s.type).join(', ')||'—'}\nIssues: ${(d.schemas||[]).flatMap(s=>(s.issues||[]).filter(i=>i.sev==='err')).length} critical`;
+  }
+  if(id==='kw'){
+    if(!d.keywords?.length) return '';
+    const byIntent = {};
+    d.keywords.forEach(k=>{byIntent[k.intent]=(byIntent[k.intent]||0)+1;});
+    const low = d.keywords.filter(k=>k.difficulty!==null && k.difficulty<30).length;
+    const sel = d.keywords.filter(k=>k.selected);
+    return `${d.keywords.length} keywords · ${d.clusters?.length||0} clusters\nBy intent: ${Object.entries(byIntent).map(([i,n])=>i+':'+n).join(', ')}\nLow-difficulty (<30): ${low}\nSelected: ${sel.length}${sel.length?' — '+sel.slice(0,5).map(k=>'"'+k.kw+'"').join(', '):''}`;
+  }
+  if(id==='ps'){
+    if(!d.posts?.length) return '';
+    const draft = d.posts.filter(p=>p.status==='draft').length;
+    return `${d.posts.length} posts queued (${draft} draft)\nBrand: ${d.brand?.name} · Tone: ${d.brand?.tone}`;
+  }
+  if(id==='sm'){
+    if(!d.reviews?.length) return '';
+    const analyzed = d.reviews.filter(r=>r.analysis);
+    const neg = analyzed.filter(r=>r.analysis.label==='neg').length;
+    const fakes = d.reviews.filter(r=>(r.fakeFlags||[]).length>=2).length;
+    return `${d.reviews.length} reviews analyzed (${neg} negative${fakes?', '+fakes+' fake flags':''})`;
+  }
+  if(id==='pa'){
+    if(!d.url) return '';
+    return `Audited ${d.url} · Score ${d.score||0}%\nFailed checks: ${d.checks?.filter(c=>c.status==='fail').length||0}`;
+  }
+  if(id==='sr'){
+    if(!d.results?.length) return '';
+    const crit = d.results.filter(r=>r.level==='r-crit').length;
+    return `Suspension risk score: ${d.score}/100\n${crit} critical triggers active`;
+  }
+  if(id==='ml'){
+    if(!d.locations?.length) return '';
+    const geo = d.locations.filter(l=>l.lat&&l.lng).length;
+    return `${d.locations.length} locations (${geo} geocoded)\nBrand: ${d.brand?.name}`;
+  }
+  if(id==='bl'){
+    if(!d.backlinks?.length) return '';
+    const local = d.backlinks.filter(b=>b.relCategory==='local').length;
+    const toxic = d.backlinks.filter(b=>b.toxicLevel==='high').length;
+    return `${d.backlinks.length} backlinks · ${local} local-relevant · ${toxic} toxic`;
+  }
+  if(id==='sc'){
+    if(!d.pages || !Object.keys(d.pages).length) return '';
+    const pages = Object.values(d.pages);
+    const broken = pages.filter(p=>p.status>=400 || p.status===0).length;
+    return `${pages.length} pages crawled at ${d.origin}\nBroken: ${broken} · Missing schema: ${pages.filter(p=>!p.hasJsonLd && p.status>=200&&p.status<300).length}`;
+  }
+  if(id==='cb'){
+    if(!d.brief?.stats) return '';
+    return `Target keyword: "${d.inputs?.kw}" · Target ${d.brief.stats.targetWords} words`;
+  }
+  if(id==='pt'){
+    if(!d.keywords?.length) return '';
+    const inPack = d.keywords.filter(k=>k.lastPos).length;
+    return `${d.keywords.length} keywords tracked, ${inPack} in pack`;
+  }
+  if(id==='ctr'){
+    if(!d.variants?.length) return '';
+    const best = d.variants.slice().sort((a,b)=>(b.combinedScore||0)-(a.combinedScore||0))[0];
+    return `Title/meta variants: ${d.variants.length}\nBest score: ${best?.combinedScore||0}%`;
+  }
+  if(id==='vf'){
+    if(!d.questions?.length) return '';
+    const ans = d.questions.filter(q=>q.answer).length;
+    return `${d.questions.length} voice/FAQ questions · ${ans} answered`;
+  }
+  if(id==='gp'){
+    if(!d.imports?.length) return '';
+    return `GBP Performance: ${d.imports.length} CSV imports loaded`;
+  }
+  if(id==='qa'){
+    if(!d.questions?.length) return '';
+    const posted = d.questions.filter(q=>q.status==='posted').length;
+    const draft = d.questions.filter(q=>q.status==='draft').length;
+    return `${d.questions.length} GBP Q&A drafted · ${posted} posted, ${draft} draft`;
+  }
+  if(id==='roi'){
+    if(!d.inputs?.budget) return '';
+    return `Monthly SEO budget: $${d.inputs.budget} · AOV $${d.inputs.aov} · ${d.inputs.calls||0} calls/mo, ${d.inputs.dir||0} directions/mo`;
+  }
+  if(id==='bs'){
+    if(!d.results?.audit) return d.brand?`Brand: ${d.brand}`:'';
+    const a = d.results.audit;
+    return `Brand SERP audit for ${d.brand}: ${a.score}/100 (${a.passed} pass, ${a.warn} warn, ${a.fail} fail)\nKey gaps: ${a.checks.filter(c=>c.status==='fail').slice(0,4).map(c=>c.title).join('; ')||'none'}`;
+  }
+  if(id==='agg'){
+    if(!d.submissions || !Object.keys(d.submissions).length) return d.biz?.name?`Business: ${d.biz.name}`:'';
+    const subs = Object.entries(d.submissions);
+    const live = subs.filter(([,s])=>s.status==='live').length;
+    const pending = subs.filter(([,s])=>s.status==='submitted'||s.status==='pending').length;
+    const dropped = subs.filter(([,s])=>s.status==='dropped').length;
+    return `Aggregators tracked: ${subs.length} · ${live} live, ${pending} pending, ${dropped} dropped`;
+  }
+  if(id==='geo'){
+    if(!d.results?.audit) return d.url?`Target: ${d.url}`:'';
+    const a = d.results.audit;
+    const fails = d.results.checks.filter(c=>c.status==='fail').slice(0,4).map(c=>c.title);
+    return `GEO/AEO score: ${a.score}/100 for ${d.url} · AI-cited ${a.citedCount}/${a.citationTotal||0}\nllms.txt: ${d.results.llmsTxt?'present':'missing'}\nFails: ${fails.join('; ')||'none'}`;
+  }
+  if(id==='lo'){
+    if(!d.prospects?.length) return d.campaigns?.length?`${d.campaigns.length} campaigns set up`:'';
+    const won = d.prospects.filter(p=>p.status==='won').length;
+    const sent = d.prospects.filter(p=>['sent','opened','negotiating','won','lost'].includes(p.status)).length;
+    const winRate = sent?Math.round(won/sent*100):0;
+    return `Link outreach: ${d.prospects.length} prospects across ${d.campaigns?.length||1} campaigns · ${won} won (${winRate}% win rate)`;
+  }
+  if(id==='iseo'){
+    if(!d.results?.audit) return d.url?`Audited: ${d.url}`:'';
+    const a = d.results.audit;
+    return `Image SEO: ${a.score}/100 for ${d.url} · ${d.results.images.length} images · ${a.missingAlt} missing alt · ${d.results.images.filter(i=>i.category==='poor').length} poor`;
+  }
+  if(id==='cc'){
+    if(!d.events?.length) return d.ideas?.length?`${d.ideas.length} topic ideas in bank`:'';
+    const TODAY='2026-05-29';
+    const overdue = d.events.filter(e=>e.status!=='published'&&e.date<TODAY).length;
+    const published = d.events.filter(e=>e.status==='published').length;
+    const upcoming = d.events.filter(e=>e.date>=TODAY&&e.status!=='published').length;
+    const byType = {};
+    d.events.forEach(e=>{byType[e.type]=(byType[e.type]||0)+1;});
+    return `Content calendar: ${d.events.length} items (${published} published, ${upcoming} upcoming, ${overdue} overdue)\nBy type: ${Object.entries(byType).map(([t,n])=>t+':'+n).join(', ')}`;
+  }
+  if(id==='il'){
+    if(!d.results) return d.url?`Site: ${d.url}`:'';
+    const r=d.results;
+    const scores=Object.values(r.pageScores||{});
+    const orphans=scores.filter(s=>s.isOrphan).length;
+    return `Internal link graph: ${r.totalPages} pages, ${r.linkCount} internal links, ${orphans} orphan pages`;
+  }
+  if(id==='snip'){
+    if(!d.title && !d.url) return '';
+    let s = `Snippet for ${d.url||'(no URL)'}: title "${d.title?.substring(0,60)||'(empty)'}" (${d.title?.length||0}ch)`;
+    if(d.kw) s += `, keyword "${d.kw}"`;
+    if(d.variants?.length) s += `, ${d.variants.length} AI variations generated`;
+    return s;
+  }
+  if(id==='ss'){
+    if(!d.results) return '';
+    const r=d.results;
+    const crit = r.threats.filter(t=>t.spamScore>=70).length;
+    return `Spam scan: ${r.businesses.length} listings checked, ${r.threats.length} threats (${crit} critical) in ${d.biz?.city||'your area'}`;
+  }
+  if(id==='wlr'){
+    if(!d.brand?.client) return '';
+    const enabled = Object.values(d.sections||{}).filter(Boolean).length;
+    return `White-label report set up for ${d.brand.client}: ${enabled} sections enabled${d.brand.agency?', agency: '+d.brand.agency:''}`;
+  }
+  if(id==='sam'){
+    if(!d.addr && !d.lat) return '';
+    let s = `Service area centered at ${d.addr||(d.lat+','+d.lng)} · ${d.mode} mode`;
+    if(d.mode==='radius') s += ` (${d.radius}mi radius, ~${Math.round(Math.PI*d.radius*d.radius)} sq mi)`;
+    else if(d.mode==='cities') s += ` (${d.citiesGeo?.length||0} cities)`;
+    if(d.competitors?.length) s += `\n${d.competitors.length} competitor areas tracked`;
+    return s;
+  }
+  if(id==='mux'){
+    if(!d.results?.audit) return d.url?`Mobile UX target: ${d.url}`:'';
+    const a = d.results.audit;
+    return `Mobile UX score: ${a.score}/100 for ${d.url} · ${a.taps.failed} tap-target fails · ${a.fail} critical checks`;
+  }
+  if(id==='fc'){
+    if(!d.kw) return '';
+    return `Position forecast for "${d.kw}": current #${d.position} (volume ${d.volume}/mo), ${d.scenario} scenario @ $${d.budget}/mo`;
+  }
+  if(id==='gbpp'){
+    if(!d.photos?.length) return d.biz?.name?`GBP photo plan for ${d.biz.name} (${d.biz.type}) - 0 photos yet`:'';
+    const byCat={};
+    d.photos.forEach(p=>{byCat[p.category]=(byCat[p.category]||0)+1;});
+    return `GBP photos: ${d.photos.length} across ${Object.keys(byCat).length} categories. By type: ${Object.entries(byCat).slice(0,5).map(([c,n])=>c+':'+n).join(', ')}`;
+  }
+  if(id==='ha'){
+    if(!d.results) return d.url?`Audit target: ${d.url}`:'';
+    const r=d.results;
+    return `Heading audit for ${d.url}: ${r.score}/100. H1:${r.counts.h1} H2:${r.counts.h2} H3:${r.counts.h3}. ${r.issues.length} issues (${r.issues.filter(i=>i.sev==='fail').length} critical)`;
+  }
+  if(id==='dis'){
+    if(!d.links?.length) return d.domain?`Disavow target: ${d.domain}`:'';
+    const manual=Object.keys(d.manualDisavow||{}).length;
+    return `Disavow builder: ${d.links.length} backlinks scanned at threshold ${d.threshold}/100 · ${manual} manual marks`;
+  }
+  if(id==='nc'){
+    if(!d.biz?.name) return '';
+    const subs=Object.entries(d.submissions||{});
+    const live=subs.filter(([,s])=>s.status==='live').length;
+    return `Niche (${d.niche}) citations: ${subs.length} tracked, ${live} live for ${d.biz.name}`;
+  }
+  if(id==='bm'){
+    if(!d.mentions?.length) return d.brand?`Brand: ${d.brand}`:'';
+    const unlinked=d.mentions.filter(m=>!m.hasLink).length;
+    return `Brand mentions: ${d.mentions.length} total · ${unlinked} unlinked (outreach opportunities) for ${d.brand}`;
+  }
+  if(id==='lcl'){
+    if(!d.status) return '';
+    const done=Object.values(d.status).filter(v=>v==='done').length;
+    return `Local SEO checklist: ${done}/100 items complete`;
+  }
+  if(id==='cp'){
+    if(!d.gbpClicks) return '';
+    return `Conversion funnel modeled: ${d.gbpClicks} GBP clicks, ${d.organic} organic, ${d.leadCR}% visit→lead, ${d.custCR}% lead→customer, AOV $${d.aov}`;
+  }
+  if(id==='bsch'){
+    if(!d.results?.length) return d.type?`Schema type set: ${d.type}`:'';
+    const ok=d.results.filter(r=>r.ok).length;
+    return `Bulk schema (${d.type}): ${ok}/${d.results.length} generated`;
+  }
+  if(id==='km'){
+    if(!d.map) return '';
+    const entries=Object.entries(d.map);
+    const mapped=entries.filter(([_,m])=>m.primary).length;
+    const cann=entries.filter(([_,m])=>m.primary&&m.secondary?.length).length;
+    return `Keyword mapping: ${mapped} mapped, ${cann} cannibalizing${d.city?', city: '+d.city:''}`;
+  }
+  if(id==='hm'){
+    if(!d.snapshots?.length) return '';
+    const latest=d.snapshots[d.snapshots.length-1];
+    const first=d.snapshots[0];
+    const lifetimeDelta=latest.overall-first.overall;
+    return `Health monitoring: ${d.snapshots.length} snapshots · current ${latest.overall}/100 · lifetime ${lifetimeDelta>0?'+':''}${lifetimeDelta}`;
+  }
+  if(id==='gpi'){
+    return d.range?`GBP Insights Analyzer active (${d.range}d range)`:'';
+  }
+  if(id==='ob'){
+    if(!d.done) return '';
+    const done=Object.values(d.done).filter(Boolean).length;
+    return `Onboarding: ${done} tasks complete, currently on step ${d.step||1}/12`;
+  }
+  if(id==='ba'){
+    if(!d.results?.length) return '';
+    const valid=d.results.filter(r=>!r.error);
+    const avg=valid.length?Math.round(valid.reduce((s,r)=>s+r.score,0)/valid.length):0;
+    return `Multi-page audit: ${d.results.length} URLs · avg ${avg}/100 · ${valid.filter(r=>r.score<60).length} failing`;
+  }
+  if(id==='at'){
+    if(!d.results?.total) return d.brand?`Brand: ${d.brand}`:'';
+    const r=d.results;
+    return `Anchor profile: ${r.total} anchors · health ${r.score}/100 · branded ${r.distribution.brand.pct.toFixed(0)}%, exact ${r.distribution.exact.pct.toFixed(0)}%`;
+  }
+  if(id==='hl'){
+    if(!d.map?.length) return '';
+    const hasXDefault=d.map.some(m=>m.locale==='x-default');
+    return `Hreflang: ${d.map.length} locales mapped${hasXDefault?' (incl. x-default)':''}`;
+  }
+  if(id==='bv'){
+    if(!d.snapshots?.length) return '';
+    const latest=d.snapshots[d.snapshots.length-1];
+    return `Backlink velocity: ${d.snapshots.length} snapshots · current ${latest.total} links across ${latest.uniqueDomains} domains`;
+  }
+  if(id==='kp'){
+    if(!d.name) return '';
+    const sig=[];
+    if(d.wikipedia)sig.push('Wikipedia');
+    if(d.wikidata)sig.push('Wikidata');
+    if(d.fb)sig.push('FB');
+    if(d.linkedin)sig.push('LinkedIn');
+    return `Knowledge Panel entity "${d.name}" · ${sig.length} entity signals (${sig.join(', ')||'none'})`;
+  }
+  if(id==='press'){
+    if(!d.drafts?.length) return '';
+    return `Press pitches: ${d.drafts.length} drafts, ${Object.keys(d.sent||{}).length} sent for ${d.biz?.name||'business'}`;
+  }
+  if(id==='hol'){
+    if(!d.hours) return '';
+    const tracked=Object.keys(d.hours).length;
+    return `Holiday hours: ${tracked} dates tracked for ${d.year||'2026'}`;
+  }
+  if(id==='gbpcat'){
+    if(!d.primary && !d.secondary?.length) return '';
+    return `GBP categories selected: primary "${d.primary||'?'}" + ${d.secondary?.length||0} secondary`;
+  }
+  if(id==='gbpsv'){
+    if(!d.services?.length) return '';
+    const cats=new Set(d.services.map(s=>s.category).filter(Boolean));
+    return `GBP Services list: ${d.services.length} services across ${cats.size} categories${d.services.filter(s=>!s.description).length?', '+d.services.filter(s=>!s.description).length+' missing descriptions':''}`;
+  }
+  if(id==='rd'){
+    if(!d.redirects?.length) return '';
+    return `301 redirects: ${d.redirects.length} mapped${d.project?.type?' ('+d.project.type+')':''}, ${d.redirects.filter(r=>r.status==='ok').length} validated`;
+  }
+  if(id==='gsc'){
+    if(!d.queries?.length) return '';
+    const strikePos=d.proj?.strikePos||20;
+    const strike=d.queries.filter(q=>q.position>=4 && q.position<=strikePos).length;
+    return `GSC: ${d.queries.length} queries · ${strike} in striking distance · ${d.pages?.length||0} pages tracked`;
+  }
+  return '';
+}
+
+/* ---------- INPUTS ---------- */
+function saveInputs(){
+  state.inputs.name = document.getElementById('i-name').value.trim();
+  state.inputs.industry = document.getElementById('i-industry').value.trim();
+  state.inputs.city = document.getElementById('i-city').value.trim();
+  state.inputs.website = document.getElementById('i-website').value.trim();
+  state.inputs.horizon = parseInt(document.getElementById('i-horizon').value)||90;
+  state.inputs.budget = document.getElementById('i-budget').value;
+  state.inputs.goal = document.getElementById('i-goal').value;
+  state.inputs.team = document.getElementById('i-team').value;
+  saveState(); renderHeader();
+}
+function fillInputs(){
+  ['name','industry','city','website','horizon','budget','goal','team'].forEach(k=>{
+    const el = document.getElementById('i-'+k); if(el) el.value = state.inputs[k]||(k==='horizon'?90:'');
+  });
+  // AI pills
+  document.getElementById('ai-pills').innerHTML = Object.entries(AI_PROVIDERS).map(([id,p])=>`<button class="pp ${state.ai.provider===id?'active':''}" onclick="selAi('${id}')">${escapeHtml(p.label)}</button>`).join('');
+  renderAiCfg();
+  refreshSources();
+}
+function selAi(id){state.ai.provider=id;saveState();document.querySelectorAll('#ai-pills .pp').forEach(b=>b.classList.toggle('active',b.textContent.includes(AI_PROVIDERS[id].label)));renderAiCfg();}
+function renderAiCfg(){
+  const p=AI_PROVIDERS[state.ai.provider]; const k=state.ai.keys[state.ai.provider]||{};
+  document.getElementById('ai-cfg').innerHTML = p.fields.map(f=>`<div class="f"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="ai-${f.key}" value="${escapeAttr(k[f.key]||'')}" oninput="saveAiKey()"></div>`).join('') + (p.note?`<div class="f"><div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5">${p.note}</div></div>`:'');
+  document.getElementById('ft-ai').textContent = k.key ? p.label : 'not configured';
+}
+function saveAiKey(){const p=AI_PROVIDERS[state.ai.provider]; const keys=state.ai.keys[state.ai.provider]||{}; p.fields.forEach(f=>{keys[f.key]=document.getElementById('ai-'+f.key).value.trim();}); state.ai.keys[state.ai.provider]=keys; saveState(); document.getElementById('ft-ai').textContent = keys.key ? AI_PROVIDERS[state.ai.provider].label : 'not configured';}
+
+function syncFromTools(){
+  let added = 0;
+  try {
+    const cf = JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const b = cf?.businesses?.[0];
+    if(b){
+      if(!state.inputs.name) state.inputs.name = b.name||'';
+      if(!state.inputs.city) state.inputs.city = b.city||'';
+      if(!state.inputs.industry) state.inputs.industry = b.category||'';
+      if(!state.inputs.website) state.inputs.website = (b.website||'').replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');
+      added++;
+    }
+  } catch(e){}
+  saveState(); fillInputs();
+  toast(added?'Auto-filled':'No data found','info');
+}
+
+function refreshSources(){
+  const data = loadSourceData();
+  const wrap = document.getElementById('src-list');
+  let active = 0, totalSize = 0;
+  wrap.innerHTML = SOURCES.map(s=>{
+    const has = data[s.id] && JSON.stringify(data[s.id]).length>30;
+    const sum = has ? summarize(s.id, data[s.id]).split('\n')[0].slice(0,40) : '—';
+    if(has) active++;
+    if(state.scopes[s.id]===undefined) state.scopes[s.id] = true;
+    const checked = state.scopes[s.id]!==false;
+    if(has && checked){ totalSize += summarize(s.id, data[s.id]).length; }
+    return `<label class="src-row"><input type="checkbox" ${checked?'checked':''} onchange="state.scopes['${s.id}']=this.checked;saveState();refreshSources()"><div class="dot ${has?'has':''}"></div><div class="name">${s.icon} ${escapeHtml(s.label)}</div><div class="summary">${escapeHtml(sum)}</div></label>`;
+  }).join('');
+  document.getElementById('stat-sources').textContent = active;
+  document.getElementById('stat-size').textContent = Math.round(totalSize/1024) || 0;
+}
+
+function renderHeader(){
+  // updated by refreshSources too
+}
+
+/* ---------- GENERATE ---------- */
+async function generate(){
+  saveInputs();
+  if(!state.inputs.name){ toast('Set business name first','err'); return; }
+  const p = AI_PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  if(!keys?.key){ toast('Configure AI provider','err'); return; }
+  const {context, size} = buildContext();
+  if(size < 20){
+    if(!confirm('Less than 20 chars of data context. The AI will work with minimal information. Continue?')) return;
+  }
+
+  document.getElementById('btn-go').disabled = true;
+  document.getElementById('prog-area').classList.add('show');
+  document.getElementById('prog-fill').style.width = '5%';
+  document.getElementById('prog-text').textContent = `Building strategy with ${p.label}...`;
+  document.getElementById('ft-status').textContent = 'Generating...';
+
+  const i = state.inputs;
+  const horizonWeeks = Math.ceil(i.horizon/7);
+  const budgetText = ({diy:'$0 / DIY only',low:'$500-2000/mo',mid:'$2000-5000/mo',high:'$5000+/mo'})[i.budget];
+  const teamText = ({solo:'Solo owner — 2-5 hrs/week',part:'Part-time team member — 10-15 hrs/week',full:'Dedicated SEO person',agency:'External agency'})[i.team];
+  const goalText = ({leads:'more inbound leads/calls',rankings:'higher local pack + organic rankings',reputation:'stronger reviews + brand reputation',expansion:'expand to new locations or service areas',recovery:'recover from ranking drop or GBP suspension'})[i.goal];
+
+  const prompt = `You are a senior local SEO strategist writing a comprehensive strategy document for a real client.
+
+CLIENT PROFILE:
+- Business: ${i.name}${i.industry?` (${i.industry})`:''}${i.city?` in ${i.city}`:''}
+- Website: ${i.website||'(none)'}
+- Time horizon: ${i.horizon} days (${horizonWeeks} weeks)
+- Budget: ${budgetText}
+- Team capacity: ${teamText}
+- Top business goal: ${goalText}
+
+DATA FROM CLIENT'S LOCAL SEO TOOLKIT (REAL CURRENT STATE — use this for ALL recommendations):
+
+${context || '(no tool data — write a generic ' + i.industry + ' strategy for ' + (i.city||'this market') + ')'}
+
+OUTPUT FORMAT — write a complete, professional, ready-to-execute strategy document in Markdown. Follow this exact structure:
+
+# Local SEO Strategy: [Business Name]
+[2-3 sentence executive summary specifically referencing the data above]
+
+## Current State Assessment
+[3-5 paragraph honest assessment of where they are based on the data. Call out specific numbers and findings from the data. Identify the 3 biggest gaps and 2 strongest assets.]
+
+## Strategic Priorities (Top 3)
+[Numbered list. Each priority gets a heading, ~50 word justification grounded in the data, and an expected impact.]
+
+## Phased Execution Plan
+[Break the ${i.horizon} days into ${Math.min(horizonWeeks, 12)} weekly phases. Use this format per phase:
+
+### Week N — [Theme]
+**Goal:** [1 sentence]
+**Tasks:**
+1. [Specific task — name the tool from the toolkit if relevant]
+2. [Specific task]
+3. [Specific task]
+**KPIs to watch:** [2-3 metrics]
+**Estimated hours:** [N hours for ${teamText}]
+
+Do all ${Math.min(horizonWeeks, 12)} weeks. Be SPECIFIC — use real numbers from the data when assigning targets. Reference the toolkit tools by name (Citation Finder, NAP Checker, GBP Audit, Geo-Grid Tracker, etc.).]
+
+## KPIs & Tracking
+[Table with: KPI, Current value (from data), Target by day ${i.horizon}, Source/tool to track it]
+
+## Budget Allocation
+[Table breaking down ${budgetText} across: GBP optimization, citations + listings, content production, link building, tools/software, contingency. With dollar amounts.]
+
+## Owner Assignments
+[Who does what — RACI table. Use Owner, SEO Lead, Content Writer, Developer as roles. Skip what doesn't apply to ${teamText}.]
+
+## Risk Mitigation
+[3-5 risks specific to the data shown above + how to mitigate each.]
+
+## What This Strategy Will NOT Do
+[Honest list of 3-4 things this strategy explicitly de-prioritizes, and why.]
+
+## 12-Month Stretch Vision
+[2-3 paragraphs on what could be true in 12 months if this strategy is executed well.]
+
+CRITICAL RULES:
+- Cite specific data points. Don't say "improve citations" — say "Acme has 23 citations but the top 5 competitors average 67 — close that gap."
+- No generic advice. If you can't tie a recommendation to the data, mark it as "general best practice" and keep it short.
+- Tasks must be specific enough that someone could start executing tomorrow.
+- Use markdown tables for KPIs, budget, and RACI.
+- This is a real document a real consultant would deliver. Quality over quantity.`;
+
+  try {
+    state.strategy = '';
+    const cbody = document.getElementById('cbody');
+    cbody.innerHTML = `<div class="strategy"><div class="strategy-hero"><h1>${escapeHtml(i.name)} — Local SEO Strategy</h1><div class="sub">${i.city||'—'} · ${horizonWeeks}-week plan · ${budgetText} · ${new Date().toLocaleDateString()}</div></div><div class="strategy-body" id="strategy-body">${mdToHtml('Generating strategy with full toolkit context — this may take 30-60 seconds...')}</div></div>`;
+    const body = document.getElementById('strategy-body');
+
+    let progress = 5;
+    const onToken = (tok, acc)=>{
+      state.strategy = acc;
+      body.innerHTML = mdToHtml(acc);
+      cbody.scrollTop = cbody.scrollHeight;
+      progress = Math.min(95, progress + 0.5);
+      document.getElementById('prog-fill').style.width = progress+'%';
+    };
+    await p.stream(prompt, keys, onToken);
+    document.getElementById('prog-fill').style.width = '100%';
+    document.getElementById('prog-text').textContent = `Strategy complete — ${Math.round(state.strategy.length/1024)} KB`;
+    document.getElementById('ft-status').textContent = 'Strategy generated';
+    document.getElementById('btn-copy').disabled = false;
+    document.getElementById('btn-md').disabled = false;
+    document.getElementById('btn-html').disabled = false;
+    saveState();
+    setTimeout(()=>{ document.getElementById('prog-area').classList.remove('show'); document.getElementById('prog-fill').style.width = '0'; }, 1500);
+  } catch(e){
+    toast('Generation failed: '+e.message,'err');
+    document.getElementById('ft-status').textContent = 'Failed';
+    document.getElementById('prog-area').classList.remove('show');
+  } finally {
+    document.getElementById('btn-go').disabled = false;
+  }
+}
+
+/* ---------- MD to HTML ---------- */
+function mdToHtml(md){
+  if(!md) return '';
+  let html = md
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Tables
+  html = html.replace(/^\|(.+)\|\n\|[-:|\s]+\|\n((?:\|.+\|\n?)+)/gm, (m, head, body)=>{
+    const headers = head.split('|').map(h=>h.trim()).filter(Boolean);
+    const rows = body.trim().split('\n').map(r=>r.split('|').map(c=>c.trim()).filter((_,i,a)=>i>0 && i<a.length-1));
+    return '<table><thead><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+  });
+  // Lists
+  const lines = html.split('\n');
+  const out = [];
+  let inUl=false, inOl=false;
+  lines.forEach(line=>{
+    const ulM = line.match(/^- (.+)$/);
+    const olM = line.match(/^\d+\. (.+)$/);
+    if(ulM){ if(!inUl){ out.push('<ul>'); inUl=true; } if(inOl){ out.push('</ol>'); inOl=false; } out.push(`<li>${ulM[1]}</li>`); }
+    else if(olM){ if(!inOl){ out.push('<ol>'); inOl=true; } if(inUl){ out.push('</ul>'); inUl=false; } out.push(`<li>${olM[1]}</li>`); }
+    else { if(inUl){ out.push('</ul>'); inUl=false; } if(inOl){ out.push('</ol>'); inOl=false; } out.push(line); }
+  });
+  if(inUl) out.push('</ul>'); if(inOl) out.push('</ol>');
+  html = out.join('\n');
+  // Paragraphs
+  html = html.split(/\n\n+/).map(b=>b.trim()).filter(Boolean).map(b=>{
+    if(b.startsWith('<h')||b.startsWith('<ul')||b.startsWith('<ol')||b.startsWith('<table')||b.startsWith('<blockquote')) return b;
+    return '<p>'+b.replace(/\n/g,'<br>')+'</p>';
+  }).join('\n');
+  return html;
+}
+
+/* ---------- EXPORTS ---------- */
+function copyMD(){
+  navigator.clipboard.writeText(state.strategy);
+  toast('Copied','success');
+}
+function downloadMD(){
+  const blob = new Blob([state.strategy], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`strategy-${(state.inputs.name||'client').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.md`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Downloaded','success');
+}
+function downloadHTML(){
+  const css = `*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:14px;line-height:1.7}.wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:14px;padding:48px;box-shadow:0 4px 16px rgba(15,26,46,.1)}h1{font-size:28px;font-weight:900;margin-bottom:14px;border-bottom:3px solid #7c3aed;padding-bottom:14px;letter-spacing:-.5px}h2{font-size:20px;font-weight:800;margin:32px 0 12px;color:#7c3aed;border-bottom:2px solid #f3e8ff;padding-bottom:6px}h3{font-size:16px;font-weight:700;margin:22px 0 10px}h4{font-size:14px;font-weight:700;margin:18px 0 8px;color:#5b6b88}p{margin:10px 0}ul,ol{margin:10px 0;padding-left:26px}li{margin-bottom:6px}code{background:#e9eef7;padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#7c3aed}strong{font-weight:700}blockquote{border-left:3px solid #7c3aed;padding:12px 16px;margin:14px 0;background:#faf5ff;border-radius:0 6px 6px 0;color:#5b6b88}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}th{background:#f3f6fb;text-align:left;padding:10px 12px;font-weight:700;border-bottom:1px solid #d1d9e8;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5b6b88}td{padding:10px 12px;border-bottom:1px solid #e9eef7;vertical-align:top}@media print{body{padding:0;background:#fff}.wrap{box-shadow:none;border-radius:0;padding:32px}}`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Strategy — ${escapeHtml(state.inputs.name)}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="wrap">${mdToHtml(state.strategy)}<div style="margin-top:40px;padding-top:18px;border-top:1px solid #e9eef7;font-size:11.5px;color:#5b6b88;text-align:center">Generated by AI Local SEO Strategy Generator · ${new Date().toLocaleString()}<br>Mukesh Kr · techie1418@gmail.com</div></div><script src="global-nav.js"><\/script>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`strategy-${(state.inputs.name||'client').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.html`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Downloaded','success');
+}
+
+/* ---------- BOOT ---------- */
+fillInputs();
+refreshSources();
+if(state.strategy){
+  const cbody = document.getElementById('cbody');
+  cbody.innerHTML = `<div class="strategy"><div class="strategy-hero"><h1>${escapeHtml(state.inputs.name||'Strategy')}</h1><div class="sub">Last generated</div></div><div class="strategy-body">${mdToHtml(state.strategy)}</div></div>`;
+  document.getElementById('btn-copy').disabled = false;
+  document.getElementById('btn-md').disabled = false;
+  document.getElementById('btn-html').disabled = false;
+} else {
+  document.getElementById('cbody').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><div><div class="et">AI Local SEO Strategy Generator</div><div class="ed">The capstone tool. Reads localStorage from all 29 other tools and generates a complete multi-week local SEO strategy document — phased weekly tasks, KPIs, owner assignments, budget allocation, risk mitigation. AI-streamed with full cross-tool context.</div></div><div class="hint-list">
+    <a href="citation-finder.html"><strong>📍 Set up Citations</strong><span>Add businesses + run citation scan</span></a>
+    <a href="gbp-audit.html"><strong>🏷 GBP Audit</strong><span>65-point audit feeds strategy</span></a>
+    <a href="geo-grid-tracker.html"><strong>🗺 Geo-Grid</strong><span>Track local pack visibility spatially</span></a>
+    <a href="dashboard.html"><strong>📊 Unified Dashboard</strong><span>See all data in one place</span></a>
+  </div></div>`;
+}
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

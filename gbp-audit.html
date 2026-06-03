@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBP Local Audit - Google Business Profile Optimization Checklist & AI Recommendations</title>
+<meta name="description" content="60+ point Google Business Profile audit: identity, NAP, categories, hours, photos, posts, Q&A, reviews, services. Per-section scoring, AI-powered fix suggestions, white-label report. 100% client-side. BYO AI key (OpenAI/Claude/Gemini/Groq) for personalized recommendations.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#d97706; --accent-h:#b45309; --accent-soft:rgba(217,119,6,.08);
+  --teal:#0d9488;
+  --amber:#d97706;
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#f59e0b; --accent-h:#fbbf24; --accent-soft:rgba(245,158,11,.14);
+  --teal:#14b8a6;
+  --amber:#f59e0b;
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* HEADER */
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--danger));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(217,119,6,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--danger);border:1px solid var(--danger);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.score strong{color:var(--accent)}
+.hdr-stat.ok strong{color:var(--success)}
+.hdr-stat.fix strong{color:var(--danger)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden;height:calc(100vh - 56px - 32px)}
+
+/* LEFT — BUSINESS INFO */
+#left-panel{width:300px;min-width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.lp-section{padding:11px 12px;border-bottom:1px solid var(--border)}
+.lp-section h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);font-family:var(--mono);margin-bottom:8px}
+.lp-section .f{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}
+.lp-section label{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.lp-section input,.lp-section select,.lp-section textarea{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11.5px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+.lp-section input:focus,.lp-section select:focus,.lp-section textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lp-section textarea{font-family:var(--font);min-height:60px;resize:vertical;line-height:1.5}
+.lp-section .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+.score-card{padding:14px 12px;background:linear-gradient(135deg,var(--bg3),var(--bg));border-bottom:1px solid var(--border);text-align:center}
+.score-ring{width:90px;height:90px;margin:0 auto;position:relative}
+.score-ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.score-ring .ring-bg{stroke:var(--bg4)}
+.score-ring .ring-fg{stroke:var(--accent);transition:stroke-dashoffset .6s,stroke .3s}
+.score-ring.s90 .ring-fg{stroke:var(--success)}
+.score-ring.s70 .ring-fg{stroke:var(--blue)}
+.score-ring.s50 .ring-fg{stroke:var(--amber)}
+.score-ring.s0  .ring-fg{stroke:var(--danger)}
+.score-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:22px;color:var(--text)}
+.score-label{font-size:11px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;margin-top:8px;letter-spacing:.8px}
+.score-grade{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:5px;font-size:11px;font-family:var(--mono);font-weight:800}
+.score-grade.a{background:rgba(22,163,74,.13);color:var(--success)}
+.score-grade.b{background:rgba(37,99,235,.13);color:var(--blue)}
+.score-grade.c{background:rgba(217,119,6,.13);color:var(--amber)}
+.score-grade.f{background:rgba(220,38,38,.13);color:var(--danger)}
+
+.btn-full{width:100%;padding:9px;border-radius:6px;background:var(--accent);color:#fff;font-size:11.5px;font-weight:700;border:none;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-full:hover{background:var(--accent-h)}
+.btn-full svg{width:13px;height:13px}
+.btn-full.sec{background:var(--bg3);color:var(--text);border:1px solid var(--border);margin-top:6px}
+.btn-full.sec:hover{border-color:var(--accent);color:var(--accent);background:var(--bg2)}
+
+/* CENTER */
+#center-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#center-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.cb-tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.cb-tab:hover{border-color:var(--accent);color:var(--accent)}
+.cb-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-tab svg{width:13px;height:13px}
+.cb-tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px;font-weight:700}
+.cb-tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-spacer{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn svg{width:13px;height:13px}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-btn.primary:hover{background:var(--accent-h)}
+
+#center-body{flex:1;overflow-y:auto;padding:12px;background:var(--bg)}
+
+/* CATEGORY SCORE CARDS */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.cat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.cat-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);border-color:var(--accent)}
+.cat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.cat-card.s90::before{background:var(--success)}
+.cat-card.s70::before{background:var(--blue)}
+.cat-card.s50::before{background:var(--amber)}
+.cat-card.s0::before{background:var(--danger)}
+.cat-card .cc-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.cat-card .cc-icon{width:30px;height:30px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:16px}
+.cat-card .cc-name{font-size:12px;font-weight:700;flex:1}
+.cat-card .cc-score{font-family:var(--mono);font-size:18px;font-weight:800;line-height:1}
+.cat-card.s90 .cc-score{color:var(--success)}
+.cat-card.s70 .cc-score{color:var(--blue)}
+.cat-card.s50 .cc-score{color:var(--amber)}
+.cat-card.s0  .cc-score{color:var(--danger)}
+.cat-card .cc-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:4px}
+.cat-card .cc-bar div{height:100%;background:var(--accent);transition:width .4s;border-radius:3px}
+.cat-card.s90 .cc-bar div{background:var(--success)}
+.cat-card.s70 .cc-bar div{background:var(--blue)}
+.cat-card.s50 .cc-bar div{background:var(--amber)}
+.cat-card.s0  .cc-bar div{background:var(--danger)}
+.cat-card .cc-meta{font-size:10.5px;color:var(--text3);margin-top:5px;font-family:var(--mono);display:flex;justify-content:space-between}
+
+/* CHECK ITEMS */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3);cursor:pointer;user-select:none}
+.section-hdr .ico{width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:16px;flex-shrink:0}
+.section-hdr h3{font-size:13px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-hdr .score-pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)}
+.section-hdr .toggle{font-family:var(--mono);font-size:14px;color:var(--text3);transition:transform .2s}
+.section.collapsed .toggle{transform:rotate(-90deg)}
+.section.collapsed .section-body{display:none}
+.section-body{padding:0}
+
+.check-item{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:11px;transition:background .12s}
+.check-item:hover{background:var(--bg3)}
+.check-item:last-child{border-bottom:none}
+.check-item .ci-state{width:24px;height:24px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;font-size:12px;color:var(--text2);font-weight:800}
+.check-item .ci-state:hover{border-color:var(--accent)}
+.check-item .ci-state.pass{background:var(--success);border-color:var(--success);color:#fff}
+.check-item .ci-state.fail{background:var(--danger);border-color:var(--danger);color:#fff}
+.check-item .ci-state.skip{background:var(--bg);border-color:var(--text3);color:var(--text3)}
+.check-item .ci-body{flex:1;min-width:0}
+.check-item .ci-q{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.45}
+.check-item .ci-q .imp{display:inline-block;font-size:9.5px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:3px;margin-left:7px;letter-spacing:.4px;text-transform:uppercase;line-height:1.4}
+.check-item .ci-q .imp.critical{background:rgba(220,38,38,.13);color:var(--danger)}
+.check-item .ci-q .imp.high{background:rgba(217,119,6,.13);color:var(--amber)}
+.check-item .ci-q .imp.med{background:rgba(37,99,235,.13);color:var(--blue)}
+.check-item .ci-q .imp.low{background:rgba(94,107,136,.13);color:var(--text2)}
+.check-item .ci-d{font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:4px}
+.check-item .ci-d a{color:var(--accent);text-decoration:none}
+.check-item .ci-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start;margin-top:1px}
+.check-item .ci-actions button{width:26px;height:26px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:11px}
+.check-item .ci-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.check-item .ci-actions svg{width:13px;height:13px}
+.check-item.fail{background:rgba(220,38,38,.04)}
+.check-item.pass{opacity:.65}
+.check-item.skip{opacity:.5}
+
+.ci-ai-fix{margin-top:7px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11.5px;color:var(--text);line-height:1.55;white-space:pre-wrap}
+.ci-ai-fix .ai-label{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.ci-ai-fix .ai-label svg{width:11px;height:11px}
+
+/* AI Settings Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.modal-hdr h2{font-size:14px;font-weight:700;flex:1}
+.modal-hdr .close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);display:flex;align-items:center;justify-content:center}
+.modal-hdr .close:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.modal-body{padding:18px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.modal-foot button{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--bg);color:var(--text)}
+.modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal-foot button.primary:hover{background:var(--accent-h)}
+
+.provider-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.ppill{padding:6px 11px;border-radius:6px;font-size:11px;font-family:var(--mono);font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.ppill:hover{border-color:var(--accent);color:var(--accent)}
+.ppill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.ppill .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:3px;margin-left:5px}
+.ppill:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:600;color:var(--text)}
+.field input,.field select{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text)}
+.field .hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.field .hint a{color:var(--accent);text-decoration:none}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+.ft-link svg{width:11px;height:11px}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:920px){
+  #left-panel{position:absolute;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .3s;width:80%;max-width:300px}
+  #left-panel.open{transform:translateX(0);box-shadow:var(--shadow-lg)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div><div class="logo-name">GBP<span>Audit</span></div></div>
+    <span class="logo-tag">LOCAL</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat score"><strong id="stat-score">0</strong>%</div>
+  <div class="hdr-stat ok"><strong id="stat-ok">0</strong> passed</div>
+  <div class="hdr-stat fix"><strong id="stat-fix">0</strong> to fix</div>
+  <button class="mobile-toggle" onclick="document.getElementById('left-panel').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Citations
+  </a>
+  <a href="nap-checker.html" class="hdr-link" title="NAP Checker" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+    NAP
+  </a>
+  <a href="schema-generator.html" class="hdr-link" title="Schema Generator" style="border-color:rgba(13,148,136,.4);color:var(--teal)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Schema
+  </a>
+  <a href="serp-ranker.html" class="hdr-link" title="SERP Ranker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+    SERP
+  </a>
+  <a href="geo-grid-tracker.html" class="hdr-link" title="Geo-Grid Rank Tracker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Geo Grid
+  </a>
+  <a href="competitor-gap.html" class="hdr-link" title="Competitor Citation Gap" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 19a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2H3z"/></svg>
+    Comp Gap
+  </a>
+  <a href="review-reply.html" class="hdr-link" title="AI Review Reply Generator" style="border-color:rgba(219,39,119,.4);color:var(--pink)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    Replies
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <a href="suspension-risk.html" class="hdr-link" title="GBP Suspension Risk" style="border-color:rgba(220,38,38,.4);color:var(--danger)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Risk
+  </a>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT: BUSINESS INFO + SCORE -->
+  <div id="left-panel">
+    <div class="score-card">
+      <div class="score-ring" id="score-ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="38" stroke-width="8" fill="none"/>
+          <circle class="ring-fg" id="ring-fg" cx="50" cy="50" r="38" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+        </svg>
+        <div class="score-ring-val" id="score-val">0</div>
+      </div>
+      <div class="score-label">GBP Audit Score</div>
+      <div class="score-grade" id="score-grade">— Set up</div>
+    </div>
+
+    <div class="lp-section">
+      <h4>Business Profile</h4>
+      <div class="f"><label>Business Name *</label><input id="bz-name" placeholder="Acme Plumbing Co." oninput="onBizChange()"></div>
+      <div class="f"><label>GBP URL (maps.google.com/?cid=…)</label><input id="bz-gbp" placeholder="https://g.page/acmeplumbing" oninput="onBizChange()"></div>
+      <div class="f"><label>Website</label><input id="bz-web" placeholder="https://acmeplumbing.com" oninput="onBizChange()"></div>
+      <div class="f"><label>Phone</label><input id="bz-phone" placeholder="+1 555 123 4567" oninput="onBizChange()"></div>
+      <div class="row2">
+        <div class="f"><label>City</label><input id="bz-city" placeholder="Boston" oninput="onBizChange()"></div>
+        <div class="f"><label>Country</label><select id="bz-country" onchange="onBizChange()">
+          <option value="US">US</option><option value="CA">CA</option><option value="UK">UK</option><option value="AU">AU</option><option value="IN">IN</option>
+        </select></div>
+      </div>
+      <div class="f"><label>Primary Category</label><input id="bz-cat" placeholder="Plumber" oninput="onBizChange()"></div>
+      <div class="f"><label>Business Type</label><select id="bz-type" onchange="onBizChange()">
+        <option value="brick">Brick & Mortar (storefront)</option>
+        <option value="sab">Service Area (no public address)</option>
+        <option value="hybrid">Hybrid (storefront + service area)</option>
+      </select></div>
+    </div>
+
+    <div class="lp-section">
+      <h4>Auto-Audit</h4>
+      <button class="btn-full auto" id="btn-auto" onclick="autoAudit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Run Deep-Research Auto-Audit
+      </button>
+      <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);margin:9px 0 2px;cursor:pointer"><input type="checkbox" id="auto-deep" onchange="state.autoDeep=this.checked;saveState()" style="width:14px;height:14px;cursor:pointer"> Read live GBP panel (category, rating, reviews, hours)</label>
+      <div class="auto-hint">Auto-scores every check &amp; finds errors across <strong>NAP, citations, listings, backlinks &amp; reviews</strong>. Best &amp; <strong>100% free</strong> via the local engine — run <code style="font-family:var(--mono);background:var(--bg3);padding:1px 4px;border-radius:3px">python gbp_auditor.py --serve</code> in this folder, then click below. No engine? It falls back to in-browser proxy + (optional) AI.</div>
+    </div>
+
+    <div class="lp-section">
+      <h4>Actions</h4>
+      <button class="btn-full" onclick="openAISettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Configure AI Provider
+      </button>
+      <button class="btn-full sec" onclick="markAllPass()">Mark all "Pass"</button>
+      <button class="btn-full sec" onclick="resetChecks()">Reset answers</button>
+      <button class="btn-full sec" onclick="exportData('report')">Export Report (HTML)</button>
+      <button class="btn-full sec" onclick="exportData('csv')">Export CSV</button>
+      <button class="btn-full sec" onclick="exportData('json')">Export JSON</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center-area">
+    <div id="center-bar">
+      <button class="cb-tab active" data-tab="dashboard" onclick="setTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="cb-tab" data-tab="checklist" onclick="setTab('checklist')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Full Checklist <span class="count" id="tab-count-all">0</span>
+      </button>
+      <button class="cb-tab" data-tab="fixes" onclick="setTab('fixes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Fixes Needed <span class="count" id="tab-count-fix">0</span>
+      </button>
+      <button class="cb-tab" data-tab="action" onclick="setTab('action')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Action Plan
+      </button>
+      <button class="cb-tab" data-tab="research" onclick="setTab('research')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        Deep Research
+      </button>
+      <div class="cb-spacer"></div>
+      <button class="cb-btn auto" onclick="autoAudit()" id="btn-auto2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Auto-Audit
+      </button>
+      <button class="cb-btn primary" onclick="aiSuggestAll()" id="btn-ai-all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        AI Suggest for All Fails
+      </button>
+    </div>
+
+    <div id="center-body"></div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Set up your business profile to start the audit</span>
+  </div>
+  <div class="ft-item">
+    <span id="ft-prov">AI: <strong>not configured</strong></span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item">
+    <span>Built by <strong>Mukesh Kr</strong></span>
+  </div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<!-- Auto-Audit progress overlay -->
+<div class="modal-bg" id="auto-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hdr"><h2 id="auto-title">Deep-Research Auto-Audit</h2><button class="close" id="auto-close" onclick="closeAutoModal()" style="display:none">&times;</button></div>
+    <div class="modal-body">
+      <div id="auto-steps"></div>
+      <div id="auto-result" style="display:none"></div>
+    </div>
+    <div class="modal-foot" id="auto-foot" style="display:none">
+      <button onclick="closeAutoModal()">Close</button>
+      <button class="primary" onclick="closeAutoModal();setTab('research')">View Deep Research</button>
+    </div>
+  </div>
+</div>
+
+<style id="aa-styles">
+.btn-full.auto,.cb-btn.auto{background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;box-shadow:0 4px 14px rgba(124,58,237,.32);font-weight:700}
+.btn-full.auto:hover,.cb-btn.auto:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-full.auto svg,.cb-btn.auto svg{fill:rgba(255,255,255,.18);stroke:#fff}
+.btn-full.auto:disabled,.cb-btn.auto:disabled{opacity:.6;cursor:wait;transform:none}
+.auto-hint{font-size:10.5px;line-height:1.55;color:var(--text3);margin-top:9px;font-family:var(--mono)}
+.auto-hint strong{color:var(--text2)}
+/* progress steps */
+.aa-step{display:flex;align-items:flex-start;gap:11px;padding:10px 4px;border-bottom:1px solid var(--border)}
+.aa-step:last-child{border-bottom:none}
+.aa-ico{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.aa-step.run .aa-ico{background:rgba(37,99,235,.12);color:var(--primary);border-color:var(--primary);animation:aapulse 1s infinite}
+.aa-step.done .aa-ico{background:var(--success);color:#fff;border-color:var(--success)}
+.aa-step.err .aa-ico{background:var(--danger);color:#fff;border-color:var(--danger)}
+.aa-step.skip .aa-ico{background:var(--bg4);color:var(--text3)}
+@keyframes aapulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 5px rgba(37,99,235,0)}}
+.aa-txt{flex:1;min-width:0}
+.aa-name{font-size:12.5px;font-weight:700;color:var(--text)}
+.aa-detail{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;line-height:1.45;word-break:break-word}
+.aa-spin{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--primary);border-radius:50%;animation:aaspin .7s linear infinite}
+@keyframes aaspin{to{transform:rotate(360deg)}}
+/* research view */
+.rs-summary{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(37,99,235,.06));border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.rs-summary h3{font-size:15px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.rs-summary p{font-size:12.5px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
+.rs-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rs-chip{font-size:10px;font-family:var(--mono);font-weight:700;padding:3px 9px;border-radius:20px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.rs-area{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.rs-area-hd{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.rs-area-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.rs-area-nm{font-size:14px;font-weight:800;flex:1}
+.rs-area-sc{font-family:var(--mono);font-weight:800;font-size:20px}
+.rs-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.rs-bar div{height:100%;border-radius:3px}
+.rs-h{font-size:9.5px;font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:10px 0 6px}
+.rs-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.rs-list li{position:relative;padding-left:20px;font-size:12px;line-height:1.5;color:var(--text2)}
+.rs-list.find li::before{content:'!';position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:rgba(220,38,38,.12);color:var(--danger);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.rs-list.rec li::before{content:'';position:absolute;left:3px;top:6px;width:7px;height:7px;border-radius:2px;background:var(--success)}
+.rs-tool{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:6px 12px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--primary)}
+.rs-tool:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.rs-tool svg{width:12px;height:12px}
+.rs-src{font-size:11px;color:var(--text2);font-family:var(--mono);padding:5px 0;border-bottom:1px dashed var(--border);word-break:break-all}
+.rs-src:last-child{border-bottom:none}
+.rs-empty{padding:60px 20px;text-align:center;color:var(--text3)}
+.rs-empty .big{font-size:40px;margin-bottom:10px}
+.auto-badge{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-family:var(--mono);font-weight:800;padding:1px 5px;border-radius:4px;margin-left:6px;text-transform:uppercase;letter-spacing:.3px;vertical-align:middle}
+.auto-badge.site{background:rgba(22,163,74,.14);color:var(--success)}
+.auto-badge.ai{background:rgba(124,58,237,.14);color:var(--purple,#7c3aed)}
+</style>
+
+<div id="toast"></div>
+
+<!-- AI Settings Modal -->
+<div class="modal-bg" id="ai-modal">
+  <div class="modal">
+    <div class="modal-hdr"><h2>AI Provider — Get GBP Optimization Suggestions</h2><button class="close" onclick="closeAISettings()">&times;</button></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Provider</label>
+        <div class="provider-pills" id="ai-pp"></div>
+        <div id="ai-prov-config"></div>
+      </div>
+      <div class="field">
+        <label>Tone of suggestions</label>
+        <select id="ai-tone">
+          <option value="actionable">Actionable & specific</option>
+          <option value="conversational">Conversational</option>
+          <option value="technical">Technical (for SEO pros)</option>
+        </select>
+        <div class="hint">Sets how AI phrases fix suggestions for each failed check.</div>
+      </div>
+      <div class="field">
+        <label>Brave Search API key — optional (deep-research grounding)</label>
+        <input type="password" id="ai-search-key" placeholder="BSA... — leave blank to skip live SERP">
+        <div class="hint">Optional. If set, Auto-Audit also pulls live search results for your business to ground citation/listing/backlink findings. Free key at <a href="https://api.search.brave.com/app/keys" target="_blank" rel="noopener">api.search.brave.com</a>. Without it, deep research still runs on your website + AI reasoning.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeAISettings()">Cancel</button>
+      <button class="primary" onclick="saveAISettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+ * GBP LOCAL AUDIT — 60+ checks, BYO AI provider for fix suggestions
+ * ========================================================================== */
+
+const CATEGORIES = [
+  {id:'identity', label:'Identity & Verification', icon:'🏷️', desc:'Claim, ownership, and core profile basics'},
+  {id:'nap',      label:'NAP & Contact',           icon:'📞', desc:'Name, address, phone consistency & format'},
+  {id:'cats',     label:'Categories & Attributes', icon:'🏷️', desc:'Primary/secondary categories, attributes, services'},
+  {id:'hours',    label:'Hours & Availability',    icon:'🕐', desc:'Regular hours, special hours, "open now" reliability'},
+  {id:'photos',   label:'Photos & Videos',         icon:'📷', desc:'Visual content quantity, quality, geotag, freshness'},
+  {id:'desc',     label:'Description & Services',  icon:'📝', desc:'Business description, services list, products'},
+  {id:'posts',    label:'Google Posts',            icon:'📰', desc:'Posts cadence, offers, events, updates'},
+  {id:'qa',       label:'Questions & Answers',     icon:'❓', desc:'Q&A monitoring, seeded FAQs, owner responses'},
+  {id:'reviews',  label:'Reviews',                 icon:'⭐', desc:'Quantity, velocity, response rate, sentiment'},
+  {id:'website',  label:'Website Alignment',       icon:'🔗', desc:'Schema, NAP on site, location pages, internal links'},
+  {id:'citation', label:'Citations & Off-page',    icon:'📍', desc:'Third-party directory listings consistency'},
+  {id:'advanced', label:'Advanced & Spam',         icon:'🛡️', desc:'Suspension risk, spam signals, multi-location'},
+];
+
+// 60+ checks. q = question, d = explanation, imp = critical/high/med/low, cat = category id, fix = canned fix hint
+const CHECKS = [
+  // IDENTITY
+  {id:'id1', cat:'identity', q:'Is the business profile fully claimed and verified?',                   imp:'critical', d:'Unverified profiles cannot edit info, post updates, or respond to reviews. Verify via postcard, phone, email, or video.'},
+  {id:'id2', cat:'identity', q:'Is the verified owner an in-house account (not a former agency)?',     imp:'high',     d:'Former employees or agencies with primary ownership block your access. Transfer primary ownership before relationship ends.'},
+  {id:'id3', cat:'identity', q:'Are there backup managers added (resilience)?',                         imp:'med',      d:'Add 1-2 backup managers so a single deactivated account does not orphan your profile.'},
+  {id:'id4', cat:'identity', q:'Is the business correctly NOT marked as permanently closed?',          imp:'critical', d:'Mass "closed" actions from competitors or auto-suggestions can knock a live business offline. Check the live profile state.'},
+  {id:'id5', cat:'identity', q:'Has the profile been suspended in the last 6 months?',                  imp:'high',      d:'Recent suspensions/reinstatements increase scrutiny. Document every edit going forward.'},
+
+  // NAP
+  {id:'na1', cat:'nap',      q:'Does the business name match the legal/storefront name exactly (no keyword stuffing)?', imp:'critical', d:'Keyword stuffing the name (e.g., "Boston Best Plumber Emergency Repair Co") is a direct policy violation and a top suspension cause.'},
+  {id:'na2', cat:'nap',      q:'Is the phone a local-area-code line (not a tracking 1-800 only)?',     imp:'high',      d:'Use a local number as primary; add tracking as additional. Pure 1-800 hurts local relevance.'},
+  {id:'na3', cat:'nap',      q:'Does the address format match exactly across GBP and website?',        imp:'high',      d:'Inconsistent suite/apt suffixes, "St." vs "Street", abbreviated states create duplicate citations.'},
+  {id:'na4', cat:'nap',      q:'Is the address a real, staffed location (not a virtual office/UPS)?', imp:'critical', d:'Virtual offices, PO boxes, and unstaffed coworking addresses are auto-suspended once detected.'},
+  {id:'na5', cat:'nap',      q:'Is the phone unique to this location (not shared with other GBPs)?',   imp:'high',      d:'Sharing a phone across multiple GBPs triggers duplicate suspensions.'},
+  {id:'na6', cat:'nap',      q:'Has the address changed in the last 6 months? If yes, did you also update website & top citations?', imp:'high', d:'Address changes without coordinated citation updates create NAP fragmentation that takes months to recover from.'},
+
+  // CATEGORIES
+  {id:'ca1', cat:'cats',     q:'Is the primary category the most specific accurate one available?',    imp:'critical', d:'Most local pack ranking weight goes to the primary category. Generic "Service Business" loses to specific "Emergency Plumber".'},
+  {id:'ca2', cat:'cats',     q:'Are 3-9 relevant secondary categories added?',                          imp:'high',      d:'Secondary categories expand keyword visibility. Add real ones (not stuffed) — e.g., "Plumber" + "Water Damage Restoration Service" + "Drain Cleaning Service".'},
+  {id:'ca3', cat:'cats',     q:'Are GBP attributes (women-owned, wheelchair accessible, etc.) filled where applicable?', imp:'med', d:'Attributes appear in search filters and the panel. Set every applicable one — they are ranking & filter signals.'},
+  {id:'ca4', cat:'cats',     q:'Are services listed with name, description, and price (if applicable)?', imp:'high',     d:'Service items appear in the panel "Services" section and influence keyword matches. Add 5+ items minimum.'},
+  {id:'ca5', cat:'cats',     q:'For product-based businesses, are products listed with images?',         imp:'med',      d:'Product carousel appears for retail/ecommerce categories. Add at least 6 products with images for the carousel.'},
+
+  // HOURS
+  {id:'ho1', cat:'hours',    q:'Are regular hours set (not blank)?',                                    imp:'critical', d:'Profiles without hours lose to competitors who have them. Even 24/7 should be explicitly marked.'},
+  {id:'ho2', cat:'hours',    q:'Are special/holiday hours kept current (next 30 days)?',                imp:'high',      d:'Outdated holiday hours trigger "Hours might be different" warnings that suppress click-through.'},
+  {id:'ho3', cat:'hours',    q:'Are "more hours" (delivery, drive-through, happy hour) used for relevant categories?', imp:'med', d:'Categories like Restaurant get bonus exposure for delivery/takeout hours separately.'},
+  {id:'ho4', cat:'hours',    q:'Is the business reliably open during stated hours (no "temporarily closed" surprises)?', imp:'high', d:'User reports of closed-when-listed-open trigger automated profile suppression.'},
+
+  // PHOTOS
+  {id:'ph1', cat:'photos',   q:'Are at least 10 owner-uploaded photos posted?',                         imp:'high',      d:'Profiles with 10+ owner photos get ~35% more direction requests vs profiles with fewer (Google internal data).'},
+  {id:'ph2', cat:'photos',   q:'Is the cover photo a high-quality 16:9 horizontal image (≥ 720×720)?',  imp:'high',      d:'The cover is the dominant visual in the panel. Use a real business shot, not a logo/clipart.'},
+  {id:'ph3', cat:'photos',   q:'Is the logo uploaded as a square 720×720+ image?',                      imp:'med',      d:'Logo appears as the round avatar in posts and the panel.'},
+  {id:'ph4', cat:'photos',   q:'Are photos categorized (interior/exterior/team/product)?',              imp:'med',      d:'Use the Photos > Add menu to upload to the right category for organized panel display.'},
+  {id:'ph5', cat:'photos',   q:'Are photos geotagged with the business coordinates?',                   imp:'med',      d:'Geotagged photos can reinforce location relevance. Use GeoTag Pro before upload.'},
+  {id:'ph6', cat:'photos',   q:'Has a new photo been added in the last 30 days?',                       imp:'high',      d:'Cadence signals an active profile. Set a monthly photo-upload reminder.'},
+  {id:'ph7', cat:'photos',   q:'Is at least 1 video (≤ 30s) uploaded?',                                 imp:'med',      d:'Videos play in the panel and lift engagement. A 10-30s "about us" or "behind the scenes" is enough.'},
+  {id:'ph8', cat:'photos',   q:'Are user-uploaded photos monitored for inappropriate content?',         imp:'low',      d:'Flag/report user photos that are off-topic or competitor planted.'},
+
+  // DESC / SERVICES
+  {id:'de1', cat:'desc',     q:'Is the business description filled (closer to 750 chars than 250)?',   imp:'high',      d:'GBP allows 750 characters. Use them. Lead with services, geography, USPs, year founded.'},
+  {id:'de2', cat:'desc',     q:'Does the description avoid pure keyword stuffing and link insertion?', imp:'high',      d:'Links inside the description are stripped/violation. Read naturally — write for users first.'},
+  {id:'de3', cat:'desc',     q:'Is "from the business" filled (additional editorial)?',                 imp:'med',      d:'This optional section gives more keyword surface area for the panel.'},
+  {id:'de4', cat:'desc',     q:'Are FAQs / services pages on your website matching the listed services?', imp:'med',     d:'Mismatch between GBP services and website services dilutes topical authority.'},
+
+  // POSTS
+  {id:'po1', cat:'posts',    q:'Is at least one Google Post published per week?',                      imp:'high',      d:'Posts age out after 7 days for "Updates". Weekly cadence keeps the panel fresh.'},
+  {id:'po2', cat:'posts',    q:'Are post types varied (Update, Offer, Event)?',                        imp:'med',      d:'Mix Updates, Offers, Events. Each has different CTAs and visibility.'},
+  {id:'po3', cat:'posts',    q:'Do posts have a clear CTA (Book, Order, Call, Sign up)?',              imp:'med',      d:'Posts with CTA buttons drive measurable Insights actions.'},
+  {id:'po4', cat:'posts',    q:'Do posts use 720×720+ images (no thin, pixelated thumbnails)?',        imp:'low',      d:'Larger images render cleaner across the panel and search.'},
+
+  // Q&A
+  {id:'qa1', cat:'qa',       q:'Are owner-seeded FAQ-style Q&As posted (5+)?',                          imp:'med',      d:'Owners can post questions and answer them. Pre-seed the top customer FAQs.'},
+  {id:'qa2', cat:'qa',       q:'Are all user questions answered within 48 hours?',                     imp:'high',      d:'Unanswered questions get community-answered, often incorrectly. Set up email alerts.'},
+  {id:'qa3', cat:'qa',       q:'Are spam/off-topic questions reported (not just ignored)?',            imp:'med',      d:'Flag spam Q&A via the menu. Otherwise it accumulates and clutters the panel.'},
+
+  // REVIEWS
+  {id:'rv1', cat:'reviews',  q:'Are there ≥ 25 reviews total?',                                         imp:'critical', d:'Volume threshold for stars-in-SERP and trust. Below 10, ranking is meaningfully suppressed in many verticals.'},
+  {id:'rv2', cat:'reviews',  q:'Is the average rating ≥ 4.3?',                                          imp:'high',      d:'Below 4.0 hurts conversion and trust signals. Target 4.5+.'},
+  {id:'rv3', cat:'reviews',  q:'Is there a steady review velocity (≥ 1 new review per month)?',         imp:'high',      d:'Spikes or zero-velocity months look manipulated. Steady drip is best.'},
+  {id:'rv4', cat:'reviews',  q:'Is the owner response rate 100% (every review responded to)?',         imp:'high',      d:'Responses are a Google-confirmed ranking factor. Respond to both 5★ and 1★.'},
+  {id:'rv5', cat:'reviews',  q:'Are negative reviews answered professionally within 24 hours?',         imp:'critical', d:'A defensive or absent response on a 1★ does more damage than the review itself. Use the Review Reply Generator.'},
+  {id:'rv6', cat:'reviews',  q:'Is there a documented review-generation system (post-visit ask, QR card, follow-up)?', imp:'high', d:'Hope-based review acquisition fails. Build it into the post-purchase / post-service flow.'},
+  {id:'rv7', cat:'reviews',  q:'Are reviews never bought, faked, or solicited only from happy customers ("review gating")?', imp:'critical', d:'Review gating and fake reviews trigger suspensions and FTC penalties. Ask everyone, not just the happy ones.'},
+  {id:'rv8', cat:'reviews',  q:'Are 25%+ of reviews substantive (multi-sentence, not single emoji)?',  imp:'med',      d:'Substantive reviews mention keywords + scenarios that feed into local pack queries.'},
+
+  // WEBSITE ALIGNMENT
+  {id:'we1', cat:'website',  q:'Does the website have LocalBusiness JSON-LD schema with matching NAP?', imp:'high',     d:'Schema reinforces entity signals. Use Schema Generator and link to it from this GBP audit.'},
+  {id:'we2', cat:'website',  q:'Does the website NAP exactly match the GBP (footer, contact page)?',   imp:'critical', d:'Mismatch = #1 cause of soft suspensions and citation fragmentation. Run NAP Checker.'},
+  {id:'we3', cat:'website',  q:'Is the GBP listed as the canonical URL in your site (Google Maps embed + link)?', imp:'med', d:'Embed your business map and link the GBP URL in the contact/about page.'},
+  {id:'we4', cat:'website',  q:'For multi-location, are there dedicated location pages indexed?',       imp:'high',      d:'Each location needs its own URL with unique content, NAP, embedded map, and schema.'},
+  {id:'we5', cat:'website',  q:'Is the website mobile-friendly and HTTPS?',                             imp:'critical', d:'HTTP-only or broken-mobile sites drop in local rankings. Run a Lighthouse check.'},
+
+  // CITATIONS
+  {id:'ci1', cat:'citation', q:'Are top-tier directories (Yelp, Bing, Apple, BBB) claimed and consistent?', imp:'high', d:'Use Citation Finder Pro to verify Tier-1 coverage and NAP consistency across directories.'},
+  {id:'ci2', cat:'citation', q:'Are industry-specific directories (Healthgrades, Avvo, Houzz, etc.) claimed?', imp:'med',  d:'Industry directories pass more relevance than generic ones — claim every relevant one.'},
+  {id:'ci3', cat:'citation', q:'Are there ≥ 30 verified consistent citations?',                          imp:'high',      d:'Quantity of consistent citations remains a top-5 local ranking factor (Whitespark survey).'},
+  {id:'ci4', cat:'citation', q:'Are there no live duplicate listings on any directory?',                imp:'high',      d:'Duplicates split authority and confuse Google. Detect via NAP Checker dupe-detection.'},
+
+  // ADVANCED / SPAM RISK
+  {id:'av1', cat:'advanced', q:'No keyword stuffing in name, services, or description?',               imp:'critical', d:'Stuffing keywords beyond legal name triggers suspensions even months later.'},
+  {id:'av2', cat:'advanced', q:'No multiple GBPs for the same physical address (unless legally separate businesses)?', imp:'high', d:'Multi-GBP at one address = duplicate violation. Only allowed for legally distinct entities.'},
+  {id:'av3', cat:'advanced', q:'No fake reviews, employee reviews from same IP, or paid reviews?',     imp:'critical', d:'Google detects clusters via IP/device. Penalties range from review filtering to suspension.'},
+  {id:'av4', cat:'advanced', q:'For SAB, is the address marker hidden in profile settings?',          imp:'high',      d:'Service-area businesses must hide the address. Showing it = suspension trigger.'},
+  {id:'av5', cat:'advanced', q:'Is there an internal audit cadence (monthly) to catch unauthorized edits?', imp:'med', d:'Google "Suggested Edits" sometimes get auto-applied. Monthly audit catches drift.'},
+];
+
+/* ---------- PROVIDERS ---------- */
+const PROVIDERS = {
+  gemini: {
+    label:'Google Gemini', free:'free tier',
+    note:'Free with generous limits. Get a key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card.',
+    fields:[{key:'key', label:'API Key', type:'password', placeholder:'Your Gemini API key'}],
+    async ask(prompt, keys){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(keys.key)}`;
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+      if(!res.ok) throw new Error('Gemini '+res.status);
+      const j = await res.json();
+      return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  },
+  openai: {
+    label:'OpenAI', free:'paid',
+    note:'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a>. Uses gpt-4o-mini for cost.',
+    fields:[{key:'key', label:'API Key', type:'password', placeholder:'sk-...'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body: JSON.stringify({model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], temperature:0.7})});
+      if(!res.ok) throw new Error('OpenAI '+res.status);
+      const j = await res.json();
+      return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  claude: {
+    label:'Anthropic Claude', free:'paid',
+    note:'Get a key at <a href="https://console.anthropic.com/account/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Uses claude-haiku for cost.',
+    fields:[{key:'key', label:'API Key', type:'password', placeholder:'sk-ant-...'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json','x-api-key':keys.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:600, messages:[{role:'user',content:prompt}]})});
+      if(!res.ok) throw new Error('Claude '+res.status);
+      const j = await res.json();
+      return j.content?.[0]?.text || '';
+    }
+  },
+  groq: {
+    label:'Groq', free:'free tier',
+    note:'Fast & free. Get a key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.',
+    fields:[{key:'key', label:'API Key', type:'password', placeholder:'gsk_...'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`}, body: JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.7})});
+      if(!res.ok) throw new Error('Groq '+res.status);
+      const j = await res.json();
+      return j.choices?.[0]?.message?.content || '';
+    }
+  },
+  openrouter: {
+    label:'OpenRouter', free:'free tier',
+    note:'Multi-model gateway. Get a key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>. Free Llama, Gemini, Claude models available.',
+    fields:[{key:'key', label:'API Key', type:'password', placeholder:'sk-or-...'}, {key:'model', label:'Model', type:'text', placeholder:'meta-llama/llama-3.3-70b-instruct:free'}],
+    async ask(prompt, keys){
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${keys.key}`,'HTTP-Referer':'https://gbp-audit.local','X-Title':'GBP Local Audit'}, body: JSON.stringify({model: keys.model||'meta-llama/llama-3.3-70b-instruct:free', messages:[{role:'user',content:prompt}]})});
+      if(!res.ok) throw new Error('OpenRouter '+res.status);
+      const j = await res.json();
+      return j.choices?.[0]?.message?.content || '';
+    }
+  },
+};
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'gbp_state_v1';
+const defaultState = {
+  biz: {name:'', gbp:'', web:'', phone:'', city:'', country:'US', cat:'', type:'brick'},
+  answers: {},     // {checkId: 'pass'|'fail'|'skip'}
+  aiFixes: {},     // {checkId: 'text'}
+  autoSource: {},  // {checkId: 'site'|'ai'}  — how an answer was auto-determined
+  autoDeep: false, // read live GBP panel via local engine (Playwright)
+  ai: {provider:'gemini', keys:{}, tone:'actionable', searchKey:''},
+  auto: null,      // {ranAt, summary, grade, areas:[], evidence:{}, sources:[]}
+  tab: 'dashboard',
+};
+
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg,type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ---------- BIZ ---------- */
+function onBizChange(){
+  state.biz.name = document.getElementById('bz-name').value;
+  state.biz.gbp = document.getElementById('bz-gbp').value;
+  state.biz.web = document.getElementById('bz-web').value;
+  state.biz.phone = document.getElementById('bz-phone').value;
+  state.biz.city = document.getElementById('bz-city').value;
+  state.biz.country = document.getElementById('bz-country').value;
+  state.biz.cat = document.getElementById('bz-cat').value;
+  state.biz.type = document.getElementById('bz-type').value;
+  saveState(); renderAll();
+}
+function fillBiz(){
+  document.getElementById('bz-name').value = state.biz.name||'';
+  document.getElementById('bz-gbp').value = state.biz.gbp||'';
+  document.getElementById('bz-web').value = state.biz.web||'';
+  document.getElementById('bz-phone').value = state.biz.phone||'';
+  document.getElementById('bz-city').value = state.biz.city||'';
+  document.getElementById('bz-country').value = state.biz.country||'US';
+  document.getElementById('bz-cat').value = state.biz.cat||'';
+  document.getElementById('bz-type').value = state.biz.type||'brick';
+  const cb = document.getElementById('auto-deep'); if(cb) cb.checked = !!state.autoDeep;
+}
+
+/* ---------- SCORE ---------- */
+function impWeight(imp){return ({critical:5, high:3, med:2, low:1})[imp]||1;}
+function calcScore(){
+  let earned=0, possible=0, ok=0, fail=0, skip=0;
+  CHECKS.forEach(c=>{
+    const a = state.answers[c.id];
+    const w = impWeight(c.imp);
+    if(a==='pass'){ earned+=w; possible+=w; ok++; }
+    else if(a==='fail'){ possible+=w; fail++; }
+    else if(a==='skip'){ skip++; }
+    else { possible+=w; } // unanswered counts as opportunity
+  });
+  const score = possible? Math.round(earned/possible*100): 0;
+  return {score, ok, fail, skip, total: CHECKS.length};
+}
+function catScore(catId){
+  let earned=0, possible=0, ok=0, fail=0, unanswered=0;
+  const inCat = CHECKS.filter(c=>c.cat===catId);
+  inCat.forEach(c=>{
+    const a = state.answers[c.id]; const w = impWeight(c.imp);
+    if(a==='pass'){earned+=w; possible+=w; ok++;}
+    else if(a==='fail'){possible+=w; fail++;}
+    else if(a==='skip'){}
+    else { possible+=w; unanswered++; }
+  });
+  return {score: possible?Math.round(earned/possible*100):0, ok, fail, unanswered, total:inCat.length};
+}
+
+/* ---------- ANSWERS ---------- */
+function setAnswer(id, val){
+  const cur = state.answers[id];
+  state.answers[id] = (cur===val) ? null : val;
+  if(!state.answers[id]) delete state.answers[id];
+  saveState(); renderAll();
+}
+
+function markAllPass(){ if(!confirm('Mark every check as Pass?')) return; CHECKS.forEach(c=>state.answers[c.id]='pass'); saveState(); renderAll(); }
+function resetChecks(){ if(!confirm('Reset all answers?')) return; state.answers={}; state.aiFixes={}; saveState(); renderAll(); }
+
+/* ---------- AI ---------- */
+function openAISettings(){
+  document.getElementById('ai-pp').innerHTML = Object.entries(PROVIDERS).map(([id,p])=>`
+    <button class="ppill ${state.ai.provider===id?'active':''}" onclick="selectProv('${id}')">${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span></button>
+  `).join('');
+  renderProvConfig();
+  document.getElementById('ai-tone').value = state.ai.tone||'actionable';
+  document.getElementById('ai-search-key').value = state.ai.searchKey||'';
+  document.getElementById('ai-modal').classList.add('show');
+}
+function closeAISettings(){document.getElementById('ai-modal').classList.remove('show');}
+function selectProv(id){
+  state.ai.provider = id;
+  document.querySelectorAll('#ai-pp .ppill').forEach(b=>b.classList.remove('active'));
+  event.target.closest('.ppill').classList.add('active');
+  renderProvConfig();
+}
+function renderProvConfig(){
+  const p = PROVIDERS[state.ai.provider]; const k = state.ai.keys[state.ai.provider]||{};
+  const wrap = document.getElementById('ai-prov-config');
+  wrap.innerHTML = p.fields.map(f=>`<div class="field"><label>${escapeHtml(f.label)}</label><input type="${f.type}" id="aip-${f.key}" value="${escapeAttr(k[f.key]||'')}" placeholder="${escapeAttr(f.placeholder||'')}"></div>`).join('') + `<div class="field"><div class="hint">${p.note}</div></div>`;
+}
+function saveAISettings(){
+  const p = PROVIDERS[state.ai.provider];
+  const keys = {}; p.fields.forEach(f=>{keys[f.key] = document.getElementById('aip-'+f.key).value.trim();});
+  state.ai.keys[state.ai.provider] = keys;
+  state.ai.tone = document.getElementById('ai-tone').value;
+  state.ai.searchKey = document.getElementById('ai-search-key').value.trim();
+  saveState(); closeAISettings();
+  document.getElementById('ft-prov').innerHTML = `AI: <strong>${PROVIDERS[state.ai.provider].label}</strong>`;
+  toast('AI saved','success');
+}
+
+async function aiSuggest(checkId){
+  const c = CHECKS.find(x=>x.id===checkId); if(!c) return;
+  const p = PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  if(!keys || !p.fields.every(f=>keys[f.key])){ openAISettings(); toast('Configure AI provider','err'); return; }
+  const tonePrompt = ({actionable:'Be direct, specific, and step-by-step. Bullets allowed.', conversational:'Friendly conversational tone.', technical:'Detailed, technical for SEO professionals.'})[state.ai.tone];
+  const prompt = `You are a Google Business Profile (GBP) optimization expert. The business is "${state.biz.name||'(unspecified)'}", category "${state.biz.cat||'unspecified'}", city "${state.biz.city||'unspecified'}", country "${state.biz.country}", type "${state.biz.type}".
+
+A specific GBP audit check has FAILED:
+
+CHECK: ${c.q}
+EXPLANATION: ${c.d}
+SEVERITY: ${c.imp}
+
+Give a focused, prioritized fix plan in 80-160 words. ${tonePrompt}
+
+Include:
+1. The exact concrete action(s) to take this week.
+2. Expected impact on local rankings or panel visibility.
+3. One specific gotcha to avoid (Google policy or common mistake).
+
+Do not echo the question. Do not include disclaimers.`;
+  const item = document.querySelector(`[data-check-id="${checkId}"]`);
+  if(item){
+    let aiDiv = item.querySelector('.ci-ai-fix');
+    if(!aiDiv){ aiDiv = document.createElement('div'); aiDiv.className='ci-ai-fix'; item.querySelector('.ci-body').appendChild(aiDiv); }
+    aiDiv.innerHTML = `<div class="ai-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> AI thinking…</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono)">Asking ${escapeHtml(p.label)}…</div>`;
+  }
+  try {
+    const ans = await p.ask(prompt, keys);
+    state.aiFixes[checkId] = ans.trim();
+    saveState();
+    renderAll();
+  } catch(e){
+    if(item){ const aiDiv = item.querySelector('.ci-ai-fix'); if(aiDiv){ aiDiv.innerHTML = `<div class="ai-label" style="color:var(--danger)">AI error</div><div style="font-size:11px">${escapeHtml(e.message||'Request failed')}</div>`; } }
+    toast('AI failed: '+e.message, 'err');
+  }
+}
+
+async function aiSuggestAll(){
+  const fails = CHECKS.filter(c=>state.answers[c.id]==='fail' && !state.aiFixes[c.id]);
+  if(!fails.length){ toast('No fails to suggest for (or already suggested)','info'); return; }
+  const p = PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  if(!keys || !p.fields.every(f=>keys[f.key])){ openAISettings(); toast('Configure AI provider','err'); return; }
+  document.getElementById('btn-ai-all').disabled = true;
+  let done = 0;
+  for(const c of fails){
+    document.getElementById('ft-status').textContent = `AI suggestions: ${done+1}/${fails.length}...`;
+    await aiSuggest(c.id);
+    done++;
+    await new Promise(r=>setTimeout(r, 400)); // light rate limit
+  }
+  document.getElementById('btn-ai-all').disabled = false;
+  document.getElementById('ft-status').textContent = `AI suggestions complete (${done})`;
+  toast(`AI suggested for ${done} fails`,'success');
+}
+
+/* ==========================================================================
+ * AUTO-AUDIT — DEEP RESEARCH ENGINE
+ * 1) Fetch the website (CORS proxy) → deterministic on-site / NAP / schema checks
+ * 2) Optional Brave Search → ground citations / listings / backlinks
+ * 3) AI deep research → verdict + fix for every remaining check + area breakdown
+ * ========================================================================== */
+
+/* ---- network helpers (multi-proxy with fallback; tolerant of file:// origin) ---- */
+const GBP_PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+];
+async function fetchText(url, {timeout=15000}={}){
+  // try direct first, then each proxy
+  const attempts = [url, ...GBP_PROXIES.map(p=>p(url))];
+  let lastErr;
+  for(const a of attempts){
+    try{
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeout);
+      const res = await fetch(a, {signal:ctrl.signal, redirect:'follow'});
+      clearTimeout(t);
+      if(!res.ok){ lastErr = new Error('HTTP '+res.status); continue; }
+      const txt = await res.text();
+      if(txt && txt.length>50) return txt;
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('All fetch attempts failed');
+}
+function normalizeUrl(u){
+  u = (u||'').trim();
+  if(!u) return '';
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  return u;
+}
+function digits(s){ return String(s||'').replace(/[^0-9]/g,''); }
+
+/* ---- 1) WEBSITE ANALYSIS (deterministic) ---- */
+async function analyzeWebsite(rawUrl){
+  const url = normalizeUrl(rawUrl);
+  const ev = { url, https:/^https:/i.test(url), reached:false };
+  const verdicts = {}; // {checkId:{verdict, why}}
+  let html='';
+  try{ html = await fetchText(url); ev.reached = true; }
+  catch(e){ ev.error = e.message; return {ev, verdicts, html:''}; }
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const text = (doc.body?.innerText || doc.body?.textContent || html.replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ');
+  const lowText = text.toLowerCase();
+  const head = doc.head;
+
+  ev.title = (doc.querySelector('title')?.textContent||'').trim();
+  ev.metaDesc = (doc.querySelector('meta[name="description"]')?.getAttribute('content')||'').trim();
+  ev.h1 = (doc.querySelector('h1')?.textContent||'').trim();
+  ev.viewport = !!doc.querySelector('meta[name="viewport"]');
+  ev.wordCount = text.split(' ').filter(Boolean).length;
+
+  // JSON-LD schema
+  ev.schemaTypes = []; ev.localBusinessSchema = null;
+  doc.querySelectorAll('script[type="application/ld+json"]').forEach(s=>{
+    try{
+      let data = JSON.parse(s.textContent.trim());
+      const arr = Array.isArray(data)?data:(data['@graph']||[data]);
+      arr.forEach(node=>{
+        const t = node && node['@type']; if(!t) return;
+        const types = Array.isArray(t)?t:[t];
+        types.forEach(x=>ev.schemaTypes.push(x));
+        if(types.some(x=>/LocalBusiness|Restaurant|Store|Dentist|Attorney|Physician|HomeAndConstructionBusiness|ProfessionalService|Organization/i.test(x))){
+          ev.localBusinessSchema = ev.localBusinessSchema || node;
+        }
+      });
+    }catch(e){}
+  });
+  ev.schemaTypes = [...new Set(ev.schemaTypes)];
+
+  // phone / tel link
+  ev.telLinks = [...doc.querySelectorAll('a[href^="tel:"]')].map(a=>a.getAttribute('href').replace('tel:','').trim());
+  const bizPhone = digits(state.biz.phone);
+  ev.phoneOnSite = bizPhone ? (digits(text).includes(bizPhone) || ev.telLinks.some(t=>digits(t).includes(bizPhone))) : (ev.telLinks.length>0);
+  ev.hasClickToCall = ev.telLinks.length>0;
+
+  // maps embed / gbp link
+  ev.mapsEmbed = !!doc.querySelector('iframe[src*="google.com/maps"],iframe[src*="maps.google"]');
+  const gbp = (state.biz.gbp||'').trim();
+  ev.gbpLinked = !!(gbp && html.includes(gbp.replace(/^https?:\/\//,'')));
+  ev.mapsLink = ev.mapsEmbed || ev.gbpLinked || /maps\.google|g\.page|goo\.gl\/maps/i.test(html);
+
+  // NAP presence
+  const nm = (state.biz.name||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();
+  ev.nameOnSite = nm ? lowText.includes(nm.split(' ').slice(0,3).join(' ')) : null;
+  ev.cityOnSite = state.biz.city ? lowText.includes(state.biz.city.toLowerCase()) : null;
+  ev.addressSchema = ev.localBusinessSchema?.address || null;
+
+  // social + key pages
+  ev.social = [...doc.querySelectorAll('a[href]')].map(a=>a.getAttribute('href')).filter(h=>/facebook|instagram|linkedin|twitter|x\.com|youtube|yelp/i.test(h));
+  ev.social = [...new Set(ev.social)].slice(0,12);
+  const links = [...doc.querySelectorAll('a[href]')].map(a=>(a.getAttribute('href')||'').toLowerCase());
+  ev.hasContactPage = links.some(h=>/contact/.test(h));
+  ev.hasLocationPage = links.some(h=>/location|areas?-we-serve|service-area/.test(h));
+
+  // ---- deterministic verdicts ----
+  verdicts.we5 = { verdict:(ev.https && ev.viewport)?'pass':'fail', why:`HTTPS:${ev.https?'yes':'no'}, mobile viewport:${ev.viewport?'yes':'no'}` };
+  if(ev.localBusinessSchema){
+    const a = ev.localBusinessSchema;
+    const hasNap = !!(a.name && (a.telephone||a.address) );
+    verdicts.we1 = { verdict: hasNap?'pass':'fail', why:`Found schema: ${ev.schemaTypes.join(', ')||'present'}${hasNap?' with NAP fields':' but missing name/phone/address'}` };
+  } else {
+    verdicts.we1 = { verdict:'fail', why: ev.schemaTypes.length?`Schema present (${ev.schemaTypes.join(', ')}) but no LocalBusiness/Organization with NAP`:'No JSON-LD LocalBusiness schema found on the homepage' };
+  }
+  if(ev.nameOnSite!==null || bizPhone){
+    const napOk = (ev.nameOnSite!==false) && (bizPhone? ev.phoneOnSite : true);
+    verdicts.we2 = { verdict: napOk?'pass':'fail', why:`Name on site:${ev.nameOnSite===null?'n/a':ev.nameOnSite}, phone on site:${bizPhone?ev.phoneOnSite:'no phone set'}` };
+  }
+  verdicts.we3 = { verdict: ev.mapsLink?'pass':'fail', why: ev.mapsEmbed?'Google Maps embed found':ev.gbpLinked?'GBP URL linked on site':ev.mapsLink?'Maps link found':'No Google Maps embed or GBP link found' };
+  if(bizPhone){
+    const tollFree = /^(1)?(800|888|877|866|855|844|833|822)/.test(bizPhone);
+    verdicts.na2 = { verdict: tollFree?'fail':'pass', why: tollFree?'Phone looks like a toll-free/tracking number':'Local-style number detected' };
+  }
+  return {ev, verdicts, html};
+}
+
+/* ---- 2) optional Brave Search grounding ---- */
+async function searchGrounding(){
+  const key = state.ai.searchKey;
+  if(!key) return null;
+  const q = `${state.biz.name} ${state.biz.city||''}`.trim();
+  const api = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(q)}&count=15`;
+  // Brave requires a header; route via a proxy that forwards headers isn't reliable, so try direct.
+  try{
+    const res = await fetch(api, {headers:{'Accept':'application/json','X-Subscription-Token':key}});
+    if(!res.ok) throw new Error('Brave '+res.status);
+    const j = await res.json();
+    const results = (j.web?.results||[]).map(r=>({title:r.title, url:r.url, desc:r.description}));
+    return results;
+  }catch(e){ return {error:e.message}; }
+}
+
+/* ---- 3) AI deep research ---- */
+function stripToJson(s){
+  if(!s) return null;
+  let t = s.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  try{ return JSON.parse(t); }catch(e){}
+  const m = t.match(/\{[\s\S]*\}/);
+  if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+  return null;
+}
+async function aiDeepResearch(siteEv, siteVerdicts, search){
+  const p = PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  if(!keys || !p.fields.every(f=>keys[f.key])) throw new Error('AI provider not configured');
+  const b = state.biz;
+  const checkList = CHECKS.map(c=>`${c.id} [${c.cat}/${c.imp}] ${c.q}`).join('\n');
+  const known = Object.entries(siteVerdicts).map(([id,v])=>`${id}=${v.verdict} (${v.why})`).join('; ');
+  const siteSummary = siteEv.reached ? `REACHED. title="${siteEv.title}"; metaDescLen=${(siteEv.metaDesc||'').length}; h1="${siteEv.h1}"; https=${siteEv.https}; mobileViewport=${siteEv.viewport}; schema=[${siteEv.schemaTypes.join(', ')}]; clickToCall=${siteEv.hasClickToCall}; mapsEmbed=${siteEv.mapsEmbed}; gbpLinked=${siteEv.gbpLinked}; nameOnSite=${siteEv.nameOnSite}; cityOnSite=${siteEv.cityOnSite}; phoneOnSite=${siteEv.phoneOnSite}; social=[${(siteEv.social||[]).join(', ')}]; contactPage=${siteEv.hasContactPage}; locationPage=${siteEv.hasLocationPage}; words=${siteEv.wordCount}` : `COULD NOT FETCH WEBSITE (${siteEv.error||'no url'}).`;
+  const serp = Array.isArray(search) ? 'LIVE SEARCH RESULTS:\n'+search.map(r=>`- ${r.title} | ${r.url}`).join('\n') : (search&&search.error?`(Live search unavailable: ${search.error})`:'(No live search performed.)');
+  const tone = ({actionable:'direct, specific, step-by-step',conversational:'friendly',technical:'technical for SEO pros'})[state.ai.tone]||'direct';
+
+  const prompt = `You are a world-class Local SEO auditor performing a DEEP RESEARCH audit of a Google Business Profile and its web presence. Reason carefully from the evidence. Where evidence is missing, infer the MOST LIKELY state for a business of this profile and mark confidence accordingly — but never invent specific facts (no fake review counts, no fake citations).
+
+BUSINESS
+name: ${b.name||'(unknown)'}
+website: ${b.web||'(none)'}
+GBP url: ${b.gbp||'(none)'}
+phone: ${b.phone||'(none)'}
+city: ${b.city||'(unknown)'}, country: ${b.country}
+primary category: ${b.cat||'(unknown)'}
+type: ${b.type}
+
+WEBSITE EVIDENCE (auto-crawled): ${siteSummary}
+ALREADY-VERIFIED CHECKS (from the crawl — trust these): ${known||'none'}
+${serp}
+
+TASK — return STRICT JSON only (no markdown, no prose outside JSON) with this exact shape:
+{
+ "summary": "3-5 sentence executive summary of the overall local SEO health and the single biggest opportunity",
+ "grade": "A|B|C|D|F",
+ "areas": [
+   {"key":"onsite","label":"On-Site & Website","score":0-100,"findings":["concrete issues found"],"recommendations":["specific actions"]},
+   {"key":"nap","label":"NAP Consistency","score":0-100,"findings":[...],"recommendations":[...]},
+   {"key":"citations","label":"Citations & Business Listings","score":0-100,"findings":[...],"recommendations":[...]},
+   {"key":"backlinks","label":"Backlinks & Authority","score":0-100,"findings":[...],"recommendations":[...]},
+   {"key":"reviews","label":"Reviews & Reputation","score":0-100,"findings":[...],"recommendations":[...]},
+   {"key":"gbp","label":"GBP Profile Optimization","score":0-100,"findings":[...],"recommendations":[...]}
+ ],
+ "verdicts": { "<checkId>": {"verdict":"pass|fail|unknown","confidence":"high|medium|low","evidence":"why, citing the data above","fix":"specific fix if failing (1-2 sentences), else empty"} }
+}
+
+Provide a verdict for EVERY check id below. Use "unknown" only when it genuinely cannot be assessed without logging into the GBP dashboard (e.g. internal review counts) — and even then give your best estimate in the evidence. Be ${tone}. Keep each finding/recommendation/fix concise.
+
+CHECKS:
+${checkList}`;
+
+  const raw = await p.ask(prompt, keys);
+  const json = stripToJson(raw);
+  if(!json) throw new Error('AI returned unpar-seable output');
+  return {json, raw};
+}
+
+/* ---- progress overlay ---- */
+const AA_STEPS = [
+  {id:'site', name:'Fetch & analyze website', icon:'🌐'},
+  {id:'search', name:'Live search grounding (optional)', icon:'🔎'},
+  {id:'ai', name:'AI deep research — scoring every check', icon:'🧠'},
+  {id:'compile', name:'Compile findings & action plan', icon:'📋'},
+];
+function renderAutoSteps(states){
+  document.getElementById('auto-steps').innerHTML = AA_STEPS.map(s=>{
+    const st = states[s.id]||{};
+    const cls = st.status||'';
+    const ico = cls==='done'?'✓':cls==='err'?'✕':cls==='skip'?'–':cls==='run'?'<div class="aa-spin"></div>':s.icon;
+    return `<div class="aa-step ${cls}"><div class="aa-ico">${ico}</div><div class="aa-txt"><div class="aa-name">${escapeHtml(s.name)}</div>${st.detail?`<div class="aa-detail">${escapeHtml(st.detail)}</div>`:''}</div></div>`;
+  }).join('');
+}
+function openAutoModal(){ document.getElementById('auto-result').style.display='none'; document.getElementById('auto-foot').style.display='none'; document.getElementById('auto-close').style.display='none'; document.getElementById('auto-title').textContent='Deep-Research Auto-Audit'; document.getElementById('auto-modal').classList.add('show'); }
+function closeAutoModal(){ document.getElementById('auto-modal').classList.remove('show'); }
+
+/* ---- local Python engine (free, no API, no CORS limits) ---- */
+const LOCAL_ENGINE_PORTS = [8765, 8766];
+let _engineBase = null;
+async function probeLocalEngine(){
+  for(const port of LOCAL_ENGINE_PORTS){
+    const base = `http://127.0.0.1:${port}`;
+    try{
+      const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),1400);
+      const r=await fetch(base+'/ping',{signal:ctrl.signal}); clearTimeout(t);
+      if(r.ok){ const j=await r.json(); if(j&&j.ok){ _engineBase=base; return base; } }
+    }catch(e){}
+  }
+  return null;
+}
+async function runLocalEngine(base){
+  const b=state.biz;
+  const q=new URLSearchParams({name:b.name||'',url:b.web||'',gbp:b.gbp||'',phone:b.phone||'',city:b.city||'',country:b.country||'US',cat:b.cat||'',type:b.type||'brick',deep:state.autoDeep?'1':'0'});
+  const r=await fetch(base+'/audit?'+q.toString());
+  if(!r.ok) throw new Error('engine HTTP '+r.status);
+  const j=await r.json(); if(j.error) throw new Error(j.error);
+  return j;
+}
+
+/* ---- rule-based area builder (client fallback, no AI needed) ---- */
+function ruleBasedAreas(ev, verdicts){
+  const areas=[]; const cl=n=>Math.max(0,Math.min(100,Math.round(n)));
+  let s,f,r;
+  // on-site
+  s=100; f=[]; r=[];
+  if(!ev.reached){ s=30; f.push('Website could not be fetched — verify it loads (or run the local engine)'); }
+  else{
+    if(!ev.https){s-=20;f.push('Site not served over HTTPS');r.push('Install SSL & force HTTPS');}
+    if(!ev.viewport){s-=15;f.push('No mobile viewport meta');r.push('Add a responsive viewport meta tag');}
+    if(!ev.localBusinessSchema){s-=18;f.push('No LocalBusiness JSON-LD schema');r.push('Add LocalBusiness schema with full NAP');}
+    if(!ev.hasClickToCall){s-=8;f.push('No click-to-call (tel:) link');r.push('Make the phone a tap-to-call link');}
+    if(!ev.mapsLink){s-=8;f.push('No Google Maps embed / GBP link');r.push('Embed your map & link the GBP');}
+    if((ev.metaDesc||'').length<80){s-=6;f.push('Meta description missing/short');r.push('Write a 140-160 char meta description');}
+  }
+  areas.push({key:'onsite',label:'On-Site & Website',score:cl(s),findings:f,recommendations:r});
+  // nap
+  s=100; f=[]; r=[];
+  if(ev.reached){
+    if(ev.nameOnSite===false){s-=25;f.push('Business name not found on site');r.push('Show your exact name in header/footer');}
+    if(ev.phoneOnSite===false){s-=25;f.push('Business phone not found on site');r.push('Display the GBP phone on every page');}
+    if(ev.cityOnSite===false){s-=12;f.push('City not clearly present');r.push('State your city/service area');}
+  } else { s-=30; f.push('Could not verify NAP on the website'); }
+  areas.push({key:'nap',label:'NAP Consistency',score:cl(s),findings:f,recommendations:r.length?r:['Use one canonical NAP everywhere — run NAP Checker']});
+  // citations / backlinks / reviews / gbp (guidance — no live data without engine/key)
+  areas.push({key:'citations',label:'Citations & Business Listings',score:50,findings:['Live listing scan needs the local engine or a search key'],recommendations:['Run Citation Finder Pro','Claim Yelp, Apple, Bing, BBB + industry directories','Target 30+ consistent citations']});
+  areas.push({key:'backlinks',label:'Backlinks & Authority',score:50,findings:['Backlink data needs a backlink index'],recommendations:['Run Backlink Profile','Pursue local sponsorships & press links']});
+  areas.push({key:'reviews',label:'Reviews & Reputation',score:60,findings:['Review counts need a GBP check or the local engine'],recommendations:['Respond to every review within 24h','Add a post-service review-ask flow']});
+  areas.push({key:'gbp',label:'GBP Profile Optimization',score:65,findings:['GBP dashboard items need a logged-in check'],recommendations:['Most specific primary category + 3-5 secondaries','Full 750-char description; post weekly; 10+ photos']});
+  return areas;
+}
+
+/* ---- orchestrator ---- */
+let _autoRunning = false;
+async function autoAudit(){
+  if(_autoRunning) return;
+  if(!state.biz.name){ toast('Enter at least the Business Name first','err'); document.getElementById('bz-name').focus(); return; }
+
+  _autoRunning = true;
+  ['btn-auto','btn-auto2'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
+  const finish = (count)=>{ _autoRunning=false; ['btn-auto','btn-auto2'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
+    document.getElementById('auto-close').style.display=''; document.getElementById('auto-foot').style.display='';
+    renderAll(); if(count!=null) toast(`Auto-Audit complete — ${count} checks scored`,'success'); };
+  const states = {};
+  openAutoModal(); renderAutoSteps(states);
+  const set = (id,status,detail)=>{ states[id]={status,detail}; renderAutoSteps(states); };
+
+  /* ===== PATH A — local Python engine (accurate, free, no API key) ===== */
+  set('site','run','Looking for the local engine (python gbp_auditor.py --serve)…');
+  const base = await probeLocalEngine();
+  if(base){
+    set('site','done','Local engine found — it fetches your site & listings server-side (no CORS)');
+    set('search','skip','Handled by the local engine');
+    set('ai','run', state.autoDeep ? 'Local engine: crawling site + reading live GBP panel + listings (first run installs a headless browser — can take a minute)…' : 'Local engine: crawling site, discovering citations/listings & scoring…');
+    try{
+      const R = await runLocalEngine(base);
+      set('ai','done',`Engine scored ${Object.keys(R.verdicts||{}).length} checks across 6 areas`);
+      set('compile','run','Merging engine results into your checklist…');
+      let setCount=0, failCount=0;
+      Object.entries(R.verdicts||{}).forEach(([id,v])=>{
+        if(!CHECKS.find(c=>c.id===id)) return;
+        if(v.verdict==='pass'||v.verdict==='fail'){ state.answers[id]=v.verdict; state.autoSource[id]=(v.source==='ai')?'ai':'site'; setCount++;
+          if(v.verdict==='fail'){ state.aiFixes[id]=v.evidence||state.aiFixes[id]||''; failCount++; } }
+      });
+      state.auto = { ranAt:R.ranAt||new Date().toISOString(), summary:R.summary||'', grade:R.grade||'', overall:R.overall,
+        areas:Array.isArray(R.areas)?R.areas:[], evidence:{reached:R.evidence?.reached, schemaTypes:R.evidence?.schema_types||[], pages:(R.evidence?.pages_crawled||[]).length},
+        profile:R.profile||null, nap:R.nap||null, discovery:R.discovery||null, rankings:R.rankings||[], pagespeed:R.pagespeed||null,
+        sources:[], engine:'python-local' };
+      saveState();
+      set('compile','done',`${setCount} checks auto-answered (${failCount} need fixing) by the local engine.`);
+      return finish(setCount);
+    }catch(e){ set('ai','err','Local engine error: '+e.message+' — falling back to browser mode'); }
+  } else {
+    set('site','run','Local engine not running — using in-browser mode (proxy + AI)…');
+  }
+
+  /* ===== PATH B — in-browser: proxy crawl + AI (rule-based fallback) ===== */
+  const p = PROVIDERS[state.ai.provider]; const keys = state.ai.keys[state.ai.provider]||{};
+  const haveAI = keys && p.fields.every(f=>keys[f.key]);
+  let siteEv={reached:false}, siteVerdicts={}, search=null;
+
+  if(state.biz.web){
+    set('site','run','Fetching '+normalizeUrl(state.biz.web)+' via proxy…');
+    try{ const r = await analyzeWebsite(state.biz.web); siteEv=r.ev; siteVerdicts=r.verdicts;
+      if(siteEv.reached) set('site','done',`Analyzed — schema:[${siteEv.schemaTypes.join(', ')||'none'}], ${Object.keys(siteVerdicts).length} checks verified`);
+      else set('site','err','Proxy could not fetch site ('+(siteEv.error||'blocked')+')');
+    }catch(e){ set('site','err',e.message); }
+  } else { set('site','skip','No website provided'); }
+
+  if(haveAI && state.ai.searchKey){
+    set('search','run','Querying Brave Search…');
+    try{ search=await searchGrounding(); set('search', Array.isArray(search)?'done':'err', Array.isArray(search)?`${search.length} results`:'no results'); }catch(e){ set('search','err',e.message); }
+  } else { set('search','skip', haveAI?'No search key':'—'); }
+
+  let json=null;
+  if(haveAI){
+    set('ai','run','Asking '+p.label+' to assess all '+CHECKS.length+' checks…');
+    try{ const research=await aiDeepResearch(siteEv,siteVerdicts,search); json=research.json; set('ai','done','AI returned verdicts + 6-area breakdown'); }
+    catch(e){ set('ai','err','AI failed ('+e.message+') — using rule-based scoring'); }
+  } else {
+    set('ai','skip','No AI key — using rule-based scoring from the website crawl');
+  }
+
+  set('compile','run','Compiling your audit…');
+  let setCount=0, failCount=0;
+  Object.entries(siteVerdicts).forEach(([id,v])=>{
+    if(v.verdict==='pass'||v.verdict==='fail'){ state.answers[id]=v.verdict; state.autoSource[id]='site'; setCount++;
+      if(v.verdict==='fail'){ state.aiFixes[id]=state.aiFixes[id]||('Verified from website: '+v.why); failCount++; } }
+  });
+  if(json && json.verdicts){
+    Object.entries(json.verdicts).forEach(([id,v])=>{
+      if(!CHECKS.find(c=>c.id===id) || state.autoSource[id]==='site'){ if(v.fix && state.answers[id]==='fail') state.aiFixes[id]=state.aiFixes[id]||v.fix; return; }
+      if(v.verdict==='pass'||v.verdict==='fail'){ state.answers[id]=v.verdict; state.autoSource[id]='ai'; setCount++; if(v.verdict==='fail'){ state.aiFixes[id]=v.fix||v.evidence||''; failCount++; } }
+    });
+  }
+  // If we couldn't fetch the site AND have no AI, we have essentially no real data — don't fake a score.
+  const noData = !siteEv.reached && !json;
+  const areas = (json && Array.isArray(json.areas) && json.areas.length) ? json.areas : ruleBasedAreas(siteEv, siteVerdicts);
+  const overall = Math.round(areas.reduce((a,x)=>a+(x.score||0),0)/Math.max(1,areas.length));
+  state.auto = {
+    ranAt:new Date().toISOString(),
+    needsEngine: noData,
+    summary: noData
+      ? `Couldn't fetch ${state.biz.web||'the website'} from the browser (public CORS proxies are unreliable/blocked) and no AI key is set — so there is no accurate data to score yet. Run the free local engine for a real, deep audit (it reads your site server-side + your live GBP profile).`
+      : ((json&&json.summary) || `${state.biz.name} scored ${overall}/100 from ${siteEv.reached?'an automated website crawl':'available signals'}. ${haveAI?'':'Tip: run the local engine for deep citation/backlink/review/GBP research.'}`),
+    grade: noData ? '—' : ((json&&json.grade) || (overall>=90?'A':overall>=75?'B':overall>=60?'C':overall>=45?'D':'F')),
+    areas: noData ? [] : areas, evidence: siteEv, sources: Array.isArray(search)?search:[],
+  };
+  saveState();
+  set('compile', noData?'err':'done', noData?'No data could be fetched — run the local engine (see Deep Research tab).':`${setCount} checks auto-answered (${failCount} need fixing).`);
+  finish(noData?null:setCount);
+}
+
+/* ---- Deep Research view ---- */
+const AREA_META = {
+  onsite:{ic:'🔗',color:'#0891b2',tool:'page-auditor.html',toolName:'Page Auditor'},
+  nap:{ic:'📞',color:'#0d9488',tool:'nap-checker.html',toolName:'NAP Checker'},
+  citations:{ic:'📍',color:'#0d9488',tool:'citation-finder.html',toolName:'Citation Finder'},
+  backlinks:{ic:'🪢',color:'#9333ea',tool:'backlink-profile.html',toolName:'Backlink Profile'},
+  reviews:{ic:'⭐',color:'#db2777',tool:'review-reply.html',toolName:'Review Replies'},
+  gbp:{ic:'🏢',color:'#4285f4',tool:'gbp-categories.html',toolName:'GBP Categories'},
+};
+function renderResearch(body){
+  if(!state.auto){
+    body.innerHTML = `<div class="rs-empty"><div class="big">🧠</div><div style="font-size:16px;color:var(--text);font-weight:700;margin-bottom:8px">No deep research yet</div><div style="font-size:12.5px;max-width:460px;margin:0 auto;line-height:1.6">Click <strong>Auto-Audit</strong> to fetch your website, detect on-site/NAP/schema signals, and run AI deep research across NAP, citations, listings, backlinks &amp; reviews — auto-scoring every check.</div><button class="cb-btn auto" style="margin-top:18px" onclick="autoAudit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Run Auto-Audit</button></div>`;
+    return;
+  }
+  const a = state.auto;
+  if(a.needsEngine){
+    body.innerHTML = `<div class="rs-summary" style="border-color:var(--amber);background:linear-gradient(135deg,rgba(245,158,11,.10),rgba(220,38,38,.06))">
+      <h3 style="color:var(--amber)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg> No accurate data yet — start the free local engine</h3>
+      <p>${escapeHtml(a.summary)}</p>
+      <div style="margin-top:14px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px 16px">
+        <div style="font-size:11px;font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:8px">Run this once (free, no API key)</div>
+        <ol style="margin:0;padding-left:18px;font-size:13px;line-height:1.9;color:var(--text)">
+          <li>Open a terminal / PowerShell in this folder:<br><code style="font-family:var(--mono);background:var(--bg3);padding:2px 7px;border-radius:4px;display:inline-block;margin-top:3px">cd "C:\\Users\\Admin\\projects\\Local Seo Tools"</code></li>
+          <li>Start the engine:<br><code style="font-family:var(--mono);background:var(--bg3);padding:2px 7px;border-radius:4px;display:inline-block;margin-top:3px">python gbp_auditor.py --serve</code> &nbsp;<button class="rs-tool" style="padding:3px 9px" onclick="navigator.clipboard&&navigator.clipboard.writeText('python gbp_auditor.py --serve');toast('Copied','success')">Copy</button></li>
+          <li>Leave it running, tick <strong>“Read live GBP panel”</strong> on the left, then click <strong>Auto-Audit</strong> again.</li>
+        </ol>
+        <div style="font-size:11.5px;color:var(--text2);margin-top:10px;line-height:1.6">The engine fetches your website server-side (no browser CORS limits), reads your real Google Business Profile, auto-checks NAP across the directories you’re listed on, and scores the whole checklist accurately. This is exactly why your in-browser run showed “Website not reached”.</div>
+      </div>
+    </div>
+    <button class="cb-btn auto" style="margin-top:4px" onclick="autoAudit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Re-run Auto-Audit</button>`;
+    return;
+  }
+  const gradeColor = ({A:'var(--success)',B:'var(--blue,#2563eb)',C:'var(--amber)',D:'var(--orange,#ea580c)',F:'var(--danger)'})[a.grade]||'var(--text2)';
+  const areas = a.areas.map(ar=>{
+    const m = AREA_META[ar.key]||{ic:'•',color:'#64748b'};
+    const sc = Math.max(0,Math.min(100, ar.score||0));
+    const barC = sc>=80?'var(--success)':sc>=60?'var(--blue,#2563eb)':sc>=40?'var(--amber)':'var(--danger)';
+    return `<div class="rs-area">
+      <div class="rs-area-hd"><div class="rs-area-ic" style="background:${m.color}22;color:${m.color}">${m.ic}</div>
+        <div class="rs-area-nm">${escapeHtml(ar.label||ar.key)}</div><div class="rs-area-sc" style="color:${barC}">${sc}</div></div>
+      <div class="rs-bar"><div style="width:${sc}%;background:${barC}"></div></div>
+      ${(ar.findings&&ar.findings.length)?`<div class="rs-h">Issues found</div><ul class="rs-list find">${ar.findings.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}
+      ${(ar.recommendations&&ar.recommendations.length)?`<div class="rs-h">Recommendations</div><ul class="rs-list rec">${ar.recommendations.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}
+      ${m.tool?`<a class="rs-tool" href="${m.tool}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Open ${escapeHtml(m.toolName)}</a>`:''}
+    </div>`;
+  }).join('');
+  body.innerHTML = `
+    <div class="rs-summary">
+      <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--purple,#7c3aed)"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Executive Summary <span style="margin-left:auto;font-size:22px;font-weight:900;color:${gradeColor}">${escapeHtml(a.grade||'')}</span></h3>
+      <p>${escapeHtml(a.summary||'(no summary)')}</p>
+      <div class="rs-meta">
+        <span class="rs-chip">Ran ${new Date(a.ranAt).toLocaleString()}</span>
+        ${a.evidence?.reached?`<span class="rs-chip">✓ Website crawled</span>`:`<span class="rs-chip">⚠ Website not reached</span>`}
+        ${a.evidence?.schemaTypes?.length?`<span class="rs-chip">Schema: ${escapeHtml(a.evidence.schemaTypes.join(', '))}</span>`:''}
+        ${a.sources?.length?`<span class="rs-chip">${a.sources.length} live sources</span>`:''}
+      </div>
+    </div>
+    ${renderProfileCard(a.profile)}
+    ${renderNapCard(a.nap)}
+    ${renderListingsCard(a.discovery)}
+    ${renderRankCard(a.rankings)}
+    ${areas||'<div class="rs-empty">No area breakdown.</div>'}
+    ${a.sources&&a.sources.length?`<div class="rs-area"><div class="rs-h" style="margin-top:0">Live search sources</div>${a.sources.slice(0,15).map(s=>`<div class="rs-src"><a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.title||s.url)}</a></div>`).join('')}</div>`:''}
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);padding:10px 4px;line-height:1.6"><span class="auto-badge site">SITE</span> verified from website · <span class="auto-badge ai">AI</span> AI-assessed · items needing a logged-in GBP check are left for manual confirmation.</div>`;
+}
+function renderProfileCard(p){
+  if(!p||!p.found) return '';
+  const row=(k,v)=>v?`<div class="rs-src"><b style="color:var(--text2)">${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`:'';
+  return `<div class="rs-area"><div class="rs-area-hd"><div class="rs-area-ic" style="background:#4285f422;color:#4285f4">🏢</div>
+    <div class="rs-area-nm">Live GBP Profile <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">read via ${escapeHtml(p.source)}</span></div></div>
+    ${row('Primary category',p.category)}${row('Secondary',(p.secondary||[]).join(', '))}
+    ${row('Rating',(p.rating!=null?p.rating+'★':'')+(p.review_count!=null?` (${p.review_count} reviews)`:''))}
+    ${row('Phone',p.phone)}${row('Address',p.address)}${row('Website',p.website)}
+    ${row('Claimed',p.claimed===false?'NO — appears unclaimed':(p.claimed===true?'yes':''))}${row('Status',p.business_status)}
+    ${p.note?`<div class="rs-src" style="color:var(--amber)">${escapeHtml(p.note)}</div>`:''}</div>`;
+}
+function renderNapCard(n){
+  if(!n||!n.sources||!n.sources.length) return '';
+  const rows=n.sources.map(s=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:5px 8px">${escapeHtml(s.source)}</td><td style="padding:5px 8px;font-family:var(--mono)">${escapeHtml(s.phone||'—')}</td><td style="padding:5px 8px">${s.phone_match===true?'<span style="color:var(--success)">✓ match</span>':s.phone_match===false?'<span style="color:var(--danger)">✕ differs</span>':'<span style="color:var(--text3)">n/a</span>'}</td><td style="padding:5px 8px;color:var(--text3)">${s.reached?'reached':'blocked'}</td></tr>`).join('');
+  return `<div class="rs-area"><div class="rs-area-hd"><div class="rs-area-ic" style="background:#0d948822;color:#0d9488">📞</div>
+    <div class="rs-area-nm">NAP Across Listings</div><div class="rs-area-sc" style="font-size:13px;color:${n.consistent?'var(--success)':'var(--danger)'}">${n.consistent?'CONSISTENT':'ISSUES'}</div></div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="color:var(--text3);font-family:var(--mono);font-size:10px;text-transform:uppercase"><td style="padding:5px 8px">Source</td><td style="padding:5px 8px">Phone</td><td style="padding:5px 8px">Match</td><td style="padding:5px 8px">Status</td></tr>${rows}</table>
+    ${n.issues&&n.issues.length?`<div class="rs-h">Issues</div><ul class="rs-list find">${n.issues.map(i=>`<li>${escapeHtml(i)}</li>`).join('')}</ul>`:''}</div>`;
+}
+function renderListingsCard(d){
+  if(!d) return '';
+  const chip=(t,ok)=>`<span class="rs-chip" style="${ok?'background:rgba(22,163,74,.12);color:var(--success);border-color:var(--success)':'background:rgba(220,38,38,.08);color:var(--danger)'}">${ok?'✓':'✕'} ${escapeHtml(t)}</span>`;
+  const found=(d.found||[]).map(t=>chip(t,true)).join('');
+  const missing=(d.missing||[]).slice(0,12).map(t=>chip(t,false)).join('');
+  return `<div class="rs-area"><div class="rs-area-hd"><div class="rs-area-ic" style="background:#0d948822;color:#0d9488">📍</div>
+    <div class="rs-area-nm">Business Listings ${d.serp_ok?'':'<span style="font-size:10px;color:var(--amber)">(search blocked — verify manually)</span>'}</div></div>
+    <div class="rs-h">Found on (${(d.found||[]).length})</div><div class="rs-meta">${found||'<span class="rs-chip">none detected</span>'}</div>
+    <div class="rs-h">Likely missing</div><div class="rs-meta">${missing||'—'}</div>
+    <a class="rs-tool" href="citation-finder.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Open Citation Finder</a></div>`;
+}
+function renderRankCard(ranks){
+  if(!ranks||!ranks.length) return '';
+  const rows=ranks.map(r=>`<div class="rs-src"><b style="color:var(--text2)">${escapeHtml(r.keyword)}</b> — ${r.found?`<span style="color:var(--success)">found${r.position?' (pos ~'+r.position+')':''}</span>`:'<span style="color:var(--danger)">not in top results</span>'}${r.serp_ok?'':' <span style="color:var(--amber)">(search blocked)</span>'}</div>`).join('');
+  return `<div class="rs-area"><div class="rs-area-hd"><div class="rs-area-ic" style="background:#7c3aed22;color:#7c3aed">🔎</div>
+    <div class="rs-area-nm">Local Keyword Visibility</div></div>${rows}</div>`;
+}
+
+/* ---------- EXPORT ---------- */
+function exportData(format){
+  const sc = calcScore();
+  let blob, filename;
+  if(format==='csv'){
+    const rows = [['category','id','severity','question','answer','ai_fix']];
+    CHECKS.forEach(c=>{
+      rows.push([catLabel(c.cat), c.id, c.imp, c.q, state.answers[c.id]||'unanswered', state.aiFixes[c.id]||'']);
+    });
+    blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+    filename = `gbp-audit-${normalize(state.biz.name||'business')}.csv`;
+  } else if(format==='json'){
+    blob = new Blob([JSON.stringify({business:state.biz, score:sc, answers:state.answers, aiFixes:state.aiFixes, checks:CHECKS, exportedAt:new Date().toISOString()}, null, 2)], {type:'application/json'});
+    filename = `gbp-audit-${normalize(state.biz.name||'business')}.json`;
+  } else if(format==='report'){
+    blob = new Blob([buildReport()], {type:'text/html'});
+    filename = `gbp-report-${normalize(state.biz.name||'business')}.html`;
+  } else return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Exported','success');
+}
+function normalize(s){return String(s||'business').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);}
+function catLabel(id){return (CATEGORIES.find(c=>c.id===id)||{}).label||id;}
+function catIcon(id){return (CATEGORIES.find(c=>c.id===id)||{}).icon||'•';}
+
+/* ---------- RENDER ---------- */
+function setTab(t){state.tab=t;saveState();document.querySelectorAll('.cb-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));renderCenter();}
+
+function renderAll(){
+  const sc = calcScore();
+  // Score ring
+  const C = 2*Math.PI*38;
+  document.getElementById('ring-fg').setAttribute('stroke-dasharray', C);
+  document.getElementById('ring-fg').setAttribute('stroke-dashoffset', C - (sc.score/100)*C);
+  document.getElementById('score-val').textContent = sc.score;
+  const ring = document.getElementById('score-ring-wrap');
+  ring.className = 'score-ring '+(sc.score>=90?'s90':sc.score>=70?'s70':sc.score>=50?'s50':'s0');
+  document.getElementById('score-grade').className = 'score-grade '+(sc.score>=90?'a':sc.score>=70?'b':sc.score>=50?'c':'f');
+  document.getElementById('score-grade').textContent = sc.score>=90?'A — Excellent':sc.score>=70?'B — Good':sc.score>=50?'C — Needs work':sc.score>0?'F — Critical':'— Set up';
+  // header stats
+  document.getElementById('stat-score').textContent = sc.score;
+  document.getElementById('stat-ok').textContent = sc.ok;
+  document.getElementById('stat-fix').textContent = sc.fail;
+  document.getElementById('tab-count-all').textContent = sc.total;
+  document.getElementById('tab-count-fix').textContent = sc.fail;
+  document.getElementById('ft-status').textContent = state.biz.name ? `Audit: ${state.biz.name}` : 'Set up your business profile to start the audit';
+  document.getElementById('ft-prov').innerHTML = state.ai.keys[state.ai.provider]?.key ? `AI: <strong>${PROVIDERS[state.ai.provider].label}</strong>` : 'AI: <strong>not configured</strong>';
+  renderCenter();
+}
+
+function renderCenter(){
+  const body = document.getElementById('center-body');
+  if(state.tab==='dashboard') return renderDashboard(body);
+  if(state.tab==='checklist') return renderChecklist(body, 'all');
+  if(state.tab==='fixes') return renderChecklist(body, 'fail');
+  if(state.tab==='action') return renderActionPlan(body);
+  if(state.tab==='research') return renderResearch(body);
+}
+
+function renderDashboard(body){
+  const sc = calcScore();
+  const cats = CATEGORIES.map(c=>({cat:c, score: catScore(c.id)}));
+  const autoBanner = state.auto
+    ? `<div class="rs-summary" style="margin-bottom:16px"><h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--purple,#7c3aed)"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deep Research ${state.auto.grade?`· Grade ${escapeHtml(state.auto.grade)}`:''}<button class="rs-tool" style="margin:0 0 0 auto" onclick="setTab('research')">Full report →</button></h3><p>${escapeHtml((state.auto.summary||'').slice(0,320))}${(state.auto.summary||'').length>320?'…':''}</p></div>`
+    : `<div class="rs-summary" style="margin-bottom:16px"><h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--purple,#7c3aed)"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Automate this audit</h3><p style="margin-bottom:12px">Skip manual checking. <strong>Auto-Audit</strong> fetches your website, detects on-site, NAP &amp; schema signals, then runs AI deep research to score every check and find errors across NAP, citations, listings, backlinks &amp; reviews.</p><button class="cb-btn auto" onclick="autoAudit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Run Deep-Research Auto-Audit</button></div>`;
+  body.innerHTML = autoBanner + `
+    <div class="cat-grid">
+      ${cats.map(({cat,score})=>{
+        const cls = score.score>=90?'s90':score.score>=70?'s70':score.score>=50?'s50':'s0';
+        return `<div class="cat-card ${cls}" onclick="setTab('checklist');setTimeout(()=>{const el=document.getElementById('sec-${cat.id}');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.remove('collapsed');}},50)">
+          <div class="cc-head">
+            <div class="cc-icon">${cat.icon}</div>
+            <div class="cc-name">${escapeHtml(cat.label)}</div>
+            <div class="cc-score">${score.score}</div>
+          </div>
+          <div class="cc-bar"><div style="width:${score.score}%"></div></div>
+          <div class="cc-meta"><span>${score.ok}/${score.total} ✓</span><span>${score.fail} fix${score.fail===1?'':'es'}</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="section">
+      <div class="section-hdr" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ico">📊</div>
+        <h3>How to use this audit</h3>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="section-body" style="padding:14px 18px;font-size:12px;line-height:1.7;color:var(--text2)">
+        <ol style="padding-left:18px;display:flex;flex-direction:column;gap:6px">
+          <li>Fill in your <strong>Business Profile</strong> on the left — the audit uses it to personalize AI fix suggestions.</li>
+          <li>Open your <a href="https://business.google.com" target="_blank" rel="noopener">Google Business Profile dashboard</a> (and live search panel) in a tab and answer each check honestly.</li>
+          <li>Mark each item as <span style="color:var(--success);font-weight:700">Pass</span>, <span style="color:var(--danger);font-weight:700">Fail</span>, or <span style="color:var(--text2);font-weight:700">N/A</span>. Scoring is weighted by severity (critical = 5×, high = 3×, med = 2×, low = 1×).</li>
+          <li>Switch to the <strong>Fixes Needed</strong> tab and click <strong>AI Suggest</strong> on each failed check for a personalized fix plan, or hit <strong>AI Suggest for All</strong>.</li>
+          <li>Export the <strong>HTML Report</strong> to share with the client / your team.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-hdr" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ico">🚀</div>
+        <h3>Quick wins (top 5 highest-impact unresolved)</h3>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="section-body">
+        ${(() => {
+          const unres = CHECKS.filter(c=>state.answers[c.id]!=='pass' && state.answers[c.id]!=='skip').sort((a,b)=>impWeight(b.imp)-impWeight(a.imp)).slice(0,5);
+          if(!unres.length) return `<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px">All high-impact items resolved 🎉</div>`;
+          return unres.map(c=>renderCheckItem(c)).join('');
+        })()}
+      </div>
+    </div>`;
+}
+
+function renderChecklist(body, filter){
+  // Group by category
+  const html = CATEGORIES.map(cat=>{
+    let inCat = CHECKS.filter(c=>c.cat===cat.id);
+    if(filter==='fail') inCat = inCat.filter(c=>state.answers[c.id]==='fail');
+    if(!inCat.length) return '';
+    const score = catScore(cat.id);
+    const cls = score.score>=90?'s90':score.score>=70?'s70':score.score>=50?'s50':'s0';
+    return `<div class="section" id="sec-${cat.id}">
+      <div class="section-hdr" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ico">${cat.icon}</div>
+        <h3>${escapeHtml(cat.label)}</h3>
+        <span class="badge">${inCat.length} checks</span>
+        <span class="score-pill"><span style="color:var(--${cls==='s90'?'success':cls==='s70'?'blue':cls==='s50'?'amber':'danger'})">${score.score}%</span></span>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="section-body">${inCat.map(c=>renderCheckItem(c)).join('')}</div>
+    </div>`;
+  }).join('');
+  body.innerHTML = html || `<div style="padding:60px;text-align:center;color:var(--text3)">${filter==='fail'?'No failed checks — great job!':'No checks match.'}</div>`;
+}
+
+function renderCheckItem(c){
+  const ans = state.answers[c.id];
+  const fix = state.aiFixes[c.id];
+  return `<div class="check-item ${ans||''}" data-check-id="${c.id}">
+    <div class="ci-state ${ans||''}" onclick="cycleAnswer('${c.id}')" title="Click to cycle">${ans==='pass'?'✓':ans==='fail'?'✕':ans==='skip'?'/':''}</div>
+    <div class="ci-body">
+      <div class="ci-q">${escapeHtml(c.q)}<span class="imp ${c.imp}">${c.imp}</span>${state.autoSource&&state.autoSource[c.id]?`<span class="auto-badge ${state.autoSource[c.id]}">${state.autoSource[c.id]==='site'?'SITE':'AI'}</span>`:''}</div>
+      <div class="ci-d">${c.d.replace(/<a /g,'<a target="_blank" rel="noopener" ')}</div>
+      ${fix?`<div class="ci-ai-fix"><div class="ai-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> AI Fix</div>${escapeHtml(fix)}</div>`:''}
+    </div>
+    <div class="ci-actions">
+      <button onclick="setAnswer('${c.id}','pass')" title="Pass" style="${ans==='pass'?'background:var(--success);color:#fff;border-color:var(--success)':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <button onclick="setAnswer('${c.id}','fail')" title="Fail" style="${ans==='fail'?'background:var(--danger);color:#fff;border-color:var(--danger)':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button onclick="setAnswer('${c.id}','skip')" title="N/A" style="${ans==='skip'?'background:var(--text3);color:#fff;border-color:var(--text3)':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button onclick="aiSuggest('${c.id}')" title="AI suggest fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+    </div>
+  </div>`;
+}
+
+function cycleAnswer(id){
+  const cur = state.answers[id];
+  const next = !cur?'pass':cur==='pass'?'fail':cur==='fail'?'skip':null;
+  if(next) state.answers[id] = next; else delete state.answers[id];
+  saveState(); renderAll();
+}
+
+function renderActionPlan(body){
+  const fails = CHECKS.filter(c=>state.answers[c.id]==='fail');
+  const sortedFails = fails.slice().sort((a,b)=>impWeight(b.imp)-impWeight(a.imp));
+  if(!sortedFails.length){
+    body.innerHTML = `<div style="padding:60px;text-align:center;color:var(--text3)">
+      <div style="font-size:18px;color:var(--text);font-weight:700;margin-bottom:8px">No failed checks 🎉</div>
+      <div>Mark items as Fail to build an action plan.</div>
+    </div>`;
+    return;
+  }
+  // Group by priority
+  const groups = [
+    {label:'Week 1 — Critical', items: sortedFails.filter(c=>c.imp==='critical')},
+    {label:'Week 2-3 — High Impact', items: sortedFails.filter(c=>c.imp==='high')},
+    {label:'Week 4-6 — Medium Impact', items: sortedFails.filter(c=>c.imp==='med')},
+    {label:'Maintenance — Low', items: sortedFails.filter(c=>c.imp==='low')},
+  ];
+  body.innerHTML = groups.filter(g=>g.items.length).map(g=>`
+    <div class="section">
+      <div class="section-hdr" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ico">📋</div>
+        <h3>${escapeHtml(g.label)}</h3>
+        <span class="badge">${g.items.length}</span>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="section-body">
+        ${g.items.map(c=>renderCheckItem(c)).join('')}
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- REPORT HTML ---------- */
+function buildReport(){
+  const sc = calcScore();
+  const css = `*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,sans-serif}
+body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 4px 16px rgba(15,26,46,.1);padding:34px}
+.hdr{display:flex;align-items:center;gap:14px;border-bottom:2px solid #e9eef7;padding-bottom:20px;margin-bottom:24px}
+.logo{width:46px;height:46px;background:linear-gradient(135deg,#d97706,#dc2626);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:3px}
+h2{font-size:16px;font-weight:700;margin:24px 0 10px;color:#0f1a2e}
+.sub{font-size:12px;color:#5b6b88}
+.score-block{display:flex;align-items:center;gap:18px;margin:18px 0;padding:18px;background:#f3f6fb;border-radius:10px}
+.score-big{font-size:48px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${sc.score>=90?'#16a34a':sc.score>=70?'#2563eb':sc.score>=50?'#d97706':'#dc2626'}}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.cat{background:#f3f6fb;border:1px solid #e9eef7;border-radius:10px;padding:12px 14px}
+.cat .name{font-weight:700;font-size:12.5px;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.cat .score-line{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:18px}
+.cat .bar{height:5px;background:#e9eef7;border-radius:3px;overflow:hidden;margin-top:5px}
+.cat .bar div{height:100%;background:#d97706;border-radius:3px}
+.check{padding:9px 12px;border-bottom:1px solid #e9eef7;display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.check .icon{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.check.pass .icon{background:#16a34a}.check.fail .icon{background:#dc2626}.check.skip .icon{background:#94a3b8}
+.check .body{flex:1}
+.check .q{font-weight:600;color:#0f1a2e}
+.check .imp{display:inline-block;font-size:9.5px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:7px;text-transform:uppercase}
+.imp.critical{background:#fee2e2;color:#dc2626}.imp.high{background:#fef3c7;color:#d97706}.imp.med{background:#dbeafe;color:#2563eb}.imp.low{background:#f3f4f6;color:#5b6b88}
+.check .d{font-size:11.5px;color:#5b6b88;margin-top:3px}
+.check .fix{margin-top:6px;padding:8px 10px;background:#fff;border:1px solid #d1d9e8;border-radius:6px;font-size:11.5px;white-space:pre-wrap}
+.check .fix .lbl{font-size:9.5px;font-family:'JetBrains Mono',monospace;font-weight:700;color:#d97706;text-transform:uppercase;margin-bottom:3px}
+.foot{margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center}
+@media print{body{padding:0;background:#fff}.wrap{box-shadow:none;border-radius:0;padding:20px}}`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>GBP Audit Report — ${escapeHtml(state.biz.name||'Business')}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="logo">✓</div>
+    <div>
+      <h1>GBP Local Audit — ${escapeHtml(state.biz.name||'Business')}</h1>
+      <div class="sub">${escapeHtml(state.biz.city||'')} · ${escapeHtml(state.biz.cat||'')} · ${escapeHtml(state.biz.country||'')} · ${new Date().toLocaleDateString()}</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-big">${sc.score}%</div>
+    <div>
+      <h2 style="margin:0">Overall GBP Score</h2>
+      <p class="sub">${sc.ok}/${sc.total} checks passed, ${sc.fail} need fixing, ${sc.skip} marked N/A.</p>
+    </div>
+  </div>
+
+  <h2>Category Health</h2>
+  <div class="cats">
+    ${CATEGORIES.map(cat=>{const sc=catScore(cat.id);return `<div class="cat"><div class="name">${cat.icon} ${escapeHtml(cat.label)}</div><div class="score-line">${sc.score}%</div><div class="bar"><div style="width:${sc.score}%;background:${sc.score>=90?'#16a34a':sc.score>=70?'#2563eb':sc.score>=50?'#d97706':'#dc2626'}"></div></div><div class="sub" style="margin-top:5px">${sc.ok}/${sc.total} passed · ${sc.fail} to fix</div></div>`;}).join('')}
+  </div>
+
+  <h2>Action Plan — Fixes Needed (${sc.fail})</h2>
+  ${(()=>{
+    const fails = CHECKS.filter(c=>state.answers[c.id]==='fail').sort((a,b)=>impWeight(b.imp)-impWeight(a.imp));
+    if(!fails.length) return `<p class="sub">No failed checks 🎉</p>`;
+    return fails.map(c=>`<div class="check fail">
+      <div class="icon">✕</div>
+      <div class="body">
+        <div class="q">${escapeHtml(c.q)}<span class="imp ${c.imp}">${c.imp}</span></div>
+        <div class="d">${c.d.replace(/<a [^>]*>([^<]*)<\/a>/g,'$1').replace(/&/g,'&amp;')}</div>
+        ${state.aiFixes[c.id]?`<div class="fix"><div class="lbl">AI Recommendation</div>${escapeHtml(state.aiFixes[c.id])}</div>`:''}
+      </div>
+    </div>`).join('');
+  })()}
+
+  <h2>All Checks (${sc.total})</h2>
+  ${CHECKS.map(c=>{const a=state.answers[c.id]||'';return `<div class="check ${a||'skip'}"><div class="icon">${a==='pass'?'✓':a==='fail'?'✕':a==='skip'?'/':'?'}</div><div class="body"><div class="q">${escapeHtml(c.q)}<span class="imp ${c.imp}">${c.imp}</span></div></div></div>`;}).join('')}
+
+  <div class="foot">Generated by GBP Local Audit · ${new Date().toLocaleString()}<br>Mukesh Kr · techie1418@gmail.com</div>
+</div>
+<script src="global-nav.js"><\/script>
+</body></html>`;
+}
+
+/* ---------- BOOT ---------- */
+fillBiz(); renderAll();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

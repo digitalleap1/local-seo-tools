@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Mention Tracker - Find Unlinked Mentions & Turn Into Backlinks</title>
+<meta name="description" content="Find unlinked brand mentions across the web via Google/Bing/Brave SERP queries. Detect which sites mention your brand without linking, score outreach value, generate personalized outreach emails. Turn mentions into backlinks.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#9333ea; --accent-h:#7e22ce; --accent-soft:rgba(147,51,234,.08);
+  --teal:#0d9488; --pink:#db2777; --blue:#2563eb; --purple:#7c3aed;
+  --danger:#dc2626; --success:#16a34a; --warn:#f59e0b; --amber:#d97706;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#c084fc; --accent-h:#d8b4fe; --accent-soft:rgba(192,132,252,.14);
+  --teal:#14b8a6; --pink:#ec4899; --blue:#3b82f6; --purple:#a78bfa;
+  --danger:#ef4444; --success:#22c55e; --warn:#fbbf24; --amber:#f59e0b;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--pink);border:1px solid var(--pink);border-radius:4px;padding:1.5px 6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.total strong{color:var(--accent)}
+.hdr-stat.unlinked strong{color:var(--warn);font-size:14px}
+.hdr-stat.linked strong{color:var(--success)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none}
+.hdr-link:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600}
+.theme-toggle svg{width:14px;height:14px}
+
+#app{flex:1;display:flex;overflow:hidden}
+
+#left{width:340px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.lh-bar{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lh-bar h3{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+#left-body{flex:1;overflow-y:auto;padding:14px}
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden}
+.fsec-hdr{padding:9px 13px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);cursor:pointer}
+.fsec-hdr h4{font-size:11px;font-weight:700;flex:1}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:13px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-body{padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:11.5px;color:var(--text)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f textarea{resize:vertical;min-height:60px;font-family:var(--font)}
+.f .hint{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+
+#left-footer{padding:11px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.btn-go{padding:11px;border-radius:7px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-go:hover{background:var(--accent-h)}
+.btn-sub{padding:7px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
+
+#center{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#cbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-sp{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+#cbody{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.s::before{background:var(--success)}.kpi.w::before{background:var(--warn)}.kpi.d::before{background:var(--danger)}
+.kpi .l{font-size:9.5px;font-family:var(--mono);color:var(--text2);font-weight:800;text-transform:uppercase}
+.kpi .v{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1.05}
+.kpi.s .v{color:var(--success)}.kpi.w .v{color:var(--warn)}.kpi.d .v{color:var(--danger)}
+.kpi .s{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+
+.mention-row{padding:12px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:42px 1fr auto;gap:11px;align-items:start}
+.mention-row:hover{background:var(--bg)}
+.mention-row:last-child{border-bottom:none}
+.mention-row .score{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-family:var(--mono);font-size:13px}
+.mention-row .score.hi{background:var(--success)}
+.mention-row .score.med{background:var(--warn)}
+.mention-row .score.lo{background:var(--text3)}
+.mention-row .info{min-width:0}
+.mention-row .info .title{font-size:13px;font-weight:700;color:var(--accent);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+.mention-row .info .url{font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mention-row .info .snippet{font-size:11.5px;color:var(--text2);margin-top:5px;line-height:1.5;font-family:var(--font)}
+.mention-row .info .snippet mark{background:rgba(147,51,234,.2);color:var(--accent);padding:0 2px;border-radius:2px;font-weight:700}
+.mention-row .info .flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.mention-row .info .flag{font-size:9.5px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.mention-row .info .flag.unlinked{background:rgba(245,158,11,.13);color:var(--amber);border-color:rgba(245,158,11,.3)}
+.mention-row .info .flag.linked{background:rgba(22,163,74,.13);color:var(--success);border-color:rgba(22,163,74,.3)}
+.mention-row .info .flag.high{background:rgba(147,51,234,.13);color:var(--accent);border-color:rgba(147,51,234,.3)}
+.mention-row .actions{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.mention-row .actions button,.mention-row .actions a{padding:4px 10px;border-radius:5px;font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:none;display:block;text-align:center;white-space:nowrap}
+.mention-row .actions a{background:var(--bg3);border:1px solid var(--border);color:var(--text)}
+.mention-row .actions a:hover{border-color:var(--accent);color:var(--accent)}
+.mention-row .actions button.outreach{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.mention-row .actions button.outreach:hover{background:var(--accent-h)}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000;padding:14px}
+.modal.show{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:580px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.modal-hdr h3{font-size:14px;font-weight:800;flex:1}
+.modal-hdr .x{padding:6px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;font-weight:700;cursor:pointer}
+.modal-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty svg{width:64px;height:64px;opacity:.24}
+.empty .et{font-size:18px;font-weight:700;color:var(--text)}
+.empty .ed{font-size:13px;line-height:1.6;max-width:580px}
+
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600}
+
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5500;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:5000}
+.busy.show{display:flex}
+.busy .card{background:var(--bg2);padding:24px 30px;border-radius:14px;border:1px solid var(--border);text-align:center;max-width:340px}
+.busy .sp{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg3);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width:920px){
+  #left{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .3s;width:85%;max-width:340px;box-shadow:var(--shadow-lg)}
+  #left.open{transform:translateX(0)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+    <div><div class="logo-name">Brand<span>Mentions</span></div></div>
+    <span class="logo-tag">UNLINKED</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat total">Found: <strong id="stat-total">0</strong></div>
+  <div class="hdr-stat unlinked">Unlinked: <strong id="stat-unlinked">0</strong></div>
+  <div class="hdr-stat linked">Linked: <strong id="stat-linked">0</strong></div>
+  <button class="mobile-toggle" onclick="document.getElementById('left').classList.toggle('open')">Menu</button>
+  <div class="hdr-spacer"></div>
+  <a href="dashboard.html" class="hdr-link" style="border-color:rgba(37,99,235,.4);color:var(--blue)">Dashboard</a>
+  <a href="link-outreach.html" class="hdr-link" style="border-color:rgba(147,51,234,.4);color:var(--accent)">Outreach</a>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+  <div id="left">
+    <div class="lh-bar"><h3>Brand & Search</h3></div>
+    <div id="left-body">
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Your Brand</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Brand name *</label><input id="i-brand" oninput="saveBiz()"></div>
+          <div class="f"><label>Your domain</label><input id="i-domain" placeholder="yoursite.com" oninput="saveBiz()"></div>
+          <div class="f"><label>Alt brand spellings (one per line)</label><textarea id="i-alts" rows="3" placeholder="Acme Plumbing
+Acme Plumbing Co" oninput="saveBiz()"></textarea></div>
+          <button class="btn-sub" onclick="syncFromCitation()">↻ From Citation Finder</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>SERP Provider</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Provider</label><select id="prov-sel" onchange="onProvChange()">
+            <option value="serper">Serper.dev</option>
+            <option value="serpapi">SerpAPI</option>
+            <option value="brave">Brave Search</option>
+            <option value="valueserp">ValueSERP</option>
+          </select></div>
+          <div class="f"><label>API key</label><input id="i-key" placeholder="paste" oninput="saveKey()"></div>
+          <div class="f"><label>Results per query</label><input type="number" id="i-num" min="10" max="50" value="20"></div>
+        </div>
+      </div>
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Outreach Setup</h4><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Your name</label><input id="i-you" oninput="saveBiz()"></div>
+          <div class="f"><label>Your email</label><input id="i-email" oninput="saveBiz()"></div>
+        </div>
+      </div>
+    </div>
+    <div id="left-footer">
+      <button class="btn-go" onclick="runSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Find Mentions
+      </button>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sub" onclick="exportCSV()">CSV</button>
+        <button class="btn-sub" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="center">
+    <div id="cbar">
+      <button class="tab active" data-tab="overview" onclick="setTab('overview')">Overview</button>
+      <button class="tab" data-tab="unlinked" onclick="setTab('unlinked')">Unlinked (Highest Value)</button>
+      <button class="tab" data-tab="linked" onclick="setTab('linked')">Linked</button>
+      <button class="tab" data-tab="all" onclick="setTab('all')">All Mentions</button>
+      <button class="tab" data-tab="guide" onclick="setTab('guide')">Playbook</button>
+      <div class="cb-sp"></div>
+    </div>
+    <div id="cbody"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div style="display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ft-status">Find mentions of your brand without backlinks</span></div>
+  <div class="ft-spacer"></div>
+  <div>Built by <strong>Mukesh Kr</strong></div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">Email</a>
+</div>
+
+<div id="toast"></div>
+<div class="busy" id="busy"><div class="card"><div class="sp"></div><h3 id="busy-title">Searching…</h3><p id="busy-msg" style="font-size:11.5px;color:var(--text2);font-family:var(--mono)">…</p></div></div>
+
+<div class="modal" id="m-outreach">
+  <div class="modal-card">
+    <div class="modal-hdr"><h3>Outreach Email — Convert Mention to Link</h3><button class="x" onclick="document.getElementById('m-outreach').classList.remove('show')">✕</button></div>
+    <div class="modal-body">
+      <div class="f"><label>To (email)</label><input id="om-email" placeholder="contact@example.com"></div>
+      <div class="f"><label>Subject</label><input id="om-subject"></div>
+      <div class="f"><label>Email body</label><textarea id="om-body" rows="14" style="font-family:var(--font);font-size:12px;line-height:1.5"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="cb-btn" onclick="document.getElementById('m-outreach').classList.remove('show')">Close</button>
+      <button class="cb-btn" onclick="copyEmail()">Copy</button>
+      <button class="cb-btn" style="background:var(--accent);color:#fff;border-color:var(--accent)" onclick="openMailto()">Open in Mail App</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY='bm_state_v1';
+const defaultState={
+  brand:'',domain:'',alts:'',you:'',email:'',
+  provider:'serper',apiKeys:{serper:'',serpapi:'',brave:'',valueserp:''},num:20,
+  mentions:[],view:'overview'
+};
+let state=loadState();
+function loadState(){try{return Object.assign(clone(defaultState),JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return clone(defaultState);}}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('theme-label').textContent=n==='dark'?'Dark':'Light';}
+document.getElementById('theme-label').textContent=(document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(m,t){const x=document.getElementById('toast');x.className='';x.classList.add('show');if(t)x.classList.add(t);x.innerHTML='<span>'+escapeHtml(m)+'</span>';setTimeout(()=>x.classList.remove('show'),2500);}
+function setBusy(s,t,m){const b=document.getElementById('busy');if(t)document.getElementById('busy-title').textContent=t;if(m)document.getElementById('busy-msg').textContent=m;b.classList.toggle('show',s);}
+function toggleSec(h){h.parentElement.classList.toggle('collapsed');}
+
+function fillInputs(){
+  document.getElementById('i-brand').value=state.brand||'';
+  document.getElementById('i-domain').value=state.domain||'';
+  document.getElementById('i-alts').value=state.alts||'';
+  document.getElementById('i-you').value=state.you||'';
+  document.getElementById('i-email').value=state.email||'';
+  document.getElementById('prov-sel').value=state.provider;
+  document.getElementById('i-key').value=state.apiKeys[state.provider]||'';
+  document.getElementById('i-num').value=state.num;
+}
+function saveBiz(){state.brand=document.getElementById('i-brand').value.trim();state.domain=document.getElementById('i-domain').value.trim().replace(/^https?:\/\//,'').replace(/\/$/,'');state.alts=document.getElementById('i-alts').value;state.you=document.getElementById('i-you').value.trim();state.email=document.getElementById('i-email').value.trim();state.num=parseInt(document.getElementById('i-num').value)||20;saveState();}
+function onProvChange(){state.provider=document.getElementById('prov-sel').value;document.getElementById('i-key').value=state.apiKeys[state.provider]||'';saveState();}
+function saveKey(){state.apiKeys[state.provider]=document.getElementById('i-key').value.trim();saveState();}
+function syncFromCitation(){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.brand=b.name||state.brand;if(b.website)state.domain=b.website.replace(/^https?:\/\//,'').replace(/\/$/,'');fillInputs();saveState();toast('Synced','success');}}catch(e){}}
+
+/* SERP search */
+const PROVIDERS={
+  serper:{async run(q,key,num){const r=await fetch('https://google.serper.dev/search',{method:'POST',headers:{'X-API-KEY':key,'Content-Type':'application/json'},body:JSON.stringify({q,num})});if(!r.ok)throw new Error('Serper '+r.status);const j=await r.json();return j.organic||[];}},
+  serpapi:{async run(q,key,num){const u=new URL('https://serpapi.com/search.json');u.searchParams.set('q',q);u.searchParams.set('num',num);u.searchParams.set('api_key',key);const r=await fetch(u);if(!r.ok)throw new Error('SerpAPI '+r.status);const j=await r.json();return (j.organic_results||[]).map(r=>({title:r.title,link:r.link,snippet:r.snippet}));}},
+  brave:{async run(q,key,num){const u=new URL('https://api.search.brave.com/res/v1/web/search');u.searchParams.set('q',q);u.searchParams.set('count',num);const r=await fetch(u,{headers:{'Accept':'application/json','X-Subscription-Token':key}});if(!r.ok)throw new Error('Brave '+r.status);const j=await r.json();return (j.web?.results||[]).map(r=>({title:r.title,link:r.url,snippet:r.description}));}},
+  valueserp:{async run(q,key,num){const u=new URL('https://api.valueserp.com/search');u.searchParams.set('api_key',key);u.searchParams.set('q',q);u.searchParams.set('num',num);const r=await fetch(u);if(!r.ok)throw new Error('ValueSERP '+r.status);const j=await r.json();return (j.organic_results||[]).map(r=>({title:r.title,link:r.link,snippet:r.snippet}));}},
+};
+
+const PROXIES=[u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,u=>`https://corsproxy.io/?${encodeURIComponent(u)}`];
+async function fetchPage(u){for(const p of PROXIES){try{const r=await fetch(p(u));if(r.ok){const t=await r.text();if(t&&t.length>100)return t;}}catch(e){}}return null;}
+
+async function runSearch(){
+  saveBiz();
+  if(!state.brand){toast('Brand required','err');return;}
+  const key=state.apiKeys[state.provider];
+  if(!key){toast(`API key for ${state.provider} required`,'err');return;}
+  const variants=[state.brand, ...state.alts.split('\n').map(a=>a.trim()).filter(Boolean)];
+  const queries=variants.flatMap(v=>[`"${v}"`, `"${v}" -site:${state.domain}`]);
+  setBusy(true,'Searching SERPs…',`${queries.length} queries`);
+  const allResults=new Map();
+  for(let i=0;i<queries.length;i++){
+    setBusy(true,'Searching SERPs…',`Query ${i+1}/${queries.length}: ${queries[i].substring(0,40)}`);
+    try{
+      const results=await PROVIDERS[state.provider].run(queries[i], key, state.num);
+      results.forEach(r=>{
+        const url=r.link;if(!url)return;
+        try{const h=new URL(url).hostname.replace(/^www\./,'');if(state.domain && h===state.domain)return;}catch(e){return;}
+        if(!allResults.has(url)){
+          allResults.set(url,{url, title:r.title||'', snippet:r.snippet||'', sourceQueries:[]});
+        }
+        allResults.get(url).sourceQueries.push(queries[i]);
+      });
+    }catch(e){console.error('Query failed:', e);}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  const candidates=Array.from(allResults.values());
+  // Now check each candidate for the actual brand mention + link presence
+  const enriched=[];
+  for(let i=0;i<candidates.length;i++){
+    setBusy(true,'Verifying mentions…',`Page ${i+1}/${candidates.length}: ${candidates[i].url.substring(0,40)}`);
+    const verified=await verifyMention(candidates[i], variants, state.domain);
+    if(verified) enriched.push(verified);
+    if(i%5===4) await new Promise(r=>setTimeout(r,50)); // small pause
+  }
+  state.mentions=enriched;
+  saveState();
+  setBusy(false);
+  render();
+  toast(`Found ${enriched.length} mentions (${enriched.filter(m=>!m.hasLink).length} unlinked)`,'success');
+}
+
+async function verifyMention(candidate, variants, ownDomain){
+  // Check snippet first (cheap)
+  const snippet=candidate.snippet||'';
+  const titleLow=(candidate.title||'').toLowerCase();
+  const snippetLow=snippet.toLowerCase();
+  // Find which variant matched
+  const matchedVariant=variants.find(v=>{const vl=v.toLowerCase();return titleLow.includes(vl) || snippetLow.includes(vl);});
+  if(!matchedVariant) return null; // No actual brand mention in snippet
+  // Fetch page to check for links
+  let hasLink=false;
+  let pageText='';
+  try{
+    const html=await fetchPage(candidate.url);
+    if(html){
+      const doc=new DOMParser().parseFromString(html,'text/html');
+      pageText=(doc.body?.textContent||'').replace(/\s+/g,' ').trim();
+      // Look for links to ownDomain
+      if(ownDomain){
+        const links=[...doc.querySelectorAll('a[href]')];
+        hasLink=links.some(a=>{const h=a.getAttribute('href')||'';return h.includes(ownDomain);});
+      }
+    }
+  }catch(e){}
+  // Score
+  let score=40;
+  try{const h=new URL(candidate.url).hostname.replace(/^www\./,'');
+    // High-value patterns
+    if(/\.gov$/.test(h)) score+=30;
+    else if(/\.edu$/.test(h)) score+=25;
+    else if(/\.org$/.test(h)) score+=15;
+    // News/media
+    if(/news|press|magazine|journal|times|post|tribune|gazette|herald/i.test(h)) score+=20;
+    // Blogs
+    if(/blog/.test(h)||/blog/.test(candidate.url)) score+=8;
+    // Brand mention in title (strongest)
+    if(titleLow.includes(matchedVariant.toLowerCase())) score+=15;
+  }catch(e){}
+  if(!hasLink) score+=20; // unlinked is the opportunity
+  // Sentiment heuristic
+  const negative=/(bad|terrible|worst|scam|rip-?off|complaint|avoid|fraud)/i.test(snippet);
+  if(negative) score-=15;
+  return {...candidate, matchedVariant, hasLink, score:Math.max(0,Math.min(100,score)), negative, sourceQueries:candidate.sourceQueries};
+}
+
+function setTab(t){state.view=t;saveState();document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render();}
+
+function render(){
+  const unlinked=state.mentions.filter(m=>!m.hasLink);
+  const linked=state.mentions.filter(m=>m.hasLink);
+  document.getElementById('stat-total').textContent=state.mentions.length;
+  document.getElementById('stat-unlinked').textContent=unlinked.length;
+  document.getElementById('stat-linked').textContent=linked.length;
+  if(state.view==='overview') return renderOverview(unlinked, linked);
+  if(state.view==='unlinked') return renderList(unlinked, 'Unlinked Mentions — Outreach Opportunities');
+  if(state.view==='linked') return renderList(linked, 'Mentions That Link To You');
+  if(state.view==='all') return renderList(state.mentions, 'All Mentions');
+  if(state.view==='guide') return renderGuide();
+}
+
+function renderOverview(unlinked, linked){
+  if(!state.mentions.length){
+    document.getElementById('cbody').innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <div class="et">Find Unlinked Brand Mentions</div>
+      <div class="ed">Track sites that mention your brand without linking to you. Each unlinked mention is a high-success outreach opportunity — the publisher already knows you exist, they just need a nudge to add the link. Higher conversion rate than cold outreach.</div>
+    </div>`;
+    return;
+  }
+  const top=unlinked.slice().sort((a,b)=>b.score-a.score).slice(0,8);
+  const avgScore=unlinked.length?Math.round(unlinked.reduce((s,m)=>s+m.score,0)/unlinked.length):0;
+  const govEdu=state.mentions.filter(m=>{try{const h=new URL(m.url).hostname;return /\.(gov|edu)$/.test(h);}catch(e){return false;}}).length;
+  document.getElementById('cbody').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="l">Total mentions</div><div class="v">${state.mentions.length}</div><div class="s">brand found</div></div>
+      <div class="kpi w"><div class="l">Unlinked</div><div class="v">${unlinked.length}</div><div class="s">opportunities</div></div>
+      <div class="kpi s"><div class="l">Already linked</div><div class="v">${linked.length}</div><div class="s">existing backlinks</div></div>
+      <div class="kpi"><div class="l">.gov / .edu</div><div class="v">${govEdu}</div><div class="s">high-trust</div></div>
+    </div>
+    <div class="section"><div class="section-hdr"><h3>Top Outreach Targets</h3><button class="cb-btn" onclick="setTab('unlinked')">See all unlinked →</button></div><div>
+      ${top.length?top.map(m=>renderMentionRow(m)).join(''):'<div style="padding:30px;text-align:center;color:var(--success);font-weight:700">✓ All mentions link to you</div>'}
+    </div></div>
+  `;
+}
+function renderList(mentions, label){
+  const sorted=mentions.slice().sort((a,b)=>b.score-a.score);
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>${escapeHtml(label)}</h3><span class="badge">${sorted.length}</span></div><div>
+    ${sorted.length?sorted.map(m=>renderMentionRow(m)).join(''):'<div style="padding:40px;text-align:center;color:var(--text3)">No mentions in this category</div>'}
+  </div></div>`;
+}
+function renderMentionRow(m){
+  const cls=m.score>=70?'hi':m.score>=40?'med':'lo';
+  let host='';try{host=new URL(m.url).hostname.replace(/^www\./,'');}catch(e){host=m.url;}
+  // Highlight brand mentions in snippet
+  let snippet=escapeHtml(m.snippet);
+  if(m.matchedVariant){const re=new RegExp('('+m.matchedVariant.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');snippet=snippet.replace(re,'<mark>$1</mark>');}
+  return `<div class="mention-row">
+    <div class="score ${cls}">${m.score}</div>
+    <div class="info">
+      <div class="title">${escapeHtml(m.title)}</div>
+      <div class="url">${escapeHtml(host)}</div>
+      <div class="snippet">${snippet}</div>
+      <div class="flags">
+        ${m.hasLink?'<span class="flag linked">✓ Has link</span>':'<span class="flag unlinked">No link</span>'}
+        ${/\.gov$/.test(host)?'<span class="flag high">.gov</span>':''}
+        ${/\.edu$/.test(host)?'<span class="flag high">.edu</span>':''}
+        ${m.negative?'<span class="flag" style="background:rgba(220,38,38,.13);color:var(--danger)">Possibly negative</span>':''}
+        <span class="flag">${escapeHtml(m.matchedVariant)}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <a href="${escapeAttr(m.url)}" target="_blank">Visit ↗</a>
+      ${m.hasLink?'':'<button class="outreach" onclick="openOutreach(\''+escapeAttr(m.url)+'\')">Outreach</button>'}
+    </div>
+  </div>`;
+}
+
+function openOutreach(url){
+  const m=state.mentions.find(x=>x.url===url);if(!m)return;
+  let host='';try{host=new URL(m.url).hostname.replace(/^www\./,'');}catch(e){host=m.url;}
+  const subject=`Quick note about your ${state.brand} mention on ${host}`;
+  const body=`Hi there,
+
+I came across your article (${m.url}) where you mention ${state.brand}. Thanks so much for including us!
+
+I noticed the mention isn't currently linked to our site. Would you mind adding a link to ${state.domain?'https://'+state.domain:'our website'} so your readers can find us easily? It's a small change but makes a big difference for both your readers and us.
+
+Either way, thanks for the mention — we really appreciate the visibility.
+
+Best,
+${state.you||'[Your Name]'}
+${state.brand}
+${state.domain?'https://'+state.domain:''}`;
+  document.getElementById('om-subject').value=subject;
+  document.getElementById('om-body').value=body;
+  document.getElementById('om-email').value='';
+  document.getElementById('m-outreach').classList.add('show');
+}
+function copyEmail(){const s=document.getElementById('om-subject').value;const b=document.getElementById('om-body').value;navigator.clipboard.writeText(`Subject: ${s}\n\n${b}`);toast('Copied','success');}
+function openMailto(){const to=document.getElementById('om-email').value;const s=encodeURIComponent(document.getElementById('om-subject').value);const b=encodeURIComponent(document.getElementById('om-body').value);window.location.href=`mailto:${to}?subject=${s}&body=${b}`;}
+
+function renderGuide(){
+  document.getElementById('cbody').innerHTML=`<div class="section"><div class="section-hdr"><h3>Brand Mention Outreach Playbook</h3></div><div style="padding:18px;font-size:13px;line-height:1.7;color:var(--text2)">
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700">Why unlinked mentions are gold</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>~30-50% conversion rate</strong> vs ~5% for cold outreach</li>
+      <li>The publisher already knows you exist — they wrote about you</li>
+      <li>Low ask: just add a link to existing content</li>
+      <li>No need to pitch content or argue value</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Best Targets First</h4>
+    <ol style="padding-left:22px;margin-top:6px">
+      <li><strong>.gov and .edu sites</strong> — highest authority links</li>
+      <li><strong>News + media</strong> — local press, industry pubs</li>
+      <li><strong>Blogs with high DA</strong> — editorial sites that cover your industry</li>
+      <li><strong>Resource/guide pages</strong> — usually open to adding citations</li>
+    </ol>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Email Tips</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li><strong>Be brief</strong> — under 100 words</li>
+      <li><strong>Lead with gratitude</strong> — "Thanks for mentioning us..."</li>
+      <li><strong>Make it easy</strong> — give them the exact URL to link to</li>
+      <li><strong>No demands</strong> — "would you mind" or "if you're open"</li>
+      <li><strong>Real signature</strong> — your name, brand, real contact</li>
+      <li><strong>Don't use templates verbatim</strong> — personalize the first line</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">When NOT to outreach</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Negative reviews or complaints (asking for a link draws attention)</li>
+      <li>Forum/comment mentions (low quality anyway)</li>
+      <li>Auto-aggregator sites with no editor</li>
+      <li>Sites you don't want to be associated with</li>
+    </ul>
+
+    <h4 style="color:var(--accent);font-size:13.5px;font-weight:700;margin-top:14px">Follow-up Cadence</h4>
+    <ul style="padding-left:22px;margin-top:6px">
+      <li>Initial email</li>
+      <li>Wait 7 days</li>
+      <li>One polite follow-up</li>
+      <li>Then move on — never a third email</li>
+    </ul>
+  </div></div>`;
+}
+
+function exportCSV(){
+  const rows=[['url','title','snippet','matched_variant','has_link','score','negative']];
+  state.mentions.forEach(m=>rows.push([m.url, m.title, m.snippet, m.matchedVariant, m.hasLink?'yes':'no', m.score, m.negative?'yes':'no']));
+  const blob=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='brand-mentions.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},100);toast('CSV exported','success');
+}
+function clearAll(){if(!confirm('Clear all mentions?'))return;state.mentions=[];saveState();render();toast('Cleared','success');}
+
+/* Inherit */
+(function(){
+  if(!state.brand){try{const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');const b=cf?.businesses?.[0];if(b){state.brand=b.name||'';if(b.website)state.domain=b.website.replace(/^https?:\/\//,'').replace(/\/$/,'');}}catch(e){}}
+  ['kw_state_v1','rank_state_v1','sx_state_v1','bs_state_v1','ss_state_v1'].forEach(k=>{try{const o=JSON.parse(localStorage.getItem(k)||'null');if(o?.apiKeys)Object.entries(o.apiKeys).forEach(([id,v])=>{if(v&&!state.apiKeys[id])state.apiKeys[id]=v;});}catch(e){}});
+})();
+
+fillInputs();
+render();
+window.addEventListener('beforeunload',saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalBusiness Schema Generator - JSON-LD Builder for Local SEO & Rich Results</title>
+<meta name="description" content="Generate validated Schema.org LocalBusiness JSON-LD markup with 30+ subtypes, opening hours, geo coordinates, services catalog, aggregate rating, sameAs links, and FAQ. Free, 100% client-side, Google Rich Results ready. Copy/paste or download for your site.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#0d9488; --accent-h:#0f766e; --accent-soft:rgba(13,148,136,.08);
+  --teal:#0d9488; --teal-h:#0f766e;
+  --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --code-bg:#0c1828; --code-text:#e2ecf8;
+  --code-key:#f59e0b; --code-str:#34d399; --code-num:#60a5fa; --code-punct:#7e95b8;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#14b8a6; --accent-h:#2dd4bf; --accent-soft:rgba(20,184,166,.14);
+  --teal:#14b8a6; --teal-h:#2dd4bf;
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+  --code-bg:#040b18; --code-text:#e2ecf8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* HEADER */
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(13,148,136,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--blue);border:1px solid var(--blue);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.fields strong{color:var(--accent)}
+.hdr-stat.size strong{color:var(--blue)}
+.hdr-stat.valid strong{color:var(--success)}
+.hdr-stat.warn strong{color:var(--amber)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden;height:calc(100vh - 56px - 32px)}
+
+/* LEFT FORM */
+#form-panel{width:48%;min-width:380px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.fp-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.fp-bar h3{font-size:11.5px;font-weight:700;flex:1;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.fp-bar button{padding:5px 10px;font-size:10.5px;font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:5px;transition:all .15s}
+.fp-bar button:hover{border-color:var(--accent);color:var(--accent)}
+.fp-bar button.warn{border-color:var(--danger);color:var(--danger)}
+.fp-bar button.warn:hover{background:var(--danger);color:#fff}
+
+#form-body{flex:1;overflow-y:auto;padding:14px}
+
+.fsec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
+.fsec-hdr{padding:10px 14px;background:var(--bg2);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.fsec-hdr h4{font-size:12px;font-weight:700;flex:1;color:var(--text)}
+.fsec-hdr .toggle{font-family:var(--mono);font-size:14px;color:var(--text3);transition:transform .2s}
+.fsec.collapsed .toggle{transform:rotate(-90deg)}
+.fsec.collapsed .fsec-body{display:none}
+.fsec-hdr .badge{font-size:9.5px;font-family:var(--mono);font-weight:700;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.fsec-hdr .badge.req{background:rgba(220,38,38,.13);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.fsec-hdr .badge.rec{background:rgba(13,148,136,.13);color:var(--accent);border-color:rgba(13,148,136,.3)}
+.fsec-hdr .badge.opt{background:rgba(124,58,237,.13);color:var(--purple);border-color:rgba(124,58,237,.3)}
+.fsec-body{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:5px}
+.f label .req{color:var(--danger)}
+.f label .tip{font-size:13px;cursor:help;opacity:.6;font-family:var(--font);font-weight:600}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:11.5px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.f textarea{font-family:var(--font);min-height:54px;resize:vertical;line-height:1.5}
+.f-help{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.45;margin-top:1px}
+.f-help a{color:var(--accent);text-decoration:none}
+
+.f-row{display:grid;gap:9px}
+.f-row.r2{grid-template-columns:1fr 1fr}
+.f-row.r3{grid-template-columns:1fr 1fr 1fr}
+
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);cursor:pointer;padding:5px 0}
+.chk input{margin:0}
+
+.hours-row{display:grid;grid-template-columns:80px 1fr 1fr auto;gap:7px;align-items:center;margin-bottom:5px}
+.hours-row .day{font-size:10.5px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase}
+.hours-row input{padding:5px 8px;font-size:11px}
+.hours-row .closed-btn{padding:4px 9px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:10px;font-weight:700}
+.hours-row .closed-btn.is-closed{background:var(--danger);border-color:var(--danger);color:#fff}
+
+.add-row-btn{padding:5px 11px;font-size:10.5px;font-weight:700;background:var(--bg2);border:1px dashed var(--border2);color:var(--accent);border-radius:5px;align-self:flex-start;margin-top:4px}
+.add-row-btn:hover{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+
+.del-btn{width:22px;height:22px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.del-btn:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+
+.sublist{display:flex;flex-direction:column;gap:7px;background:var(--bg);border-radius:6px;padding:8px}
+
+.sameas-row{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center;margin-bottom:5px}
+
+.service-row{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:9px;margin-bottom:6px;position:relative}
+.service-row .field-grid{display:grid;grid-template-columns:1fr 100px;gap:7px;align-items:start}
+.service-row textarea{min-height:36px;font-size:11px}
+.service-row .del{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
+.service-row .del:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+/* PRESETS */
+.presets{display:flex;flex-wrap:wrap;gap:5px;padding:9px 14px;background:var(--bg);border-bottom:1px solid var(--border)}
+.ppill{padding:5px 10px;border-radius:5px;font-size:10.5px;font-family:var(--mono);font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.ppill:hover{border-color:var(--accent);color:var(--accent)}
+.ppill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* RIGHT — OUTPUT */
+#out-panel{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);overflow:hidden}
+.op-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.op-tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.op-tab:hover{border-color:var(--accent);color:var(--accent)}
+.op-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.op-tab svg{width:13px;height:13px}
+.op-spacer{flex:1}
+.op-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.op-btn:hover{border-color:var(--accent);color:var(--accent)}
+.op-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.op-btn.primary:hover{background:var(--accent-h)}
+.op-btn svg{width:13px;height:13px}
+
+#op-body{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+#code-wrap{flex:1;overflow:auto;background:var(--code-bg);padding:18px;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--code-text);white-space:pre;tab-size:2}
+#code-wrap .k{color:var(--code-key)}
+#code-wrap .s{color:var(--code-str)}
+#code-wrap .n{color:var(--code-num)}
+#code-wrap .p{color:var(--code-punct)}
+#code-wrap .b{color:#d8a4ff}
+
+#val-wrap{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+.vcheck{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;margin-bottom:6px;font-size:12px}
+.vcheck.ok{border-color:rgba(22,163,74,.4);background:rgba(22,163,74,.04)}
+.vcheck.warn{border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.04)}
+.vcheck.err{border-color:rgba(220,38,38,.4);background:rgba(220,38,38,.04)}
+.vcheck .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:800;color:#fff}
+.vcheck.ok .icon{background:var(--success)}
+.vcheck.warn .icon{background:var(--amber)}
+.vcheck.err .icon{background:var(--danger)}
+.vcheck .text{flex:1}
+.vcheck .text strong{font-weight:700;color:var(--text)}
+.vcheck .text .note{font-size:10.5px;color:var(--text2);margin-top:2px;line-height:1.45}
+
+#preview-wrap{flex:1;overflow-y:auto;padding:18px;background:var(--bg)}
+.gserp{background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;max-width:680px;margin:0 auto;font-family:Arial,sans-serif;color:#202124;box-shadow:var(--shadow-sm)}
+[data-theme="dark"] .gserp{background:var(--bg2);color:var(--text)}
+.gserp .url{color:#202124;font-size:14px;font-weight:500;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+[data-theme="dark"] .gserp .url{color:var(--text2)}
+.gserp .url .dot{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800}
+.gserp .title{font-size:20px;color:#1a0dab;font-weight:400;line-height:1.3;margin-bottom:4px;cursor:pointer}
+[data-theme="dark"] .gserp .title{color:#8ab4f8}
+.gserp .desc{font-size:14px;color:#4d5156;line-height:1.5}
+[data-theme="dark"] .gserp .desc{color:var(--text2)}
+.gpanel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;max-width:420px;margin:20px auto 0;font-family:Arial,sans-serif;color:#202124;box-shadow:var(--shadow-md)}
+[data-theme="dark"] .gpanel{background:var(--bg2);color:var(--text)}
+.gpanel h3{font-size:20px;font-weight:400;margin-bottom:8px}
+.gpanel .stars{color:#fb8c00;font-size:14px;margin-bottom:8px}
+.gpanel .row{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:13px;border-top:1px solid #eee}
+[data-theme="dark"] .gpanel .row{border-color:var(--border)}
+.gpanel .row .lbl{color:#5f6368;font-weight:500;min-width:80px}
+[data-theme="dark"] .gpanel .row .lbl{color:var(--text2)}
+
+/* COPY TOAST / TOAST */
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+#toast svg{width:15px;height:15px}
+
+/* FOOTER */
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+.ft-link:hover{text-decoration:underline}
+.ft-link svg{width:11px;height:11px}
+
+@media (max-width:960px){
+  #app{flex-direction:column}
+  #form-panel{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:55vh}
+  #out-panel{flex:1}
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+      </svg>
+    </div>
+    <div><div class="logo-name">Schema<span>Gen</span></div></div>
+    <span class="logo-tag">JSON-LD</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat fields"><strong id="stat-fields">0</strong> fields</div>
+  <div class="hdr-stat size"><strong id="stat-size">0</strong> bytes</div>
+  <div class="hdr-stat valid"><strong id="stat-valid">0</strong> OK</div>
+  <div class="hdr-stat warn"><strong id="stat-warn">0</strong> warns</div>
+  <div class="hdr-spacer"></div>
+  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Citations
+  </a>
+  <a href="nap-checker.html" class="hdr-link" title="NAP Consistency Checker" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+    NAP Audit
+  </a>
+  <a href="serp-ranker.html" class="hdr-link" title="SERP Ranker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+    SERP
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="AI Writer" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+    Writer
+  </a>
+  <a href="schema-auditor.html" class="hdr-link" title="Audit existing schema on a live URL" style="border-color:rgba(8,145,178,.4);color:#0891b2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Audit URL
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT FORM -->
+  <div id="form-panel">
+    <div class="presets" id="presets"></div>
+    <div class="fp-bar">
+      <h3>Build Your Schema</h3>
+      <button onclick="resetForm()" class="warn">Reset</button>
+      <button onclick="loadSample()">Sample Data</button>
+    </div>
+    <div id="form-body">
+
+      <!-- TYPE -->
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Business Type</h4><span class="badge req">required</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f">
+            <label>Schema.org Type <span class="req">*</span></label>
+            <select id="f-type" onchange="render()"></select>
+            <div class="f-help">Pick the most specific subtype that matches your business. Generic <code>LocalBusiness</code> is the fallback.</div>
+          </div>
+          <div class="f">
+            <label>@id (canonical IRI)</label>
+            <input id="f-id" placeholder="https://acmeplumbing.com/#localbusiness" oninput="render()">
+            <div class="f-help">Recommended: stable URL fragment so search engines can dedupe across multiple JSON-LD blocks.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IDENTITY -->
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Identity & Contact</h4><span class="badge req">required</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Business Name <span class="req">*</span></label><input id="f-name" placeholder="Acme Plumbing Co." oninput="render()"></div>
+          <div class="f"><label>Legal Name (if different)</label><input id="f-legal" placeholder="Acme Plumbing LLC" oninput="render()"></div>
+          <div class="f"><label>Description</label><textarea id="f-desc" placeholder="Family-owned 24/7 emergency plumbing service in Boston since 1998." oninput="render()"></textarea></div>
+          <div class="f-row r2">
+            <div class="f"><label>Website URL <span class="req">*</span></label><input id="f-url" placeholder="https://acmeplumbing.com" oninput="render()"></div>
+            <div class="f"><label>Logo URL</label><input id="f-logo" placeholder="https://acmeplumbing.com/logo.png" oninput="render()"></div>
+          </div>
+          <div class="f-row r2">
+            <div class="f"><label>Phone <span class="req">*</span></label><input id="f-phone" placeholder="+1 555 123 4567" oninput="render()"></div>
+            <div class="f"><label>Email</label><input id="f-email" placeholder="hello@acmeplumbing.com" oninput="render()"></div>
+          </div>
+          <div class="f"><label>Image URLs (1 per line, 1-3 recommended)</label><textarea id="f-images" placeholder="https://acmeplumbing.com/storefront.jpg&#10;https://acmeplumbing.com/team.jpg" oninput="render()"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Postal Address</h4><span class="badge req">required</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Street Address <span class="req">*</span></label><input id="f-addr" placeholder="123 Main Street" oninput="render()"></div>
+          <div class="f-row r3">
+            <div class="f"><label>City <span class="req">*</span></label><input id="f-city" placeholder="Boston" oninput="render()"></div>
+            <div class="f"><label>Region/State</label><input id="f-region" placeholder="MA" oninput="render()"></div>
+            <div class="f"><label>Postal Code <span class="req">*</span></label><input id="f-postal" placeholder="02108" oninput="render()"></div>
+          </div>
+          <div class="f"><label>Country (ISO 2-letter)</label><input id="f-country" placeholder="US" maxlength="2" oninput="render()" style="text-transform:uppercase"></div>
+        </div>
+      </div>
+
+      <!-- GEO -->
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Geo Coordinates</h4><span class="badge rec">recommended</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f-row r2">
+            <div class="f"><label>Latitude</label><input id="f-lat" placeholder="42.3601" oninput="render()"></div>
+            <div class="f"><label>Longitude</label><input id="f-lng" placeholder="-71.0589" oninput="render()"></div>
+          </div>
+          <div class="f-help">Find on Google Maps → right-click → click coordinates to copy. Helps map pack ranking signals.</div>
+          <button class="add-row-btn" onclick="lookupLatLng()" type="button">📍 Look up by address (Nominatim, no key)</button>
+        </div>
+      </div>
+
+      <!-- HOURS -->
+      <div class="fsec">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Opening Hours</h4><span class="badge rec">recommended</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="hours-list"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+            <button class="add-row-btn" onclick="hoursPreset('biz')">⏰ Mon-Fri 9-5</button>
+            <button class="add-row-btn" onclick="hoursPreset('retail')">🛍️ Daily 10-8</button>
+            <button class="add-row-btn" onclick="hoursPreset('restaurant')">🍽️ Restaurant</button>
+            <button class="add-row-btn" onclick="hoursPreset('24-7')">🌐 24/7</button>
+            <button class="add-row-btn" onclick="hoursPreset('clear')">⌫ Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AREA SERVED / SERVICE AREA -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Service Area (for SAB)</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Cities Served (comma separated)</label><input id="f-areas" placeholder="Boston, Cambridge, Somerville, Newton, Brookline" oninput="render()"></div>
+          <div class="f-help">Use when you serve customers at their location (plumber, electrician, towing) instead of/in addition to a storefront.</div>
+        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Services / Offer Catalog</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="services-list"></div>
+          <button class="add-row-btn" onclick="addService()" type="button">+ Add Service</button>
+          <div class="f-help">List your main services. Each becomes an Offer in <code>hasOfferCatalog</code>.</div>
+        </div>
+      </div>
+
+      <!-- RATING -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Aggregate Rating</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f-row r2">
+            <div class="f"><label>Rating Value (1-5)</label><input id="f-rating" type="number" step="0.1" min="1" max="5" placeholder="4.8" oninput="render()"></div>
+            <div class="f"><label>Review Count</label><input id="f-reviews" type="number" min="0" placeholder="127" oninput="render()"></div>
+          </div>
+          <div class="f-help"><strong>⚠️ Google policy:</strong> Only use real, verifiable, on-site reviews — don't fabricate aggregate ratings to win stars in SERPs.</div>
+        </div>
+      </div>
+
+      <!-- SAMEAS -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Social Profiles (sameAs)</h4><span class="badge rec">recommended</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="sameas-list"></div>
+          <button class="add-row-btn" onclick="addSameAs()" type="button">+ Add Profile URL</button>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+            <button class="add-row-btn" onclick="addSameAs('https://www.facebook.com/')">Facebook</button>
+            <button class="add-row-btn" onclick="addSameAs('https://www.instagram.com/')">Instagram</button>
+            <button class="add-row-btn" onclick="addSameAs('https://twitter.com/')">Twitter/X</button>
+            <button class="add-row-btn" onclick="addSameAs('https://www.linkedin.com/company/')">LinkedIn</button>
+            <button class="add-row-btn" onclick="addSameAs('https://www.youtube.com/@')">YouTube</button>
+            <button class="add-row-btn" onclick="addSameAs('https://www.yelp.com/biz/')">Yelp</button>
+            <button class="add-row-btn" onclick="addSameAs('https://maps.google.com/?cid=')">Google Maps</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT / RANGE / CUISINE etc -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Pricing & Payments</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Price Range</label><select id="f-pricerange" onchange="render()">
+            <option value="">(none)</option>
+            <option value="$">$ (cheap)</option>
+            <option value="$$">$$ (moderate)</option>
+            <option value="$$$">$$$ (premium)</option>
+            <option value="$$$$">$$$$ (luxury)</option>
+          </select></div>
+          <div class="f"><label>Payment Methods (comma separated)</label><input id="f-payments" placeholder="Cash, Credit Card, Apple Pay, Venmo" oninput="render()"></div>
+          <div class="f"><label>Currencies Accepted (ISO 4217)</label><input id="f-currency" placeholder="USD" oninput="render()"></div>
+        </div>
+      </div>
+
+      <!-- INDUSTRY: RESTAURANT FIELDS -->
+      <div class="fsec collapsed" id="sec-restaurant" style="display:none">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>Restaurant Specific</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div class="f"><label>Cuisine (comma separated)</label><input id="f-cuisine" placeholder="Italian, Pizza, Mediterranean" oninput="render()"></div>
+          <div class="f"><label>Menu URL</label><input id="f-menu" placeholder="https://acme.com/menu" oninput="render()"></div>
+          <div class="f"><label>Accepts Reservations</label><select id="f-reservations" onchange="render()"><option value="">—</option><option value="true">Yes</option><option value="false">No</option></select></div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="fsec collapsed">
+        <div class="fsec-hdr" onclick="toggleSec(this)"><h4>FAQ (separate FAQPage schema)</h4><span class="badge opt">optional</span><span class="toggle">▼</span></div>
+        <div class="fsec-body">
+          <div id="faq-list"></div>
+          <button class="add-row-btn" onclick="addFAQ()" type="button">+ Add Q&amp;A</button>
+          <div class="f-help">Outputs a second JSON-LD <code>FAQPage</code> block paired with your LocalBusiness.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT — OUTPUT -->
+  <div id="out-panel">
+    <div class="op-bar">
+      <button class="op-tab active" data-tab="code" onclick="setOpTab('code')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        JSON-LD
+      </button>
+      <button class="op-tab" data-tab="val" onclick="setOpTab('val')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Validation
+      </button>
+      <button class="op-tab" data-tab="preview" onclick="setOpTab('preview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        SERP Preview
+      </button>
+      <button class="op-tab" data-tab="html" onclick="setOpTab('html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        HTML Script
+      </button>
+      <div class="op-spacer"></div>
+      <button class="op-btn primary" onclick="copyCode()" id="copy-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+      <button class="op-btn" onclick="downloadJSON()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+      <a class="op-btn" id="test-link" href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Test Live
+      </a>
+    </div>
+    <div id="op-body">
+      <pre id="code-wrap"></pre>
+      <div id="val-wrap" style="display:none"></div>
+      <div id="preview-wrap" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready</span>
+  </div>
+  <div class="ft-item">
+    <span>Schema.org · JSON-LD · Google Rich Results compatible</span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item">
+    <span>Built by <strong>Mukesh Kr</strong></span>
+  </div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ * LOCALBUSINESS SCHEMA GENERATOR
+ * Pure client-side JSON-LD builder + validator + preview.
+ * ========================================================================== */
+
+const TYPES = [
+  {v:'LocalBusiness', label:'LocalBusiness (generic)'},
+  {v:'AnimalShelter',         label:'Animal Shelter'},
+  {v:'ArchiveOrganization',   label:'Archive Organization'},
+  {v:'AutomotiveBusiness',    label:'Automotive Business'},
+  {v:'AutoBodyShop',          label:'Auto Body Shop'},
+  {v:'AutoDealer',            label:'Auto Dealer'},
+  {v:'AutoPartsStore',        label:'Auto Parts Store'},
+  {v:'AutoRental',            label:'Auto Rental'},
+  {v:'AutoRepair',            label:'Auto Repair'},
+  {v:'AutoWash',              label:'Auto Wash'},
+  {v:'GasStation',            label:'Gas Station'},
+  {v:'MotorcycleDealer',      label:'Motorcycle Dealer'},
+  {v:'MotorcycleRepair',      label:'Motorcycle Repair'},
+  {v:'ChildCare',             label:'Child Care'},
+  {v:'DryCleaningOrLaundry',  label:'Dry Cleaning / Laundry'},
+  {v:'EmergencyService',      label:'Emergency Service'},
+  {v:'FireStation',           label:'Fire Station'},
+  {v:'Hospital',              label:'Hospital'},
+  {v:'PoliceStation',         label:'Police Station'},
+  {v:'EmploymentAgency',      label:'Employment Agency'},
+  {v:'EntertainmentBusiness', label:'Entertainment Business'},
+  {v:'AdultEntertainment',    label:'Adult Entertainment'},
+  {v:'AmusementPark',         label:'Amusement Park'},
+  {v:'ArtGallery',            label:'Art Gallery'},
+  {v:'Casino',                label:'Casino'},
+  {v:'ComedyClub',            label:'Comedy Club'},
+  {v:'MovieTheater',          label:'Movie Theater'},
+  {v:'NightClub',             label:'Night Club'},
+  {v:'FinancialService',      label:'Financial Service'},
+  {v:'AccountingService',     label:'Accounting Service'},
+  {v:'AutomatedTeller',       label:'ATM'},
+  {v:'BankOrCreditUnion',     label:'Bank / Credit Union'},
+  {v:'InsuranceAgency',       label:'Insurance Agency'},
+  {v:'FoodEstablishment',     label:'Food Establishment'},
+  {v:'Bakery',                label:'Bakery'},
+  {v:'BarOrPub',              label:'Bar / Pub'},
+  {v:'Brewery',               label:'Brewery'},
+  {v:'CafeOrCoffeeShop',      label:'Cafe / Coffee Shop'},
+  {v:'Distillery',            label:'Distillery'},
+  {v:'FastFoodRestaurant',    label:'Fast Food Restaurant'},
+  {v:'IceCreamShop',          label:'Ice Cream Shop'},
+  {v:'Restaurant',            label:'Restaurant'},
+  {v:'Winery',                label:'Winery'},
+  {v:'GovernmentOffice',      label:'Government Office'},
+  {v:'PostOffice',            label:'Post Office'},
+  {v:'HealthAndBeautyBusiness',label:'Health & Beauty'},
+  {v:'BeautySalon',           label:'Beauty Salon'},
+  {v:'DaySpa',                label:'Day Spa'},
+  {v:'HairSalon',             label:'Hair Salon'},
+  {v:'HealthClub',            label:'Health Club / Gym'},
+  {v:'NailSalon',             label:'Nail Salon'},
+  {v:'TattooParlor',          label:'Tattoo Parlor'},
+  {v:'HomeAndConstructionBusiness',label:'Home & Construction'},
+  {v:'Electrician',           label:'Electrician'},
+  {v:'GeneralContractor',     label:'General Contractor'},
+  {v:'HVACBusiness',          label:'HVAC Business'},
+  {v:'HousePainter',          label:'House Painter'},
+  {v:'Locksmith',             label:'Locksmith'},
+  {v:'MovingCompany',         label:'Moving Company'},
+  {v:'Plumber',               label:'Plumber'},
+  {v:'RoofingContractor',     label:'Roofing Contractor'},
+  {v:'InternetCafe',          label:'Internet Cafe'},
+  {v:'LegalService',          label:'Legal Service'},
+  {v:'Attorney',              label:'Attorney / Law Firm'},
+  {v:'Notary',                label:'Notary'},
+  {v:'Library',               label:'Library'},
+  {v:'LodgingBusiness',       label:'Lodging'},
+  {v:'BedAndBreakfast',       label:'B&B'},
+  {v:'Campground',            label:'Campground'},
+  {v:'Hostel',                label:'Hostel'},
+  {v:'Hotel',                 label:'Hotel'},
+  {v:'Motel',                 label:'Motel'},
+  {v:'Resort',                label:'Resort'},
+  {v:'MedicalBusiness',       label:'Medical Business'},
+  {v:'Dentist',               label:'Dentist'},
+  {v:'DiagnosticLab',         label:'Diagnostic Lab'},
+  {v:'MedicalClinic',         label:'Medical Clinic'},
+  {v:'Optician',              label:'Optician'},
+  {v:'Pharmacy',              label:'Pharmacy'},
+  {v:'Physician',             label:'Physician'},
+  {v:'VeterinaryCare',        label:'Veterinary Care'},
+  {v:'ProfessionalService',   label:'Professional Service'},
+  {v:'RadioStation',          label:'Radio Station'},
+  {v:'RealEstateAgent',       label:'Real Estate Agent'},
+  {v:'RecyclingCenter',       label:'Recycling Center'},
+  {v:'SelfStorage',           label:'Self Storage'},
+  {v:'ShoppingCenter',        label:'Shopping Center'},
+  {v:'SportsActivityLocation',label:'Sports Activity Location'},
+  {v:'Store',                 label:'Store (generic)'},
+  {v:'BikeStore',             label:'Bike Store'},
+  {v:'BookStore',             label:'Book Store'},
+  {v:'ClothingStore',         label:'Clothing Store'},
+  {v:'ComputerStore',         label:'Computer Store'},
+  {v:'ConvenienceStore',      label:'Convenience Store'},
+  {v:'DepartmentStore',       label:'Department Store'},
+  {v:'ElectronicsStore',      label:'Electronics Store'},
+  {v:'Florist',               label:'Florist'},
+  {v:'FurnitureStore',        label:'Furniture Store'},
+  {v:'GardenStore',           label:'Garden Store'},
+  {v:'GroceryStore',          label:'Grocery Store'},
+  {v:'HardwareStore',         label:'Hardware Store'},
+  {v:'HobbyShop',             label:'Hobby Shop'},
+  {v:'HomeGoodsStore',        label:'Home Goods Store'},
+  {v:'JewelryStore',          label:'Jewelry Store'},
+  {v:'LiquorStore',           label:'Liquor Store'},
+  {v:'MensClothingStore',     label:"Men's Clothing Store"},
+  {v:'MobilePhoneStore',      label:'Mobile Phone Store'},
+  {v:'MovieRentalStore',      label:'Movie Rental Store'},
+  {v:'MusicStore',            label:'Music Store'},
+  {v:'OfficeEquipmentStore',  label:'Office Equipment Store'},
+  {v:'OutletStore',           label:'Outlet Store'},
+  {v:'PawnShop',              label:'Pawn Shop'},
+  {v:'PetStore',              label:'Pet Store'},
+  {v:'ShoeStore',             label:'Shoe Store'},
+  {v:'SportingGoodsStore',    label:'Sporting Goods Store'},
+  {v:'TireShop',              label:'Tire Shop'},
+  {v:'ToyStore',              label:'Toy Store'},
+  {v:'WholesaleStore',        label:'Wholesale Store'},
+  {v:'TelevisionStation',     label:'Television Station'},
+  {v:'TouristInformationCenter',label:'Tourist Info Center'},
+  {v:'TravelAgency',          label:'Travel Agency'},
+];
+
+const PRESETS = [
+  {id:'plumber', label:'🔧 Plumber',  type:'Plumber'},
+  {id:'restaurant', label:'🍽️ Restaurant', type:'Restaurant'},
+  {id:'dentist', label:'🦷 Dentist', type:'Dentist'},
+  {id:'salon',   label:'💇 Salon',   type:'HairSalon'},
+  {id:'lawyer',  label:'⚖️ Attorney', type:'Attorney'},
+  {id:'realtor', label:'🏠 Realtor',  type:'RealEstateAgent'},
+  {id:'auto',    label:'🚗 Auto Repair', type:'AutoRepair'},
+  {id:'gym',     label:'💪 Gym',      type:'HealthClub'},
+  {id:'hotel',   label:'🏨 Hotel',    type:'Hotel'},
+  {id:'store',   label:'🛍️ Store',   type:'Store'},
+];
+
+const DAYS = [
+  {key:'Mo', label:'Monday'},
+  {key:'Tu', label:'Tuesday'},
+  {key:'We', label:'Wednesday'},
+  {key:'Th', label:'Thursday'},
+  {key:'Fr', label:'Friday'},
+  {key:'Sa', label:'Saturday'},
+  {key:'Su', label:'Sunday'},
+];
+
+const STORE_KEY = 'sch_state_v1';
+const defaultState = {
+  type:'LocalBusiness',
+  id:'',
+  name:'', legal:'', desc:'', url:'', logo:'', phone:'', email:'',
+  images:'', addr:'', city:'', region:'', postal:'', country:'US',
+  lat:'', lng:'',
+  hours: DAYS.map(d=>({day:d.key, opens:'', closes:'', closed:false})),
+  areas:'',
+  services: [],
+  rating:'', reviews:'',
+  sameAs: [],
+  pricerange:'', payments:'', currency:'',
+  cuisine:'', menu:'', reservations:'',
+  faq: [],
+  opTab:'code',
+};
+
+let state = loadState();
+function loadState(){ try { return Object.assign(clone(defaultState), JSON.parse(localStorage.getItem(STORE_KEY))||{}); } catch(e){ return clone(defaultState); } }
+function saveState(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next==='dark'?'Dark':'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function toast(msg, type){const t=document.getElementById('toast');t.className='';t.classList.add('show');if(type)t.classList.add(type);t.innerHTML='<span>'+escapeHtml(msg)+'</span>';setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ---------- INIT UI ---------- */
+function initUI(){
+  // Type dropdown
+  const sel = document.getElementById('f-type');
+  sel.innerHTML = TYPES.map(t=>`<option value="${t.v}">${escapeHtml(t.label)}</option>`).join('');
+  sel.value = state.type;
+  // Presets
+  document.getElementById('presets').innerHTML = PRESETS.map(p=>`<button class="ppill ${state.type===p.type?'active':''}" onclick="applyPreset('${p.id}')">${escapeHtml(p.label)}</button>`).join('');
+  // Restore inputs
+  ['id','name','legal','desc','url','logo','phone','email','images','addr','city','region','postal','country','lat','lng','areas','rating','reviews','pricerange','payments','currency','cuisine','menu','reservations'].forEach(k=>{
+    const el = document.getElementById('f-'+k); if(el) el.value = state[k]||'';
+  });
+  renderHours();
+  renderServices();
+  renderSameAs();
+  renderFAQ();
+  // Show restaurant section if relevant
+  toggleRestaurantSec();
+  setOpTab(state.opTab||'code');
+  render();
+}
+
+function toggleSec(hdr){hdr.parentElement.classList.toggle('collapsed');}
+
+function applyPreset(id){
+  const p = PRESETS.find(x=>x.id===id); if(!p) return;
+  state.type = p.type;
+  document.getElementById('f-type').value = p.type;
+  document.querySelectorAll('.presets .ppill').forEach(b=>b.classList.toggle('active', b.textContent.includes(p.label.split(' ')[1])));
+  toggleRestaurantSec(); render();
+}
+
+function toggleRestaurantSec(){
+  const restaurantTypes = ['Restaurant','Bakery','BarOrPub','Brewery','CafeOrCoffeeShop','Distillery','FastFoodRestaurant','IceCreamShop','Winery','FoodEstablishment'];
+  document.getElementById('sec-restaurant').style.display = restaurantTypes.includes(state.type) ? '' : 'none';
+}
+
+/* ---------- HOURS ---------- */
+function renderHours(){
+  const wrap = document.getElementById('hours-list');
+  wrap.innerHTML = state.hours.map((h,i)=>{
+    const d = DAYS.find(x=>x.key===h.day) || DAYS[i];
+    return `<div class="hours-row">
+      <div class="day">${d.label.slice(0,3)}</div>
+      <input type="time" value="${h.opens||''}" ${h.closed?'disabled':''} onchange="updateHour(${i},'opens',this.value)">
+      <input type="time" value="${h.closes||''}" ${h.closed?'disabled':''} onchange="updateHour(${i},'closes',this.value)">
+      <button class="closed-btn ${h.closed?'is-closed':''}" onclick="toggleClosed(${i})">${h.closed?'CLOSED':'Open'}</button>
+    </div>`;
+  }).join('');
+}
+function updateHour(i,k,v){state.hours[i][k]=v;saveState();render();}
+function toggleClosed(i){state.hours[i].closed=!state.hours[i].closed; if(state.hours[i].closed){state.hours[i].opens='';state.hours[i].closes='';} saveState();renderHours();render();}
+function hoursPreset(p){
+  if(p==='biz'){ state.hours = DAYS.map(d=>({day:d.key, opens: ['Sa','Su'].includes(d.key)?'':'09:00', closes:['Sa','Su'].includes(d.key)?'':'17:00', closed:['Sa','Su'].includes(d.key)})); }
+  else if(p==='retail'){ state.hours = DAYS.map(d=>({day:d.key, opens:'10:00', closes:'20:00', closed:false})); }
+  else if(p==='restaurant'){ state.hours = DAYS.map(d=>({day:d.key, opens: d.key==='Mo'?'':'11:00', closes: d.key==='Mo'?'':'22:00', closed: d.key==='Mo'})); }
+  else if(p==='24-7'){ state.hours = DAYS.map(d=>({day:d.key, opens:'00:00', closes:'23:59', closed:false})); }
+  else if(p==='clear'){ state.hours = DAYS.map(d=>({day:d.key, opens:'', closes:'', closed:false})); }
+  saveState();renderHours();render();
+}
+
+/* ---------- SERVICES ---------- */
+function renderServices(){
+  const wrap = document.getElementById('services-list');
+  if(!state.services.length){wrap.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:6px 0">No services added.</div>'; return;}
+  wrap.innerHTML = state.services.map((s,i)=>`
+    <div class="service-row">
+      <button class="del" onclick="delService(${i})">×</button>
+      <div class="field-grid">
+        <div class="f">
+          <label>Service Name</label>
+          <input value="${escapeAttr(s.name||'')}" placeholder="Drain Cleaning" oninput="state.services[${i}].name=this.value;saveState();render()">
+        </div>
+        <div class="f">
+          <label>Price ($)</label>
+          <input type="number" min="0" step="1" value="${escapeAttr(s.price||'')}" placeholder="129" oninput="state.services[${i}].price=this.value;saveState();render()">
+        </div>
+      </div>
+      <div class="f" style="margin-top:6px"><label>Description</label><textarea oninput="state.services[${i}].desc=this.value;saveState();render()">${escapeHtml(s.desc||'')}</textarea></div>
+    </div>`).join('');
+}
+function addService(){ state.services.push({name:'',desc:'',price:''}); saveState(); renderServices(); render(); }
+function delService(i){ state.services.splice(i,1); saveState(); renderServices(); render(); }
+
+/* ---------- SAMEAS ---------- */
+function renderSameAs(){
+  const wrap = document.getElementById('sameas-list');
+  if(!state.sameAs.length){wrap.innerHTML='<div style="font-size:11px;color:var(--text3);padding:6px 0">No profile URLs added.</div>'; return;}
+  wrap.innerHTML = state.sameAs.map((u,i)=>`
+    <div class="sameas-row">
+      <input value="${escapeAttr(u||'')}" placeholder="https://www.facebook.com/yourbiz" oninput="state.sameAs[${i}]=this.value;saveState();render()">
+      <button class="del-btn" onclick="delSameAs(${i})">×</button>
+    </div>`).join('');
+}
+function addSameAs(prefix){ state.sameAs.push(prefix||''); saveState(); renderSameAs(); render(); }
+function delSameAs(i){ state.sameAs.splice(i,1); saveState(); renderSameAs(); render(); }
+
+/* ---------- FAQ ---------- */
+function renderFAQ(){
+  const wrap = document.getElementById('faq-list');
+  if(!state.faq.length){wrap.innerHTML='<div style="font-size:11px;color:var(--text3);padding:6px 0">No FAQ items added.</div>'; return;}
+  wrap.innerHTML = state.faq.map((f,i)=>`
+    <div class="service-row">
+      <button class="del" onclick="delFAQ(${i})">×</button>
+      <div class="f"><label>Question</label><input value="${escapeAttr(f.q||'')}" placeholder="Do you offer 24/7 emergency service?" oninput="state.faq[${i}].q=this.value;saveState();render()"></div>
+      <div class="f" style="margin-top:6px"><label>Answer</label><textarea oninput="state.faq[${i}].a=this.value;saveState();render()">${escapeHtml(f.a||'')}</textarea></div>
+    </div>`).join('');
+}
+function addFAQ(){ state.faq.push({q:'',a:''}); saveState(); renderFAQ(); render(); }
+function delFAQ(i){ state.faq.splice(i,1); saveState(); renderFAQ(); render(); }
+
+/* ---------- COLLECT FORM ---------- */
+function collect(){
+  ['id','name','legal','desc','url','logo','phone','email','images','addr','city','region','postal','country','lat','lng','areas','rating','reviews','pricerange','payments','currency','cuisine','menu','reservations'].forEach(k=>{
+    const el = document.getElementById('f-'+k); if(el) state[k] = el.value;
+  });
+  state.type = document.getElementById('f-type').value;
+  state.country = (state.country||'').toUpperCase();
+  saveState();
+}
+
+/* ---------- BUILD JSON-LD ---------- */
+function buildLD(){
+  collect();
+  const ld = {'@context':'https://schema.org', '@type': state.type};
+  if(state.id) ld['@id'] = state.id;
+  if(state.name) ld.name = state.name;
+  if(state.legal) ld.legalName = state.legal;
+  if(state.desc) ld.description = state.desc;
+  if(state.url) ld.url = state.url;
+  if(state.logo) ld.logo = state.logo;
+  if(state.phone) ld.telephone = state.phone;
+  if(state.email) ld.email = state.email;
+  // images
+  const imgs = (state.images||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(imgs.length) ld.image = imgs.length===1 ? imgs[0] : imgs;
+  // address
+  if(state.addr || state.city || state.postal){
+    ld.address = {'@type':'PostalAddress'};
+    if(state.addr) ld.address.streetAddress = state.addr;
+    if(state.city) ld.address.addressLocality = state.city;
+    if(state.region) ld.address.addressRegion = state.region;
+    if(state.postal) ld.address.postalCode = state.postal;
+    if(state.country) ld.address.addressCountry = state.country;
+  }
+  // geo
+  if(state.lat && state.lng){
+    ld.geo = {'@type':'GeoCoordinates', latitude: parseFloat(state.lat), longitude: parseFloat(state.lng)};
+  }
+  // hours
+  const openSpecs = state.hours.filter(h=>!h.closed && h.opens && h.closes).map(h=>({
+    '@type':'OpeningHoursSpecification',
+    dayOfWeek: longDay(h.day),
+    opens: h.opens,
+    closes: h.closes,
+  }));
+  if(openSpecs.length) ld.openingHoursSpecification = openSpecs.length===1 ? openSpecs[0] : openSpecs;
+  // service area
+  const areas = (state.areas||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(areas.length){
+    ld.areaServed = areas.map(a=>({'@type':'City', name:a}));
+  }
+  // sameAs
+  const sa = state.sameAs.map(s=>s.trim()).filter(Boolean);
+  if(sa.length) ld.sameAs = sa;
+  // offer catalog
+  const services = state.services.filter(s=>s.name);
+  if(services.length){
+    ld.hasOfferCatalog = {
+      '@type':'OfferCatalog',
+      name: (state.name||'Business')+' Services',
+      itemListElement: services.map(s=>{
+        const offer = {'@type':'Offer', itemOffered: {'@type':'Service', name: s.name}};
+        if(s.desc) offer.itemOffered.description = s.desc;
+        if(s.price){ offer.price = String(s.price); offer.priceCurrency = state.currency || 'USD'; }
+        return offer;
+      })
+    };
+  }
+  // rating
+  if(state.rating && state.reviews){
+    ld.aggregateRating = {
+      '@type':'AggregateRating',
+      ratingValue: String(state.rating),
+      reviewCount: String(state.reviews),
+      bestRating:'5', worstRating:'1'
+    };
+  }
+  // payments
+  if(state.pricerange) ld.priceRange = state.pricerange;
+  if(state.payments){
+    const pays = state.payments.split(',').map(s=>s.trim()).filter(Boolean);
+    if(pays.length) ld.paymentAccepted = pays.join(', ');
+  }
+  if(state.currency) ld.currenciesAccepted = state.currency.toUpperCase();
+  // restaurant
+  if(state.cuisine){
+    const c = state.cuisine.split(',').map(s=>s.trim()).filter(Boolean);
+    if(c.length) ld.servesCuisine = c.length===1?c[0]:c;
+  }
+  if(state.menu) ld.menu = state.menu;
+  if(state.reservations==='true') ld.acceptsReservations = 'True';
+  if(state.reservations==='false') ld.acceptsReservations = 'False';
+
+  // FAQ — separate object
+  const faq = state.faq.filter(f=>f.q && f.a);
+  const out = [ld];
+  if(faq.length){
+    out.push({
+      '@context':'https://schema.org',
+      '@type':'FAQPage',
+      mainEntity: faq.map(f=>({
+        '@type':'Question', name:f.q,
+        acceptedAnswer:{'@type':'Answer', text:f.a}
+      }))
+    });
+  }
+  return out.length===1 ? out[0] : out;
+}
+
+function longDay(k){
+  return ({Mo:'Monday',Tu:'Tuesday',We:'Wednesday',Th:'Thursday',Fr:'Friday',Sa:'Saturday',Su:'Sunday'})[k];
+}
+
+/* ---------- VALIDATE ---------- */
+function validate(ld){
+  const items = Array.isArray(ld)?ld:[ld];
+  const main = items[0];
+  const checks = [];
+  const need = (k, sev, msg, hint) => {
+    if(!main[k]){ checks.push({status: sev==='err'?'err':'warn', text: msg, note: hint||''}); return false; }
+    return true;
+  };
+  // required
+  need('name', 'err', 'Name is required', 'Set Business Name field');
+  need('address', 'err', 'address is required', 'Fill PostalAddress fields');
+  if(main.address){
+    if(!main.address.streetAddress) checks.push({status:'warn',text:'streetAddress missing in address',note:'Without a street, Google may not display business in rich result'});
+    if(!main.address.addressLocality) checks.push({status:'err',text:'addressLocality (city) missing',note:'Required by Google for LocalBusiness rich results'});
+    if(!main.address.postalCode) checks.push({status:'warn',text:'postalCode missing',note:'Strongly recommended for local rankings'});
+  }
+  need('telephone', 'warn', 'telephone missing', 'Recommended for click-to-call');
+  need('url', 'warn', 'url missing', 'Recommended — points to your website');
+  // image
+  if(!main.image) checks.push({status:'warn', text:'image missing', note:'Google prefers business photos — add 1-3 high-res images'});
+  // geo
+  if(!main.geo) checks.push({status:'warn', text:'geo coordinates missing', note:'Latitude/longitude help map ranking. Use Google Maps to fetch.'});
+  // hours
+  if(!main.openingHoursSpecification) checks.push({status:'warn', text:'openingHoursSpecification missing', note:'Hours appear directly in the knowledge panel.'});
+  // sameAs
+  if(!main.sameAs || (Array.isArray(main.sameAs) && main.sameAs.length<2)) checks.push({status:'warn', text:'sameAs has < 2 entries', note:'Link 2+ social/directory profiles (FB, Yelp, LinkedIn) for entity disambiguation'});
+  // logo
+  if(!main.logo) checks.push({status:'warn', text:'logo missing', note:'Required for Organization rich result; recommended for LocalBusiness'});
+  // rating
+  if(main.aggregateRating){
+    const rv = parseFloat(main.aggregateRating.ratingValue);
+    if(!(rv>=1 && rv<=5)) checks.push({status:'err', text:'aggregateRating.ratingValue out of 1-5 range', note:''});
+    const rc = parseInt(main.aggregateRating.reviewCount);
+    if(!rc || rc<1) checks.push({status:'err', text:'aggregateRating.reviewCount must be ≥ 1', note:''});
+    checks.push({status:'warn', text:'Aggregate rating present — verify reviews are real & on-site', note:'Google penalizes fake aggregate ratings.'});
+  }
+  // URL format
+  if(main.url && !/^https?:\/\//.test(main.url)) checks.push({status:'err',text:'url must start with http:// or https://',note:''});
+  if(main.logo && !/^https?:\/\//.test(main.logo)) checks.push({status:'err',text:'logo must be a full URL',note:''});
+  // Phone format
+  if(main.telephone && !/[\d]{7,}/.test(main.telephone.replace(/\D/g,''))) checks.push({status:'warn',text:'telephone looks short — use international format like +1 555 123 4567', note:''});
+  // Country
+  if(main.address && main.address.addressCountry && main.address.addressCountry.length!==2) checks.push({status:'warn', text:'addressCountry should be ISO-2 code (US, CA, GB, AU, IN)', note:''});
+  // OK
+  if(!checks.length || !checks.some(c=>c.status==='err')) checks.unshift({status:'ok', text:'Schema is valid for Google Rich Results', note:'No critical errors detected.'});
+  return checks;
+}
+
+/* ---------- RENDER OUTPUT ---------- */
+function render(){
+  const ld = buildLD();
+  const json = JSON.stringify(ld, null, 2);
+  document.getElementById('code-wrap').innerHTML = highlight(json);
+  // val
+  const v = validate(ld);
+  const vWrap = document.getElementById('val-wrap');
+  vWrap.innerHTML = v.map(c=>`<div class="vcheck ${c.status}">
+    <div class="icon">${c.status==='ok'?'✓':c.status==='warn'?'!':'✕'}</div>
+    <div class="text"><strong>${escapeHtml(c.text)}</strong>${c.note?`<div class="note">${escapeHtml(c.note)}</div>`:''}</div>
+  </div>`).join('');
+  // preview
+  document.getElementById('preview-wrap').innerHTML = buildPreview(ld);
+  // stats
+  const fields = countFields(ld);
+  document.getElementById('stat-fields').textContent = fields;
+  document.getElementById('stat-size').textContent = new Blob([json]).size;
+  document.getElementById('stat-valid').textContent = v.filter(c=>c.status==='ok').length;
+  document.getElementById('stat-warn').textContent = v.filter(c=>c.status==='warn'||c.status==='err').length;
+  document.getElementById('ft-status').textContent = v.some(c=>c.status==='err') ? 'Has errors — see Validation tab' : v.some(c=>c.status==='warn') ? 'OK with warnings' : 'Valid';
+  document.getElementById('test-link').href = state.url ? `https://search.google.com/test/rich-results?url=${encodeURIComponent(state.url)}` : 'https://search.google.com/test/rich-results';
+}
+
+function countFields(o, n){
+  n = n||0;
+  if(Array.isArray(o)){o.forEach(v=>n=countFields(v,n)); return n;}
+  if(typeof o==='object' && o){Object.entries(o).forEach(([k,v])=>{if(k.startsWith('@'))return; n++; if(typeof v==='object')n=countFields(v,n);}); return n;}
+  return n;
+}
+
+function highlight(json){
+  return escapeHtml(json)
+    .replace(/(&quot;)([^&]+?)(&quot;)(:)/g, '<span class="k">$1$2$3</span>$4')
+    .replace(/(:\s*)(&quot;[^&]*?&quot;)/g, '$1<span class="s">$2</span>')
+    .replace(/(:\s*)(true|false|null)/g, '$1<span class="b">$2</span>')
+    .replace(/(:\s*)(-?\d+(?:\.\d+)?)/g, '$1<span class="n">$2</span>')
+    .replace(/([{}\[\],])/g, '<span class="p">$1</span>');
+}
+
+function buildPreview(ld){
+  const main = Array.isArray(ld)?ld[0]:ld;
+  const name = main.name || 'Your Business Name';
+  const url = main.url || 'https://yoursite.com';
+  const desc = main.description || 'Your business description will appear here.';
+  const phone = main.telephone || '—';
+  const addr = main.address ? [main.address.streetAddress, main.address.addressLocality, main.address.addressRegion, main.address.postalCode].filter(Boolean).join(', ') : '—';
+  const hours = main.openingHoursSpecification;
+  const rating = main.aggregateRating;
+  // SERP card
+  let serpHtml = `<div class="gserp">
+    <div class="url"><span class="dot">G</span> ${escapeHtml(url.replace(/^https?:\/\//,'').replace(/\/$/,''))}</div>
+    <div class="title">${escapeHtml(name)} ${rating?`— ${parseFloat(rating.ratingValue).toFixed(1)}★ (${rating.reviewCount})`:''}</div>
+    <div class="desc">${escapeHtml(desc).slice(0,200)}</div>
+  </div>`;
+  // Knowledge panel
+  let panelHtml = `<div class="gpanel">
+    <h3>${escapeHtml(name)}</h3>
+    ${rating?`<div class="stars">${'★'.repeat(Math.round(parseFloat(rating.ratingValue)))}${'☆'.repeat(5-Math.round(parseFloat(rating.ratingValue)))} ${parseFloat(rating.ratingValue).toFixed(1)} · ${rating.reviewCount} reviews</div>`:''}
+    <div class="row"><div class="lbl">Address</div><div>${escapeHtml(addr)}</div></div>
+    <div class="row"><div class="lbl">Phone</div><div>${escapeHtml(phone)}</div></div>
+    ${main.priceRange?`<div class="row"><div class="lbl">Price</div><div>${escapeHtml(main.priceRange)}</div></div>`:''}
+    ${hours?`<div class="row"><div class="lbl">Hours</div><div>${formatHoursPreview(hours)}</div></div>`:''}
+    ${main.menu?`<div class="row"><div class="lbl">Menu</div><div><a href="${escapeAttr(main.menu)}" target="_blank">View menu</a></div></div>`:''}
+  </div>`;
+  return serpHtml + panelHtml + '<div style="text-align:center;color:var(--text3);font-size:11px;margin-top:14px;font-family:var(--mono)">Approximate preview — actual SERP rendering depends on Google&apos;s algorithm.</div>';
+}
+
+function formatHoursPreview(h){
+  const arr = Array.isArray(h)?h:[h];
+  return arr.map(x=>`${(x.dayOfWeek||'').slice(0,3)} ${x.opens}-${x.closes}`).slice(0,3).join('<br>') + (arr.length>3?'<br>…':'');
+}
+
+/* ---------- OUTPUT TABS ---------- */
+function setOpTab(t){
+  state.opTab = t; saveState();
+  document.querySelectorAll('.op-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  document.getElementById('code-wrap').style.display = t==='code'||t==='html' ? '' : 'none';
+  document.getElementById('val-wrap').style.display = t==='val' ? '' : 'none';
+  document.getElementById('preview-wrap').style.display = t==='preview' ? '' : 'none';
+  if(t==='html') {
+    const ld = buildLD();
+    const inner = JSON.stringify(ld,null,2);
+    document.getElementById('code-wrap').innerHTML = highlight(`<script type="application/ld+json">\n${inner}\n</`+`script>`);
+  } else if(t==='code'){
+    render();
+  }
+}
+
+/* ---------- ACTIONS ---------- */
+function copyCode(){
+  const ld = buildLD();
+  let txt = JSON.stringify(ld, null, 2);
+  if(state.opTab==='html') txt = `<script type="application/ld+json">\n${txt}\n</`+`script>`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b = document.getElementById('copy-btn'); const orig = b.innerHTML;
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(()=>{b.innerHTML = orig;}, 1400);
+    toast('Copied to clipboard','success');
+  }).catch(e=>toast('Copy failed','err'));
+}
+
+function downloadJSON(){
+  const ld = buildLD();
+  const blob = new Blob([JSON.stringify(ld, null, 2)], {type:'application/ld+json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${(state.name||'localbusiness').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-schema.json`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+  toast('Downloaded','success');
+}
+
+function resetForm(){
+  if(!confirm('Reset all fields?')) return;
+  state = clone(defaultState);
+  localStorage.removeItem(STORE_KEY);
+  initUI();
+  toast('Reset','success');
+}
+
+function loadSample(){
+  state = Object.assign(clone(defaultState), {
+    type:'Plumber',
+    id:'https://acmeplumbing.com/#localbusiness',
+    name:'Acme Plumbing Co.',
+    legal:'Acme Plumbing LLC',
+    desc:'Family-owned 24/7 emergency plumbing service in Boston since 1998. Licensed, insured, and trusted by 5,000+ homeowners.',
+    url:'https://acmeplumbing.com',
+    logo:'https://acmeplumbing.com/logo.png',
+    phone:'+1 617 555 0142',
+    email:'hello@acmeplumbing.com',
+    images:'https://acmeplumbing.com/storefront.jpg\nhttps://acmeplumbing.com/team.jpg\nhttps://acmeplumbing.com/truck.jpg',
+    addr:'123 Beacon Street',
+    city:'Boston', region:'MA', postal:'02108', country:'US',
+    lat:'42.3601', lng:'-71.0589',
+    hours: DAYS.map(d=>({day:d.key, opens:'07:00', closes:'21:00', closed:false})),
+    areas:'Boston, Cambridge, Somerville, Newton, Brookline, Quincy',
+    services:[
+      {name:'Drain Cleaning', desc:'Professional drain snake & hydro jetting service', price:'129'},
+      {name:'Water Heater Install', desc:'Tank & tankless installation, all major brands', price:'1499'},
+      {name:'Emergency Burst Pipe', desc:'24/7 response, typically within 60 minutes', price:'349'},
+    ],
+    rating:'4.8', reviews:'347',
+    sameAs:['https://www.facebook.com/acmeplumbing','https://www.yelp.com/biz/acme-plumbing-boston','https://www.linkedin.com/company/acme-plumbing','https://maps.google.com/?cid=12345'],
+    pricerange:'$$', payments:'Cash, Credit Card, Apple Pay, Venmo', currency:'USD',
+    faq:[
+      {q:'Do you offer 24/7 emergency service?', a:'Yes — we dispatch within 60 minutes for emergencies anywhere in Greater Boston.'},
+      {q:'Are you licensed and insured?', a:'Yes — fully licensed (MA #PL-12345) and insured up to $2M liability.'},
+    ],
+  });
+  saveState(); initUI();
+  toast('Sample data loaded','success');
+}
+
+/* ---------- GEO LOOKUP ---------- */
+async function lookupLatLng(){
+  collect();
+  const q = [state.addr, state.city, state.region, state.postal, state.country].filter(Boolean).join(', ');
+  if(!q){ toast('Fill the address first','err'); return; }
+  toast('Looking up coordinates...','info');
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {headers:{'Accept':'application/json'}});
+    const data = await res.json();
+    if(!data || !data.length){ toast('Address not found','err'); return; }
+    state.lat = parseFloat(data[0].lat).toFixed(6);
+    state.lng = parseFloat(data[0].lon).toFixed(6);
+    document.getElementById('f-lat').value = state.lat;
+    document.getElementById('f-lng').value = state.lng;
+    saveState(); render();
+    toast(`Found: ${state.lat}, ${state.lng}`,'success');
+  } catch(e){ toast('Lookup failed: '+e.message,'err'); }
+}
+
+/* ---------- BOOT ---------- */
+initUI();
+window.addEventListener('beforeunload', saveState);
+</script>
+<script src="global-nav.js"></script>
+</body>
+</html>

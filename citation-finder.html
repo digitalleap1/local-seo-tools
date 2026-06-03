@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Finder Pro - Local SEO Citation & Business Listing Scanner</title>
+<meta name="description" content="Find business citations and local directory listings across 120+ sites (Yelp, YellowPages, BBB, Bing Places, Foursquare, Apple Maps, niche directories). NAP audit, missing citation gaps, competitor compare, CSV/JSON export. 100% client-side. BYO SERP key (Serper, SerpAPI, ValueSERP, DataForSEO) or offline manual-check mode.">
+
+<script>
+(function(){
+  const saved = localStorage.getItem('seohub_theme_v1');
+  const d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
+  --border:#d1d9e8; --border2:#c2cde0;
+  --accent:#2563eb; --accent-h:#1d4ed8; --accent-soft:rgba(37,99,235,.08);
+  --teal:#0d9488; --teal-h:#0f766e;
+  --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
+  --danger:#dc2626; --success:#16a34a;
+  --purple:#7c3aed; --pink:#db2777; --blue:#2563eb;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);
+  --shadow-md:0 4px 14px rgba(15,26,46,.09);
+  --shadow-lg:0 10px 30px rgba(15,26,46,.14);
+  --radius:8px; --radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
+  --border:#1e2d44; --border2:#2a3b56;
+  --accent:#3b82f6; --accent-h:#60a5fa; --accent-soft:rgba(59,130,246,.14);
+  --teal:#14b8a6; --teal-h:#2dd4bf;
+  --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
+  --danger:#ef4444; --success:#22c55e;
+  --purple:#a78bfa; --pink:#ec4899; --blue:#3b82f6;
+  --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--mono);outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow-sm);z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(37,99,235,.3)}
+.logo-icon svg{width:18px;height:18px;color:#fff}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.logo-name span{color:var(--accent)}
+.logo-tag{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1.5px 6px;letter-spacing:.6px}
+.hdr-sep{width:1px;height:24px;background:var(--border)}
+.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.found strong{color:var(--success)}
+.hdr-stat.miss strong{color:var(--danger)}
+.hdr-stat.dir strong{color:var(--accent)}
+.hdr-spacer{flex:1}
+.hdr-link{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;text-decoration:none;transition:all .15s}
+.hdr-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.hdr-link svg{width:13px;height:13px}
+.theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:14px;height:14px;transition:transform .4s}
+[data-theme="dark"] .theme-toggle svg{transform:rotate(40deg)}
+
+#app{flex:1;display:flex;overflow:hidden;height:calc(100vh - 56px - 32px)}
+
+/* LEFT PANEL — BUSINESSES */
+#biz-panel{width:300px;min-width:270px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.bp-header{padding:11px 12px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.bp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);flex:1;font-family:var(--mono)}
+.btn-add{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;border:none;transition:all .15s}
+.btn-add:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+
+.biz-form{padding:10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.biz-form .ff{display:flex;flex-direction:column;gap:3px}
+.biz-form label{font-size:9.5px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.biz-form input,.biz-form select,.biz-form textarea{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11.5px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+.biz-form input:focus,.biz-form select:focus,.biz-form textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.biz-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.biz-form .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.biz-form .btn-save{margin-top:4px;padding:8px;border-radius:6px;background:var(--accent);color:#fff;font-size:11.5px;font-weight:700;border:none;transition:all .15s}
+.biz-form .btn-save:hover{background:var(--accent-h)}
+
+#biz-list{flex:1;overflow-y:auto;padding:5px}
+.bl-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:8px;padding:20px}
+.bl-empty svg{width:38px;height:38px;opacity:.3}
+.bl-empty .et{font-size:12.5px;color:var(--text2);font-weight:500}
+.bl-empty .es{font-size:10.5px}
+
+.biz-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .12s;position:relative}
+.biz-item:hover{background:var(--bg3)}
+.biz-item.active{background:var(--accent-soft);border-color:rgba(37,99,235,.28)}
+.bi-badge{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;font-family:var(--mono);line-height:1;background:linear-gradient(135deg,var(--accent),var(--teal))}
+.bi-info{flex:1;min-width:0}
+.bi-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bi-meta{font-size:9.5px;color:var(--text2);font-family:var(--mono);margin-top:2px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bi-status{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;box-shadow:0 0 0 2px var(--bg2)}
+.bi-status.idle{background:var(--border2)}
+.bi-status.queued{background:var(--text3)}
+.bi-status.running{background:var(--amber);animation:pulse 1s infinite;box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(217,119,6,.6)}
+.bi-status.done{background:var(--success);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(22,163,74,.4)}
+.bi-status.err{background:var(--danger);box-shadow:0 0 0 2px var(--bg2),0 0 8px rgba(220,38,38,.4)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.bi-del{width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:opacity .15s;line-height:1}
+.biz-item:hover .bi-del{opacity:1}
+.bi-del:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+
+#biz-footer{border-top:1px solid var(--border);padding:9px;display:flex;gap:5px;flex-direction:column;background:var(--bg)}
+.bf-row{display:flex;gap:5px}
+.bf-row button{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--text);font-size:10.5px;font-weight:600;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.bf-row button:hover{border-color:var(--accent);color:var(--accent)}
+.bf-row button svg{width:12px;height:12px}
+
+/* CENTER — DASHBOARD */
+#center-area{flex:1;display:flex;flex-direction:column;position:relative;min-width:0;overflow:hidden}
+#center-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.cb-tab{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.cb-tab:hover{border-color:var(--accent);color:var(--accent)}
+.cb-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-tab svg{width:13px;height:13px}
+.cb-tab .count{font-family:var(--mono);background:rgba(255,255,255,.25);border-radius:3px;padding:0 5px;font-size:10px;font-weight:700}
+.cb-tab:not(.active) .count{background:var(--bg);color:var(--text2)}
+.cb-spacer{flex:1}
+.cb-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.cb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cb-btn svg{width:13px;height:13px}
+.cb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb-btn.primary:hover{background:var(--accent-h)}
+.cb-btn.warn{border-color:var(--amber);color:var(--amber)}
+.cb-btn.warn:hover{background:var(--amber);color:#fff}
+.cb-btn:disabled{opacity:.4;cursor:not-allowed}
+
+#center-body{flex:1;overflow-y:auto;padding:12px;background:var(--bg)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3);gap:14px;padding:40px}
+.empty-state svg{width:64px;height:64px;opacity:.22}
+.empty-state .es-t{font-size:16px;font-weight:700;color:var(--text);opacity:.7}
+.empty-state .es-d{font-size:12.5px;line-height:1.6;max-width:520px;color:var(--text2)}
+.empty-state .es-tips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.empty-state .es-tips span{font-size:10.5px;background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:5px;color:var(--text2);font-family:var(--mono)}
+
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow-sm);transition:all .15s;position:relative;overflow:hidden}
+.scard:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.scard.found::before{background:var(--success)}
+.scard.miss::before{background:var(--danger)}
+.scard.partial::before{background:var(--amber)}
+.scard.dup::before{background:var(--purple)}
+.scard-label{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px}
+.scard-val{font-size:26px;font-weight:800;color:var(--text);margin-top:4px;font-family:var(--mono);line-height:1.1}
+.scard-sub{font-size:10.5px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.scard.found .scard-val{color:var(--success)}
+.scard.miss .scard-val{color:var(--danger)}
+.scard.partial .scard-val{color:var(--amber)}
+.scard.dup .scard-val{color:var(--purple)}
+
+/* SECTION */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.section-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.section-hdr h3{font-size:12.5px;font-weight:700;color:var(--text);flex:1}
+.section-hdr .badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.section-hdr .badge.found{background:rgba(22,163,74,.12);color:var(--success);border-color:rgba(22,163,74,.3)}
+.section-hdr .badge.miss{background:rgba(220,38,38,.12);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.section-hdr .badge.partial{background:rgba(217,119,6,.12);color:var(--amber);border-color:rgba(217,119,6,.3)}
+.section-body{padding:0}
+
+/* CITATION TABLE */
+.ctable{width:100%;border-collapse:collapse;font-size:11.5px}
+.ctable thead{background:var(--bg);position:sticky;top:0;z-index:5}
+.ctable th{padding:8px 10px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);white-space:nowrap}
+.ctable th.sortable{cursor:pointer;user-select:none}
+.ctable th.sortable:hover{color:var(--accent)}
+.ctable th .sort-arr{font-size:8px;opacity:.4;margin-left:4px}
+.ctable th.sorted .sort-arr{opacity:1;color:var(--accent)}
+.ctable td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ctable tr:hover{background:var(--bg3)}
+.ctable tr:last-child td{border-bottom:none}
+.ctable .dir-name{font-weight:600;color:var(--text)}
+.ctable .dir-domain{font-family:var(--mono);font-size:10.5px;color:var(--text3);margin-top:1px}
+.ctable .da-pill{display:inline-block;font-family:var(--mono);font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;color:#fff;min-width:32px;text-align:center}
+.ctable .da-pill.da90{background:#059669}
+.ctable .da-pill.da70{background:#10b981}
+.ctable .da-pill.da50{background:#3b82f6}
+.ctable .da-pill.da30{background:#8b5cf6}
+.ctable .da-pill.da10{background:#94a3b8}
+.ctable .status-pill{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-family:var(--mono);font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px;line-height:1}
+.ctable .status-pill.found{background:rgba(22,163,74,.13);color:var(--success);border:1px solid rgba(22,163,74,.3)}
+.ctable .status-pill.miss{background:rgba(220,38,38,.10);color:var(--danger);border:1px solid rgba(220,38,38,.28)}
+.ctable .status-pill.partial{background:rgba(217,119,6,.13);color:var(--amber);border:1px solid rgba(217,119,6,.3)}
+.ctable .status-pill.dup{background:rgba(124,58,237,.13);color:var(--purple);border:1px solid rgba(124,58,237,.3)}
+.ctable .status-pill.idle{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.ctable .status-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.ctable .status-pill.running .dot{animation:pulse 1s infinite}
+.ctable .row-actions{display:flex;gap:4px;flex-wrap:nowrap}
+.ctable .row-actions a,.ctable .row-actions button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);transition:all .12s;text-decoration:none;font-size:11px}
+.ctable .row-actions a:hover,.ctable .row-actions button:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.ctable .row-actions svg{width:12px;height:12px}
+.ctable .country-flag{display:inline-block;font-size:14px;margin-right:4px;line-height:1}
+.ctable .nap-flag{display:inline-flex;flex-direction:column;gap:1px;font-size:9px;font-family:var(--mono);font-weight:700;line-height:1.2}
+.ctable .nap-flag span{padding:1px 4px;border-radius:3px}
+.ctable .nap-flag .ok{background:rgba(22,163,74,.13);color:var(--success)}
+.ctable .nap-flag .bad{background:rgba(220,38,38,.13);color:var(--danger)}
+.ctable .nap-flag .un{background:var(--bg3);color:var(--text3)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:680px;width:100%;max-height:90vh;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3)}
+.modal-hdr h2{font-size:14px;font-weight:700;flex:1}
+.modal-hdr .close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);display:flex;align-items:center;justify-content:center}
+.modal-hdr .close:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.modal-body{padding:18px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.modal-foot button{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--bg);color:var(--text);transition:all .15s}
+.modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal-foot button.primary:hover{background:var(--accent-h)}
+.modal-foot button:hover{border-color:var(--accent)}
+
+/* SETTINGS */
+.settings-section{margin-bottom:16px}
+.settings-section h4{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);font-family:var(--mono);font-weight:700;margin-bottom:8px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:600;color:var(--text)}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field .hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.field .hint a{color:var(--accent);text-decoration:none}
+.field .hint a:hover{text-decoration:underline}
+
+.provider-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.ppill{padding:6px 11px;border-radius:6px;font-size:11px;font-family:var(--mono);font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s}
+.ppill:hover{border-color:var(--accent);color:var(--accent)}
+.ppill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.ppill .free{font-size:9px;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:3px;margin-left:5px}
+.ppill:not(.active) .free{background:rgba(22,163,74,.13);color:var(--success)}
+
+.directory-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px;margin-top:8px}
+.catpill{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:6px;background:var(--bg);border:1px solid var(--border);font-size:11px;color:var(--text);cursor:pointer;transition:all .15s}
+.catpill input{margin:0}
+.catpill:hover{border-color:var(--accent)}
+.catpill.checked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.catpill .cnt{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--text3)}
+.catpill.checked .cnt{color:var(--accent)}
+
+/* FOOTER */
+#footer{height:32px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.ft-item{display:flex;align-items:center;gap:5px}
+.ft-item svg{width:12px;height:12px}
+.ft-spacer{flex:1}
+.ft-link{color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px}
+.ft-link:hover{text-decoration:underline}
+.ft-link svg{width:11px;height:11px}
+
+/* PROGRESS */
+.progress-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11px;color:var(--text2)}
+.progress-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));transition:width .3s}
+
+/* TOAST */
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text);z-index:5000;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+#toast.info{border-color:var(--accent);color:var(--accent)}
+#toast svg{width:15px;height:15px}
+
+/* RESPONSIVE */
+@media (max-width:920px){
+  #biz-panel{position:absolute;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .3s;width:80%;max-width:300px}
+  #biz-panel.open{transform:translateX(0);box-shadow:var(--shadow-lg)}
+  .mobile-toggle{display:flex !important}
+}
+.mobile-toggle{display:none;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:700;align-items:center;gap:5px}
+.mobile-toggle svg{width:13px;height:13px}
+
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">Citation<span>Finder</span></div>
+    </div>
+    <span class="logo-tag">PRO</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-stat dir"><strong id="stat-dir">0</strong> directories</div>
+  <div class="hdr-stat found"><strong id="stat-found">0</strong> found</div>
+  <div class="hdr-stat miss"><strong id="stat-miss">0</strong> missing</div>
+  <button class="mobile-toggle" onclick="document.getElementById('biz-panel').classList.toggle('open')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Menu
+  </button>
+  <div class="hdr-spacer"></div>
+  <a href="serp-ranker.html" class="hdr-link" title="SERP keyword rank tracker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+    SERP Ranker
+  </a>
+  <a href="ai-seo-scanner.html" class="hdr-link" title="AI SEO bulk scanner" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    AI Scanner
+  </a>
+  <a href="ai-content-writer.html" class="hdr-link" title="AI content writer" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+    AI Writer
+  </a>
+  <a href="geotag-pro.html" class="hdr-link" title="Bulk geotagger" style="border-color:rgba(13,148,136,.4);color:var(--teal)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    GeoTag Pro
+  </a>
+  <a href="competitor-gap.html" class="hdr-link" title="Competitor Citation Gap" style="border-color:rgba(124,58,237,.4);color:var(--purple)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 19a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2H3z"/></svg>
+    Comp Gap
+  </a>
+  <a href="geo-grid-tracker.html" class="hdr-link" title="Geo-Grid Rank Tracker" style="border-color:rgba(5,150,105,.4);color:#059669">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Geo Grid
+  </a>
+  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Dashboard
+  </a>
+  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:var(--blue)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+    AI
+  </a>
+  <a href="multi-location.html" class="hdr-link" title="Multi-Location Hub" style="border-color:rgba(13,148,136,.4);color:#0d9488">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+    Multi-Loc
+  </a>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<div id="app">
+
+  <!-- LEFT: BUSINESSES -->
+  <div id="biz-panel">
+    <div class="bp-header">
+      <div class="bp-title">Businesses</div>
+      <button class="btn-add" onclick="toggleBizForm()" id="btn-add-biz">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add
+      </button>
+    </div>
+
+    <div class="biz-form" id="biz-form" style="display:none">
+      <div class="ff">
+        <label>Business Name *</label>
+        <input id="bf-name" placeholder="Acme Plumbing Co.">
+      </div>
+      <div class="ff">
+        <label>Phone (E.164) *</label>
+        <input id="bf-phone" placeholder="+1 555 123 4567">
+      </div>
+      <div class="ff">
+        <label>Website</label>
+        <input id="bf-website" placeholder="https://acmeplumbing.com">
+      </div>
+      <div class="ff">
+        <label>Street Address</label>
+        <input id="bf-addr" placeholder="123 Main St">
+      </div>
+      <div class="row3">
+        <div class="ff"><label>City</label><input id="bf-city" placeholder="Boston"></div>
+        <div class="ff"><label>State</label><input id="bf-state" placeholder="MA"></div>
+        <div class="ff"><label>ZIP</label><input id="bf-zip" placeholder="02108"></div>
+      </div>
+      <div class="row2">
+        <div class="ff">
+          <label>Country</label>
+          <select id="bf-country">
+            <option value="us">United States</option>
+            <option value="ca">Canada</option>
+            <option value="uk">United Kingdom</option>
+            <option value="au">Australia</option>
+            <option value="in">India</option>
+            <option value="all">All countries</option>
+          </select>
+        </div>
+        <div class="ff">
+          <label>Category</label>
+          <select id="bf-category">
+            <option value="general">General Business</option>
+            <option value="restaurant">Restaurant / Food</option>
+            <option value="medical">Medical / Health</option>
+            <option value="legal">Legal / Attorney</option>
+            <option value="home">Home Services / Trades</option>
+            <option value="auto">Automotive</option>
+            <option value="realestate">Real Estate</option>
+            <option value="retail">Retail / Shop</option>
+            <option value="beauty">Beauty / Salon</option>
+            <option value="fitness">Fitness / Gym</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-save" onclick="saveBiz()">Save Business</button>
+    </div>
+
+    <div id="biz-list">
+      <div class="bl-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div class="et">No businesses yet</div>
+        <div class="es">Click <strong>+ Add</strong> to add your first business and start finding citations.</div>
+      </div>
+    </div>
+
+    <div id="biz-footer">
+      <div class="bf-row">
+        <button onclick="openSettings()" title="Set up SERP API provider">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+        <button onclick="importCSV()" title="Bulk import businesses from CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          Import CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center-area">
+    <div id="center-bar">
+      <button class="cb-tab active" data-tab="overview" onclick="setTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="cb-tab" data-tab="citations" onclick="setTab('citations')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+        Citations <span class="count" id="tab-count-cit">0</span>
+      </button>
+      <button class="cb-tab" data-tab="missing" onclick="setTab('missing')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Missing <span class="count" id="tab-count-miss">0</span>
+      </button>
+      <button class="cb-tab" data-tab="nap" onclick="setTab('nap')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        NAP Audit
+      </button>
+      <button class="cb-tab" data-tab="directories" onclick="setTab('directories')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Directory DB
+      </button>
+      <div class="cb-spacer"></div>
+      <button class="cb-btn primary" id="btn-scan" onclick="scanActive()" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Scan
+      </button>
+      <button class="cb-btn warn" onclick="scanAllPending()" id="btn-scan-all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Scan All
+      </button>
+      <button class="cb-btn" onclick="exportData('csv')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+      <button class="cb-btn" onclick="exportData('json')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        JSON
+      </button>
+      <button class="cb-btn" onclick="exportData('report')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Report
+      </button>
+    </div>
+    <div id="center-body">
+      <div class="empty-state" id="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>
+          <div class="es-t">Citation Finder Pro</div>
+          <div class="es-d">Find your business across 120+ local directories, identify missing listings, detect NAP inconsistencies, and compare against competitors.<br><br>Add a business on the left, configure a SERP provider in <strong>Settings</strong>, and click <strong>Scan</strong>.</div>
+          <div class="es-tips">
+            <span>100% client-side</span>
+            <span>BYO API key</span>
+            <span>120+ directories</span>
+            <span>5 countries (US/CA/UK/AU/IN)</span>
+            <span>NAP fuzzy matching</span>
+            <span>CSV / JSON / HTML report</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="footer">
+  <div class="ft-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ft-status">Ready</span>
+  </div>
+  <div class="ft-item" id="ft-provider">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Provider: <strong id="ft-provider-name">none</strong></span>
+  </div>
+  <div class="ft-spacer"></div>
+  <div class="ft-item">
+    <span>Built by <strong>Mukesh Kr</strong></span>
+  </div>
+  <a class="ft-link" href="mailto:techie1418@gmail.com">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Email
+  </a>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settings-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2>Settings — SERP Provider & Directories</h2>
+      <button class="close" onclick="closeSettings()">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="settings-section">
+        <h4>SERP Provider</h4>
+        <div class="provider-pills" id="provider-pills"></div>
+        <div id="provider-config"></div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Scan Behavior</h4>
+        <div class="field">
+          <label>Concurrency (parallel queries)</label>
+          <input type="number" id="sf-concurrency" value="3" min="1" max="10">
+          <div class="hint">Lower = friendlier to API rate limits. 3 is safe for most providers.</div>
+        </div>
+        <div class="field">
+          <label>Delay between queries (ms)</label>
+          <input type="number" id="sf-delay" value="600" min="0" max="5000">
+          <div class="hint">Polite delay. Set to 0 for fastest scan.</div>
+        </div>
+        <div class="field">
+          <label>Results per directory</label>
+          <input type="number" id="sf-results" value="5" min="1" max="20">
+          <div class="hint">How many SERP results to inspect per directory query.</div>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="sf-nap-strict"> Strict NAP matching</label>
+          <div class="hint">If on, only exact name/phone matches count. If off, fuzzy (Levenshtein &le; 2) is allowed.</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Directory Categories</h4>
+        <div class="hint" style="margin-bottom:8px">Pick which directory groups to scan. Unchecked groups will be skipped.</div>
+        <div class="directory-cats" id="directory-cats"></div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Data</h4>
+        <div class="field">
+          <label>Storage usage</label>
+          <div class="hint" id="storage-info">Calculating…</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="cb-btn" onclick="exportData('json')">Export all data (JSON)</button>
+          <button class="cb-btn" onclick="importJSON()">Import data (JSON)</button>
+          <button class="cb-btn warn" onclick="clearAllData()">Clear all data</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeSettings()">Cancel</button>
+      <button class="primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- BIZ DETAIL MODAL -->
+<div class="modal-bg" id="biz-edit-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2 id="bem-title">Edit Business</h2>
+      <button class="close" onclick="closeEditBiz()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Business Name</label><input id="bem-name"></div>
+      <div class="field"><label>Phone (E.164)</label><input id="bem-phone"></div>
+      <div class="field"><label>Website</label><input id="bem-website"></div>
+      <div class="field"><label>Street Address</label><input id="bem-addr"></div>
+      <div class="field" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><label>City</label><input id="bem-city"></div>
+        <div><label>State</label><input id="bem-state"></div>
+        <div><label>ZIP</label><input id="bem-zip"></div>
+      </div>
+      <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label>Country</label>
+          <select id="bem-country">
+            <option value="us">United States</option><option value="ca">Canada</option><option value="uk">United Kingdom</option><option value="au">Australia</option><option value="in">India</option><option value="all">All countries</option>
+          </select>
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="bem-category">
+            <option value="general">General Business</option><option value="restaurant">Restaurant / Food</option><option value="medical">Medical / Health</option><option value="legal">Legal / Attorney</option><option value="home">Home Services / Trades</option><option value="auto">Automotive</option><option value="realestate">Real Estate</option><option value="retail">Retail / Shop</option><option value="beauty">Beauty / Salon</option><option value="fitness">Fitness / Gym</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeEditBiz()">Cancel</button>
+      <button class="primary" onclick="saveEditBiz()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+ * CITATION FINDER PRO
+ * Self-contained client-side local SEO citation scanner.
+ * Data persisted in localStorage. No backend.
+ * ========================================================================== */
+
+/* ---------- DIRECTORY DATABASE ----------
+ * ~120 directories curated across US/CA/UK/AU/IN + global.
+ * Fields:
+ *   id, name, domain, category, countries[], da (domain authority estimate),
+ *   submitUrl (where to add a listing), free (true/false),
+ *   verifyMethod ('site' = use site:domain SERP query, 'url' = expected URL pattern),
+ *   note (optional)
+ */
+const DIRECTORIES = [
+  // ===== TIER 1 (global, must-have) =====
+  {id:'google',     name:'Google Business Profile', domain:'google.com',      cat:'tier1', countries:['all'], da:100, submitUrl:'https://www.google.com/business/', free:true,  note:'The #1 local citation. Essential.'},
+  {id:'bing',       name:'Bing Places for Business',domain:'bing.com',         cat:'tier1', countries:['all'], da:95,  submitUrl:'https://www.bingplaces.com/', free:true},
+  {id:'apple',      name:'Apple Maps Connect',      domain:'maps.apple.com',   cat:'tier1', countries:['all'], da:97,  submitUrl:'https://mapsconnect.apple.com/', free:true,  note:'Apple Business Connect.'},
+  {id:'facebook',   name:'Facebook Business Page',  domain:'facebook.com',     cat:'tier1', countries:['all'], da:96,  submitUrl:'https://www.facebook.com/business/pages/set-up', free:true},
+  {id:'yelp',       name:'Yelp',                    domain:'yelp.com',         cat:'tier1', countries:['us','ca','uk','au'], da:94, submitUrl:'https://biz.yelp.com/signup_business/new', free:true},
+  {id:'yelpuk',     name:'Yelp UK',                 domain:'yelp.co.uk',       cat:'tier1', countries:['uk'],  da:88,  submitUrl:'https://biz.yelp.com/signup_business/new', free:true},
+  {id:'foursquare', name:'Foursquare for Business', domain:'foursquare.com',   cat:'tier1', countries:['all'], da:93,  submitUrl:'https://business.foursquare.com/', free:true},
+  {id:'instagram',  name:'Instagram Business',      domain:'instagram.com',    cat:'tier1', countries:['all'], da:96,  submitUrl:'https://business.instagram.com/getting-started', free:true},
+  {id:'linkedin',   name:'LinkedIn Company',        domain:'linkedin.com',     cat:'tier1', countries:['all'], da:98,  submitUrl:'https://www.linkedin.com/company/setup/new/', free:true},
+  {id:'twitter',    name:'X / Twitter Profile',     domain:'x.com',            cat:'tier1', countries:['all'], da:95,  submitUrl:'https://business.x.com/', free:true},
+
+  // ===== US =====
+  {id:'yellowpages',  name:'YellowPages.com',          domain:'yellowpages.com',  cat:'us', countries:['us'], da:91, submitUrl:'https://accounts.yellowpages.com/register?type=business', free:true},
+  {id:'bbb',          name:'Better Business Bureau',   domain:'bbb.org',          cat:'us', countries:['us','ca'], da:92, submitUrl:'https://www.bbb.org/get-listed', free:false, note:'Paid accreditation. Free directory listing.'},
+  {id:'mapquest',     name:'MapQuest',                 domain:'mapquest.com',     cat:'us', countries:['us'], da:88, submitUrl:'https://www.mapquest.com/list-business', free:true},
+  {id:'whitepages',   name:'WhitePages',               domain:'whitepages.com',   cat:'us', countries:['us'], da:84, submitUrl:'https://www.whitepages.com/business/', free:true},
+  {id:'merchantcircle',name:'MerchantCircle',          domain:'merchantcircle.com',cat:'us', countries:['us'], da:74, submitUrl:'https://www.merchantcircle.com/signup', free:true},
+  {id:'manta',        name:'Manta',                    domain:'manta.com',        cat:'us', countries:['us'], da:82, submitUrl:'https://www.manta.com/business-pages', free:true},
+  {id:'superpages',   name:'Superpages',               domain:'superpages.com',   cat:'us', countries:['us'], da:80, submitUrl:'https://accounts.superpages.com/register', free:true},
+  {id:'dexknows',     name:'DexKnows',                 domain:'dexknows.com',     cat:'us', countries:['us'], da:75, submitUrl:'https://www.dexknows.com/', free:true},
+  {id:'citysearch',   name:'Citysearch',               domain:'citysearch.com',   cat:'us', countries:['us'], da:78, submitUrl:'https://citysearch.com/', free:true},
+  {id:'yellowbook',   name:'Yellowbook',               domain:'yellowbook.com',   cat:'us', countries:['us'], da:70, submitUrl:'https://www.yellowbook.com/', free:true},
+  {id:'localcom',     name:'Local.com',                domain:'local.com',        cat:'us', countries:['us'], da:72, submitUrl:'https://advertise.local.com/', free:true},
+  {id:'judyrecords',  name:'Judys Book',               domain:'judysbook.com',    cat:'us', countries:['us'], da:66, submitUrl:'https://www.judysbook.com/', free:true},
+  {id:'angieslist',   name:'Angi (Angies List)',       domain:'angi.com',         cat:'us', countries:['us'], da:90, submitUrl:'https://www.angi.com/companylist/', free:true},
+  {id:'thumbtack',    name:'Thumbtack',                domain:'thumbtack.com',    cat:'us', countries:['us'], da:91, submitUrl:'https://www.thumbtack.com/pro/', free:true},
+  {id:'homeadvisor',  name:'HomeAdvisor',              domain:'homeadvisor.com',  cat:'us', countries:['us'], da:88, submitUrl:'https://www.homeadvisor.com/pro/', free:false},
+  {id:'porch',        name:'Porch',                    domain:'porch.com',        cat:'us', countries:['us'], da:82, submitUrl:'https://porch.com/pros/', free:true},
+  {id:'expertise',    name:'Expertise.com',            domain:'expertise.com',    cat:'us', countries:['us'], da:74, submitUrl:'https://www.expertise.com/business/', free:false},
+  {id:'usnews',       name:'US News Local',            domain:'usnews.com',       cat:'us', countries:['us'], da:95, submitUrl:'https://www.usnews.com/360-reviews/services', free:true},
+  {id:'foursquarecity',name:'Foursquare City Guide',   domain:'foursquare.com',   cat:'us', countries:['us'], da:88, submitUrl:'https://foursquare.com/venue/claim', free:true},
+  {id:'usdirectory',  name:'USDirectory',              domain:'usdirectory.com',  cat:'us', countries:['us'], da:55, submitUrl:'https://www.usdirectory.com/', free:true},
+  {id:'showmelocal',  name:'ShowMeLocal',              domain:'showmelocal.com',  cat:'us', countries:['us'], da:62, submitUrl:'https://www.showmelocal.com/account/signup.aspx', free:true},
+  {id:'opendi',       name:'Opendi USA',               domain:'opendi.us',        cat:'us', countries:['us'], da:58, submitUrl:'https://www.opendi.us/', free:true},
+  {id:'tupalo',       name:'Tupalo',                   domain:'tupalo.com',       cat:'us', countries:['us','uk'], da:60, submitUrl:'https://tupalo.com/', free:true},
+  {id:'finduslocal',  name:'FindUsLocal',              domain:'finduslocal.com',  cat:'us', countries:['us'], da:48, submitUrl:'https://www.finduslocal.com/', free:true},
+  {id:'eztofind',     name:'EZToFind',                 domain:'eztofind.com',     cat:'us', countries:['us'], da:42, submitUrl:'https://www.eztofind.com/', free:true},
+  {id:'cylex',        name:'Cylex',                    domain:'cylex.us.com',     cat:'us', countries:['us'], da:62, submitUrl:'https://www.cylex.us.com/', free:true},
+  {id:'storeboard',   name:'Storeboard',               domain:'storeboard.com',   cat:'us', countries:['us'], da:65, submitUrl:'https://www.storeboard.com/signup', free:true},
+  {id:'brownbook',    name:'Brownbook',                domain:'brownbook.net',    cat:'us', countries:['us','uk'], da:64, submitUrl:'https://www.brownbook.net/business/add', free:true},
+  {id:'spoke',        name:'Spoke',                    domain:'spoke.com',        cat:'us', countries:['us'], da:74, submitUrl:'https://www.spoke.com/', free:true},
+  {id:'hotfrog',      name:'Hotfrog',                  domain:'hotfrog.com',      cat:'us', countries:['us','uk','au','ca'], da:73, submitUrl:'https://www.hotfrog.com/add-your-business', free:true},
+  {id:'crunchbase',   name:'Crunchbase',               domain:'crunchbase.com',   cat:'us', countries:['all'], da:91, submitUrl:'https://www.crunchbase.com/add-new', free:true},
+  {id:'glassdoor',    name:'Glassdoor',                domain:'glassdoor.com',    cat:'us', countries:['all'], da:91, submitUrl:'https://www.glassdoor.com/employers/free-employer-account.htm', free:true},
+  {id:'tripadvisor',  name:'Tripadvisor',              domain:'tripadvisor.com',  cat:'us', countries:['all'], da:93, submitUrl:'https://www.tripadvisor.com/Owners', free:true, note:'Esp. for restaurants & hotels.'},
+  {id:'zomato',       name:'Zomato',                   domain:'zomato.com',       cat:'us', countries:['us','in','uk','au','ca'], da:90, submitUrl:'https://www.zomato.com/business', free:true, note:'Esp. for restaurants.'},
+
+  // ===== CANADA =====
+  {id:'canpages',     name:'Canpages',                 domain:'canpages.ca',      cat:'ca', countries:['ca'], da:74, submitUrl:'https://www.canpages.ca/', free:true},
+  {id:'yellowpagesca',name:'YellowPages.ca',           domain:'yellowpages.ca',   cat:'ca', countries:['ca'], da:88, submitUrl:'https://www.yellowpages.ca/findyourbusiness', free:true},
+  {id:'411ca',        name:'411.ca',                   domain:'411.ca',           cat:'ca', countries:['ca'], da:72, submitUrl:'https://www.411.ca/', free:true},
+  {id:'goldbook',     name:'Goldbook.ca',              domain:'goldbook.ca',      cat:'ca', countries:['ca'], da:55, submitUrl:'https://www.goldbook.ca/', free:true},
+  {id:'profilecanada',name:'Profile Canada',           domain:'profilecanada.com',cat:'ca', countries:['ca'], da:62, submitUrl:'https://www.profilecanada.com/', free:true},
+  {id:'biz411',       name:'Biz.411.ca',               domain:'biz.411.ca',       cat:'ca', countries:['ca'], da:60, submitUrl:'https://biz.411.ca/', free:true},
+  {id:'ourbis',       name:'Ourbis',                   domain:'ourbis.ca',        cat:'ca', countries:['ca'], da:60, submitUrl:'https://www.ourbis.ca/', free:true},
+  {id:'canadaone',    name:'CanadaOne',                domain:'canadaone.com',    cat:'ca', countries:['ca'], da:62, submitUrl:'https://www.canadaone.com/', free:true},
+  {id:'wandcity',     name:'Wand.ca',                  domain:'wand.ca',          cat:'ca', countries:['ca'], da:54, submitUrl:'https://www.wand.ca/', free:true},
+
+  // ===== UK =====
+  {id:'yell',         name:'Yell.com',                 domain:'yell.com',         cat:'uk', countries:['uk'], da:88, submitUrl:'https://business.yell.com/get-listed/', free:true},
+  {id:'thomsonlocal', name:'Thomson Local',            domain:'thomsonlocal.com', cat:'uk', countries:['uk'], da:74, submitUrl:'https://www.thomsonlocal.com/', free:true},
+  {id:'192',          name:'192.com',                  domain:'192.com',          cat:'uk', countries:['uk'], da:80, submitUrl:'https://www.192.com/', free:true},
+  {id:'cylexuk',      name:'Cylex UK',                 domain:'cylex-uk.co.uk',   cat:'uk', countries:['uk'], da:66, submitUrl:'https://www.cylex-uk.co.uk/', free:true},
+  {id:'freeindex',    name:'FreeIndex',                domain:'freeindex.co.uk',  cat:'uk', countries:['uk'], da:70, submitUrl:'https://www.freeindex.co.uk/', free:true},
+  {id:'scoot',        name:'Scoot',                    domain:'scoot.co.uk',      cat:'uk', countries:['uk'], da:62, submitUrl:'https://www.scoot.co.uk/', free:true},
+  {id:'businessmagnet',name:'Business Magnet',         domain:'businessmagnet.co.uk',cat:'uk', countries:['uk'], da:60, submitUrl:'https://www.businessmagnet.co.uk/', free:true},
+  {id:'touchlocal',   name:'Touch Local',              domain:'touchlocal.com',   cat:'uk', countries:['uk'], da:55, submitUrl:'https://www.touchlocal.com/', free:true},
+  {id:'aboutus',      name:'AboutUs.com',              domain:'aboutus.com',      cat:'uk', countries:['uk','us'], da:74, submitUrl:'https://www.aboutus.com/', free:true},
+  {id:'misterwhat',   name:'MisterWhat',               domain:'misterwhat.co.uk', cat:'uk', countries:['uk'], da:55, submitUrl:'https://www.misterwhat.co.uk/', free:true},
+
+  // ===== AUSTRALIA =====
+  {id:'yellowau',     name:'Yellow Pages AU',          domain:'yellowpages.com.au',cat:'au', countries:['au'], da:88, submitUrl:'https://www.yellowpages.com.au/', free:true},
+  {id:'truelocal',    name:'TrueLocal',                domain:'truelocal.com.au', cat:'au', countries:['au'], da:78, submitUrl:'https://www.truelocal.com.au/', free:true},
+  {id:'startlocal',   name:'StartLocal',               domain:'startlocal.com.au',cat:'au', countries:['au'], da:62, submitUrl:'https://www.startlocal.com.au/', free:true},
+  {id:'whitepagesau', name:'White Pages AU',           domain:'whitepages.com.au',cat:'au', countries:['au'], da:80, submitUrl:'https://www.whitepages.com.au/', free:true},
+  {id:'australianbusinessdirectory',name:'Australian Business Directory',domain:'australian-business-directory.com.au',cat:'au',countries:['au'],da:48,submitUrl:'https://www.australian-business-directory.com.au/',free:true},
+  {id:'businesslistingsau',name:'Business Listings AU',domain:'businesslistings.net.au',cat:'au',countries:['au'],da:62,submitUrl:'https://www.businesslistings.net.au/',free:true},
+  {id:'hotfrogau',    name:'Hotfrog AU',               domain:'hotfrog.com.au',   cat:'au', countries:['au'], da:70, submitUrl:'https://www.hotfrog.com.au/add-your-business', free:true},
+  {id:'localsearchau',name:'Local Search AU',          domain:'localsearch.com.au',cat:'au',countries:['au'],da:78,submitUrl:'https://www.localsearch.com.au/',free:true},
+
+  // ===== INDIA =====
+  {id:'justdial',     name:'Justdial',                 domain:'justdial.com',     cat:'in', countries:['in'], da:88, submitUrl:'https://business.justdial.com/free-listing', free:true},
+  {id:'sulekha',      name:'Sulekha',                  domain:'sulekha.com',      cat:'in', countries:['in'], da:84, submitUrl:'https://www.sulekha.com/', free:true},
+  {id:'indiamart',    name:'IndiaMART',                domain:'indiamart.com',    cat:'in', countries:['in'], da:90, submitUrl:'https://seller.indiamart.com/bizshop/', free:true},
+  {id:'tradeindia',   name:'TradeIndia',               domain:'tradeindia.com',   cat:'in', countries:['in'], da:82, submitUrl:'https://www.tradeindia.com/', free:true},
+  {id:'asklaila',     name:'AskLaila',                 domain:'asklaila.com',     cat:'in', countries:['in'], da:65, submitUrl:'https://www.asklaila.com/', free:true},
+  {id:'getit',        name:'Getit Infomedia',          domain:'getit.in',         cat:'in', countries:['in'], da:62, submitUrl:'https://www.getit.in/', free:true},
+  {id:'yellowin',     name:'Yellow Pages India',       domain:'yellowpages.in',   cat:'in', countries:['in'], da:60, submitUrl:'https://www.yellowpages.in/', free:true},
+  {id:'indiabizclub', name:'India Biz Club',           domain:'indiabizclub.com', cat:'in', countries:['in'], da:55, submitUrl:'https://www.indiabizclub.com/', free:true},
+  {id:'tradeford',    name:'TradeFord',                domain:'tradeford.com',    cat:'in', countries:['in'], da:60, submitUrl:'https://www.tradeford.com/', free:true},
+  {id:'exportersindia',name:'Exporters India',         domain:'exportersindia.com',cat:'in',countries:['in'],da:62,submitUrl:'https://www.exportersindia.com/',free:true},
+  {id:'urbancompany', name:'Urban Company',            domain:'urbancompany.com', cat:'in', countries:['in'], da:78, submitUrl:'https://partner.urbancompany.com/', free:true, note:'Home services partner program.'},
+  {id:'magicbricks',  name:'MagicBricks',              domain:'magicbricks.com',  cat:'in', countries:['in'], da:84, submitUrl:'https://www.magicbricks.com/postProperty', free:true, note:'Real estate.'},
+  {id:'99acres',      name:'99acres',                  domain:'99acres.com',      cat:'in', countries:['in'], da:84, submitUrl:'https://www.99acres.com/postProperty', free:true, note:'Real estate.'},
+  {id:'practo',       name:'Practo',                   domain:'practo.com',       cat:'in', countries:['in'], da:80, submitUrl:'https://www.practo.com/listing/', free:true, note:'Medical/Health.'},
+  {id:'zomatoin',     name:'Zomato India',             domain:'zomato.com',       cat:'in', countries:['in'], da:90, submitUrl:'https://www.zomato.com/business', free:true, note:'Restaurants.'},
+
+  // ===== INDUSTRY: FOOD / RESTAURANT =====
+  {id:'opentable',    name:'OpenTable',                domain:'opentable.com',    cat:'restaurant', countries:['all'], da:91, submitUrl:'https://restaurant.opentable.com/', free:false},
+  {id:'grubhub',      name:'Grubhub',                  domain:'grubhub.com',      cat:'restaurant', countries:['us'],  da:88, submitUrl:'https://restaurant.grubhub.com/', free:true},
+  {id:'doordash',     name:'DoorDash',                 domain:'doordash.com',     cat:'restaurant', countries:['us','ca','au'], da:88, submitUrl:'https://get.doordash.com/', free:true},
+  {id:'ubereats',     name:'Uber Eats Partner',        domain:'ubereats.com',     cat:'restaurant', countries:['all'], da:88, submitUrl:'https://www.ubereats.com/restaurant/en-US/signup', free:true},
+  {id:'allmenus',     name:'AllMenus',                 domain:'allmenus.com',     cat:'restaurant', countries:['us'],  da:72, submitUrl:'https://www.allmenus.com/', free:true},
+  {id:'menupages',    name:'MenuPages',                domain:'menupages.com',    cat:'restaurant', countries:['us'],  da:68, submitUrl:'https://www.menupages.com/', free:true},
+
+  // ===== INDUSTRY: MEDICAL =====
+  {id:'healthgrades', name:'Healthgrades',             domain:'healthgrades.com', cat:'medical', countries:['us'], da:91, submitUrl:'https://www.healthgrades.com/cms/business-solutions/', free:true},
+  {id:'vitals',       name:'Vitals',                   domain:'vitals.com',       cat:'medical', countries:['us'], da:84, submitUrl:'https://www.vitals.com/', free:true},
+  {id:'zocdoc',       name:'Zocdoc',                   domain:'zocdoc.com',       cat:'medical', countries:['us'], da:88, submitUrl:'https://www.zocdoc.com/join', free:false},
+  {id:'webmd',        name:'WebMD Provider Directory', domain:'webmd.com',        cat:'medical', countries:['us'], da:94, submitUrl:'https://doctor.webmd.com/', free:true},
+  {id:'ratemd',       name:'RateMDs',                  domain:'ratemds.com',      cat:'medical', countries:['us','ca','uk','au'], da:80, submitUrl:'https://www.ratemds.com/', free:true},
+
+  // ===== INDUSTRY: LEGAL =====
+  {id:'avvo',         name:'Avvo',                     domain:'avvo.com',         cat:'legal', countries:['us'], da:88, submitUrl:'https://www.avvo.com/lawyers/welcome', free:true},
+  {id:'justia',       name:'Justia',                   domain:'justia.com',       cat:'legal', countries:['us'], da:91, submitUrl:'https://lawyers.justia.com/', free:true},
+  {id:'martindale',   name:'Martindale',               domain:'martindale.com',   cat:'legal', countries:['us'], da:85, submitUrl:'https://www.martindale.com/', free:true},
+  {id:'findlaw',      name:'FindLaw',                  domain:'findlaw.com',      cat:'legal', countries:['us'], da:91, submitUrl:'https://lp.findlaw.com/', free:false},
+  {id:'lawyer',       name:'Lawyer.com',               domain:'lawyer.com',       cat:'legal', countries:['us'], da:78, submitUrl:'https://www.lawyer.com/', free:true},
+
+  // ===== INDUSTRY: HOME / TRADES =====
+  {id:'houzz',        name:'Houzz',                    domain:'houzz.com',        cat:'home', countries:['us','uk','au','ca'], da:90, submitUrl:'https://www.houzz.com/professionals/', free:true},
+  {id:'porch2',       name:'Porch Pros',               domain:'porch.com',        cat:'home', countries:['us'], da:82, submitUrl:'https://porch.com/pros/', free:true},
+  {id:'buildzoom',    name:'BuildZoom',                domain:'buildzoom.com',    cat:'home', countries:['us'], da:74, submitUrl:'https://www.buildzoom.com/', free:true},
+  {id:'checkatrade',  name:'Checkatrade (UK)',         domain:'checkatrade.com',  cat:'home', countries:['uk'], da:80, submitUrl:'https://www.checkatrade.com/trades/join-us', free:false},
+  {id:'mybuilder',    name:'MyBuilder (UK)',           domain:'mybuilder.com',    cat:'home', countries:['uk'], da:76, submitUrl:'https://www.mybuilder.com/get-started', free:true},
+  {id:'ratedpeople',  name:'Rated People (UK)',        domain:'ratedpeople.com',  cat:'home', countries:['uk'], da:74, submitUrl:'https://www.ratedpeople.com/tradesmen-join', free:false},
+
+  // ===== INDUSTRY: AUTO =====
+  {id:'cars',         name:'Cars.com Dealer',          domain:'cars.com',         cat:'auto', countries:['us'], da:88, submitUrl:'https://www.cars.com/', free:false},
+  {id:'autotrader',   name:'AutoTrader',               domain:'autotrader.com',   cat:'auto', countries:['us','uk'], da:88, submitUrl:'https://www.autotrader.com/', free:false},
+  {id:'edmunds',      name:'Edmunds',                  domain:'edmunds.com',      cat:'auto', countries:['us'], da:88, submitUrl:'https://www.edmunds.com/', free:true},
+  {id:'kbb',          name:'Kelley Blue Book',         domain:'kbb.com',          cat:'auto', countries:['us'], da:88, submitUrl:'https://www.kbb.com/', free:true},
+
+  // ===== INDUSTRY: REAL ESTATE =====
+  {id:'zillow',       name:'Zillow',                   domain:'zillow.com',       cat:'realestate', countries:['us'], da:94, submitUrl:'https://www.zillow.com/agent-finder/', free:true},
+  {id:'realtor',      name:'Realtor.com',              domain:'realtor.com',      cat:'realestate', countries:['us'], da:91, submitUrl:'https://www.realtor.com/realestateagents/', free:true},
+  {id:'redfin',       name:'Redfin',                   domain:'redfin.com',       cat:'realestate', countries:['us'], da:90, submitUrl:'https://www.redfin.com/agent-finder', free:true},
+  {id:'trulia',       name:'Trulia',                   domain:'trulia.com',       cat:'realestate', countries:['us'], da:90, submitUrl:'https://www.trulia.com/', free:true},
+  {id:'rightmove',    name:'Rightmove (UK)',           domain:'rightmove.co.uk',  cat:'realestate', countries:['uk'], da:91, submitUrl:'https://www.rightmove.co.uk/', free:false},
+  {id:'realestatecomau',name:'Realestate.com.au',      domain:'realestate.com.au',cat:'realestate', countries:['au'], da:91, submitUrl:'https://www.realestate.com.au/', free:false},
+
+  // ===== INDUSTRY: BEAUTY =====
+  {id:'styleseat',    name:'StyleSeat',                domain:'styleseat.com',    cat:'beauty', countries:['us'], da:78, submitUrl:'https://www.styleseat.com/professionals/', free:true},
+  {id:'booksy',       name:'Booksy',                   domain:'booksy.com',       cat:'beauty', countries:['us','uk','au'], da:78, submitUrl:'https://booksy.com/biz/en-us/', free:true},
+  {id:'vagaro',       name:'Vagaro',                   domain:'vagaro.com',       cat:'beauty', countries:['us'], da:74, submitUrl:'https://www.vagaro.com/pro/', free:false},
+  {id:'fresha',       name:'Fresha',                   domain:'fresha.com',       cat:'beauty', countries:['all'], da:74, submitUrl:'https://www.fresha.com/for-business', free:true},
+
+  // ===== INDUSTRY: FITNESS =====
+  {id:'classpass',    name:'ClassPass',                domain:'classpass.com',    cat:'fitness', countries:['all'], da:80, submitUrl:'https://classpass.com/business', free:true},
+  {id:'mindbody',     name:'Mindbody',                 domain:'mindbody.com',     cat:'fitness', countries:['us'], da:80, submitUrl:'https://www.mindbodyonline.com/', free:false},
+
+  // ===== EXTRA / GLOBAL =====
+  {id:'pagesjaunes',  name:'Pages Jaunes (FR)',        domain:'pagesjaunes.fr',   cat:'global', countries:['all'], da:84, submitUrl:'https://annonceurs.pagesjaunes.fr/', free:true},
+  {id:'kompass',      name:'Kompass',                  domain:'kompass.com',      cat:'global', countries:['all'], da:80, submitUrl:'https://www.kompass.com/', free:true},
+  {id:'europages',    name:'Europages',                domain:'europages.com',    cat:'global', countries:['all'], da:80, submitUrl:'https://www.europages.com/', free:true},
+];
+
+const DIRECTORY_CATEGORIES = [
+  {id:'tier1',      label:'Tier 1 (Must-have)', desc:'Google, Bing, Apple, FB, Yelp, etc.'},
+  {id:'us',         label:'US directories'},
+  {id:'ca',         label:'Canada directories'},
+  {id:'uk',         label:'UK directories'},
+  {id:'au',         label:'Australia directories'},
+  {id:'in',         label:'India directories'},
+  {id:'restaurant', label:'Restaurant / Food'},
+  {id:'medical',    label:'Medical / Health'},
+  {id:'legal',      label:'Legal / Attorney'},
+  {id:'home',       label:'Home Services'},
+  {id:'auto',       label:'Automotive'},
+  {id:'realestate', label:'Real Estate'},
+  {id:'beauty',     label:'Beauty / Salon'},
+  {id:'fitness',    label:'Fitness / Gym'},
+  {id:'global',     label:'Other / Global'},
+];
+
+/* ---------- PROVIDERS ---------- */
+const PROVIDERS = {
+  serper: {
+    label: 'Serper.dev',
+    free: '2,500 free',
+    helpUrl: 'https://serper.dev',
+    note: 'Fast, CORS-enabled, very accurate. Sign up at <a href="https://serper.dev" target="_blank" rel="noopener">serper.dev</a> and copy the key from the dashboard. 2,500 free searches.',
+    fields: [{key:'key', label:'API Key', type:'password', placeholder:'Your Serper API key'}],
+    async search({query, num, country, key}){
+      const res = await fetch('https://google.serper.dev/search', {
+        method:'POST',
+        headers:{'X-API-KEY': key.key, 'Content-Type':'application/json'},
+        body: JSON.stringify({q: query, num: num||10, gl: country||'us'})
+      });
+      if(!res.ok) throw new Error('Serper '+res.status+': '+(await res.text()).slice(0,200));
+      const j = await res.json();
+      return (j.organic||[]).map((o,i)=>({pos:o.position||i+1, title:o.title, link:o.link, snippet:o.snippet}));
+    }
+  },
+  serpapi: {
+    label: 'SerpAPI',
+    free: '100/mo free',
+    helpUrl: 'https://serpapi.com',
+    note: 'CORS-enabled. Sign up free at <a href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a> and copy the API key from <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">manage-api-key</a>.',
+    fields: [{key:'key', label:'API Key', type:'password', placeholder:'Your SerpAPI API key'}],
+    async search({query, num, country, key}){
+      const url = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(query)}&num=${num||10}&gl=${country||'us'}&api_key=${encodeURIComponent(key.key)}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('SerpAPI '+res.status);
+      const j = await res.json();
+      return (j.organic_results||[]).map(o=>({pos:o.position, title:o.title, link:o.link, snippet:o.snippet}));
+    }
+  },
+  valueserp: {
+    label: 'ValueSERP',
+    free: '100/mo free',
+    helpUrl: 'https://valueserp.com',
+    note: 'Free 100/mo. Sign up at <a href="https://valueserp.com" target="_blank" rel="noopener">valueserp.com</a>.',
+    fields: [{key:'key', label:'API Key', type:'password', placeholder:'Your ValueSERP API key'}],
+    async search({query, num, country, key}){
+      const url = `https://api.valueserp.com/search?api_key=${encodeURIComponent(key.key)}&q=${encodeURIComponent(query)}&num=${num||10}&gl=${country||'us'}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('ValueSERP '+res.status);
+      const j = await res.json();
+      return (j.organic_results||[]).map(o=>({pos:o.position, title:o.title, link:o.link, snippet:o.snippet}));
+    }
+  },
+  brave: {
+    label: 'Brave Search',
+    free: '2,000/mo free',
+    helpUrl: 'https://api.search.brave.com',
+    note: 'Free 2,000/mo. Sign up at <a href="https://api.search.brave.com/app/keys" target="_blank" rel="noopener">api.search.brave.com</a> → create "Data for Search" free subscription. CORS-enabled.',
+    fields: [{key:'key', label:'API Token', type:'password', placeholder:'Your Brave API token'}],
+    async search({query, num, country, key}){
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${num||10}&country=${country||'us'}`;
+      const res = await fetch(url, {headers: {'Accept':'application/json', 'X-Subscription-Token': key.key}});
+      if(!res.ok) throw new Error('Brave '+res.status);
+      const j = await res.json();
+      return ((j.web&&j.web.results)||[]).map((o,i)=>({pos:i+1, title:o.title, link:o.url, snippet:o.description}));
+    }
+  },
+  gcs: {
+    label: 'Google CSE',
+    free: '100/day free',
+    helpUrl: 'https://programmablesearchengine.google.com',
+    note: 'Free 100/day. <br>1) Create CSE → <a href="https://programmablesearchengine.google.com/controlpanel/create" target="_blank" rel="noopener">create</a> → enable "Search the entire web" → copy <strong>cx</strong>. <br>2) Enable Custom Search API → <a href="https://console.cloud.google.com/apis/library/customsearch.googleapis.com" target="_blank" rel="noopener">console.cloud.google.com</a>. <br>3) Create API key → <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">credentials</a>.',
+    fields: [
+      {key:'key', label:'API Key', type:'password', placeholder:'AIza...'},
+      {key:'cx', label:'Search Engine ID (cx)', type:'text', placeholder:'017576662512468239146:omuauf_lfve'}
+    ],
+    async search({query, num, country, key}){
+      const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&num=${Math.min(num||10,10)}&key=${encodeURIComponent(key.key)}&cx=${encodeURIComponent(key.cx)}&gl=${country||'us'}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('GCS '+res.status);
+      const j = await res.json();
+      return (j.items||[]).map((o,i)=>({pos:i+1, title:o.title, link:o.link, snippet:o.snippet}));
+    }
+  },
+  manual: {
+    label: 'Manual (Offline)',
+    free: '∞',
+    helpUrl: '#',
+    note: 'No API needed. The tool will generate Google search links you can click to verify each directory manually. Useful when you have no API key or want full control.',
+    fields: [],
+    async search(){
+      return []; // manual mode never auto-searches
+    }
+  }
+};
+
+/* ---------- STATE ---------- */
+const STORE_KEY = 'cf_state_v1';
+
+const defaultState = {
+  businesses: [],     // [{id, name, phone, website, addr, city, state, zip, country, category, citations:{dirId:{status,url,title,snippet,napCheck}}, createdAt}]
+  activeBizId: null,
+  settings: {
+    provider: 'manual',
+    keys: {},        // {provider: {key, cx, ...}}
+    concurrency: 3,
+    delay: 600,
+    results: 5,
+    napStrict: false,
+    cats: ['tier1','us','ca','uk','au','in','restaurant','medical','legal','home','auto','realestate','beauty','fitness','global'],
+  },
+  tab: 'overview',
+};
+
+let state = loadState();
+function loadState(){
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if(!s) return clone(defaultState);
+    return Object.assign(clone(defaultState), s, {settings: Object.assign(clone(defaultState.settings), s.settings||{})});
+  } catch(e){ return clone(defaultState); }
+}
+function saveState(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){ toast('Storage full — export your data', 'err'); }
+}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function uid(){return Math.random().toString(36).slice(2,11)+Date.now().toString(36).slice(-4);}
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('seohub_theme_v1', next);
+  document.getElementById('theme-label').textContent = next === 'dark' ? 'Dark' : 'Light';
+}
+document.getElementById('theme-label').textContent = (document.documentElement.getAttribute('data-theme')==='dark')?'Dark':'Light';
+
+/* ---------- UTILS ---------- */
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function flagFor(c){return ({us:'🇺🇸',ca:'🇨🇦',uk:'🇬🇧',au:'🇦🇺',in:'🇮🇳',all:'🌐'})[c]||'🌐'}
+function daPill(da){const c=da>=90?'da90':da>=70?'da70':da>=50?'da50':da>=30?'da30':'da10';return `<span class="da-pill ${c}">${da}</span>`;}
+function normalize(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+function levenshtein(a,b){a=String(a||'');b=String(b||'');if(!a)return b.length;if(!b)return a.length;const m=a.length,n=b.length;let p=Array(n+1).fill(0).map((_,i)=>i),c=new Array(n+1);for(let i=1;i<=m;i++){c[0]=i;for(let j=1;j<=n;j++){c[j]=Math.min(c[j-1]+1,p[j]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));}[p,c]=[c,p]}return p[n];}
+function phoneDigits(s){return String(s||'').replace(/\D/g,'').replace(/^1/,'').replace(/^0/,'').slice(-10)}
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.className=''; t.classList.add('show');
+  if(type) t.classList.add(type);
+  t.innerHTML = (type==='success'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':type==='err'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="0.5"/></svg>') + '<span>'+escapeHtml(msg)+'</span>';
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+/* ---------- BUSINESSES ---------- */
+function toggleBizForm(){
+  const f = document.getElementById('biz-form');
+  f.style.display = f.style.display==='none' ? 'flex':'none';
+  if(f.style.display!=='none') document.getElementById('bf-name').focus();
+}
+
+function saveBiz(){
+  const name = document.getElementById('bf-name').value.trim();
+  const phone = document.getElementById('bf-phone').value.trim();
+  if(!name){ toast('Business name required','err'); return; }
+  if(!phone){ toast('Phone required','err'); return; }
+  const biz = {
+    id: uid(),
+    name,
+    phone,
+    website: document.getElementById('bf-website').value.trim(),
+    addr: document.getElementById('bf-addr').value.trim(),
+    city: document.getElementById('bf-city').value.trim(),
+    state: document.getElementById('bf-state').value.trim(),
+    zip: document.getElementById('bf-zip').value.trim(),
+    country: document.getElementById('bf-country').value,
+    category: document.getElementById('bf-category').value,
+    citations: {},
+    status: 'idle',
+    createdAt: Date.now(),
+  };
+  state.businesses.unshift(biz);
+  state.activeBizId = biz.id;
+  saveState();
+  ['bf-name','bf-phone','bf-website','bf-addr','bf-city','bf-state','bf-zip'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('biz-form').style.display='none';
+  renderAll();
+  toast('Business added','success');
+}
+
+function deleteBiz(id, e){
+  e&&e.stopPropagation();
+  if(!confirm('Delete this business and its citation data?')) return;
+  state.businesses = state.businesses.filter(b=>b.id!==id);
+  if(state.activeBizId===id) state.activeBizId = state.businesses[0]?.id||null;
+  saveState();
+  renderAll();
+}
+
+function selectBiz(id){
+  state.activeBizId = id;
+  saveState();
+  renderAll();
+}
+
+function activeBiz(){ return state.businesses.find(b=>b.id===state.activeBizId)||null; }
+
+function openEditBiz(id, e){
+  e&&e.stopPropagation();
+  const b = state.businesses.find(x=>x.id===id);
+  if(!b) return;
+  document.getElementById('bem-title').textContent = 'Edit Business — '+b.name;
+  document.getElementById('bem-name').value = b.name;
+  document.getElementById('bem-phone').value = b.phone;
+  document.getElementById('bem-website').value = b.website||'';
+  document.getElementById('bem-addr').value = b.addr||'';
+  document.getElementById('bem-city').value = b.city||'';
+  document.getElementById('bem-state').value = b.state||'';
+  document.getElementById('bem-zip').value = b.zip||'';
+  document.getElementById('bem-country').value = b.country||'us';
+  document.getElementById('bem-category').value = b.category||'general';
+  document.getElementById('biz-edit-modal').dataset.editId = id;
+  document.getElementById('biz-edit-modal').classList.add('show');
+}
+
+function closeEditBiz(){ document.getElementById('biz-edit-modal').classList.remove('show'); }
+
+function saveEditBiz(){
+  const id = document.getElementById('biz-edit-modal').dataset.editId;
+  const b = state.businesses.find(x=>x.id===id);
+  if(!b) return;
+  b.name = document.getElementById('bem-name').value.trim() || b.name;
+  b.phone = document.getElementById('bem-phone').value.trim() || b.phone;
+  b.website = document.getElementById('bem-website').value.trim();
+  b.addr = document.getElementById('bem-addr').value.trim();
+  b.city = document.getElementById('bem-city').value.trim();
+  b.state = document.getElementById('bem-state').value.trim();
+  b.zip = document.getElementById('bem-zip').value.trim();
+  b.country = document.getElementById('bem-country').value;
+  b.category = document.getElementById('bem-category').value;
+  saveState();
+  closeEditBiz();
+  renderAll();
+  toast('Business updated','success');
+}
+
+function renderBizList(){
+  const wrap = document.getElementById('biz-list');
+  if(!state.businesses.length){
+    wrap.innerHTML = `<div class="bl-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <div class="et">No businesses yet</div>
+      <div class="es">Click <strong>+ Add</strong> to add your first business.</div>
+    </div>`;
+    document.getElementById('btn-scan').disabled = true;
+    return;
+  }
+  document.getElementById('btn-scan').disabled = false;
+  wrap.innerHTML = state.businesses.map(b=>{
+    const initials = b.name.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'B';
+    const found = Object.values(b.citations||{}).filter(c=>c.status==='found').length;
+    const miss = Object.values(b.citations||{}).filter(c=>c.status==='miss').length;
+    return `<div class="biz-item ${state.activeBizId===b.id?'active':''}" onclick="selectBiz('${b.id}')">
+      <div class="bi-badge">${escapeHtml(initials)}</div>
+      <div class="bi-info">
+        <div class="bi-name">${escapeHtml(b.name)}</div>
+        <div class="bi-meta">${flagFor(b.country)} ${escapeHtml(b.city||b.country.toUpperCase())} · ${found}/${found+miss}</div>
+      </div>
+      <span class="bi-status ${b.status||'idle'}"></span>
+      <button class="bi-del" onclick="deleteBiz('${b.id}', event)" title="Delete">×</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- DIRECTORIES ---------- */
+function getActiveDirectories(){
+  const b = activeBiz();
+  const cats = state.settings.cats;
+  const country = b?.country || 'us';
+  return DIRECTORIES.filter(d=>{
+    if(!cats.includes(d.cat)) return false;
+    if(country==='all') return true;
+    return d.countries.includes('all') || d.countries.includes(country);
+  });
+}
+
+/* ---------- SETTINGS UI ---------- */
+function openSettings(){
+  // provider pills
+  const pp = document.getElementById('provider-pills');
+  pp.innerHTML = Object.entries(PROVIDERS).map(([id,p])=>`
+    <button class="ppill ${state.settings.provider===id?'active':''}" onclick="selectProvider('${id}')">
+      ${escapeHtml(p.label)}<span class="free">${escapeHtml(p.free)}</span>
+    </button>
+  `).join('');
+  renderProviderConfig();
+  // settings
+  document.getElementById('sf-concurrency').value = state.settings.concurrency;
+  document.getElementById('sf-delay').value = state.settings.delay;
+  document.getElementById('sf-results').value = state.settings.results;
+  document.getElementById('sf-nap-strict').checked = !!state.settings.napStrict;
+  // categories
+  const cats = document.getElementById('directory-cats');
+  cats.innerHTML = DIRECTORY_CATEGORIES.map(c=>{
+    const cnt = DIRECTORIES.filter(d=>d.cat===c.id).length;
+    const checked = state.settings.cats.includes(c.id);
+    return `<label class="catpill ${checked?'checked':''}"><input type="checkbox" ${checked?'checked':''} data-cat="${c.id}" onchange="this.parentElement.classList.toggle('checked',this.checked)"> ${escapeHtml(c.label)} <span class="cnt">${cnt}</span></label>`;
+  }).join('');
+  // storage
+  const bytes = new Blob([JSON.stringify(state)]).size;
+  document.getElementById('storage-info').textContent = (bytes/1024).toFixed(1)+' KB used · '+state.businesses.length+' business(es)';
+  document.getElementById('settings-modal').classList.add('show');
+}
+function closeSettings(){ document.getElementById('settings-modal').classList.remove('show'); }
+
+function selectProvider(id){
+  state.settings.provider = id;
+  document.querySelectorAll('#provider-pills .ppill').forEach(b=>b.classList.remove('active'));
+  event.target.closest('.ppill').classList.add('active');
+  renderProviderConfig();
+}
+
+function renderProviderConfig(){
+  const p = PROVIDERS[state.settings.provider];
+  const k = state.settings.keys[state.settings.provider] || {};
+  const wrap = document.getElementById('provider-config');
+  if(!p.fields.length){
+    wrap.innerHTML = `<div class="field"><div class="hint">${p.note}</div></div>`;
+    return;
+  }
+  wrap.innerHTML = p.fields.map(f=>`
+    <div class="field">
+      <label>${escapeHtml(f.label)}</label>
+      <input type="${f.type}" id="prov-${f.key}" value="${escapeAttr(k[f.key]||'')}" placeholder="${escapeAttr(f.placeholder||'')}">
+    </div>
+  `).join('') + `<div class="field"><div class="hint">${p.note}</div></div>`;
+}
+
+function saveSettings(){
+  const provId = state.settings.provider;
+  const p = PROVIDERS[provId];
+  const keys = {};
+  p.fields.forEach(f=>{ keys[f.key] = document.getElementById('prov-'+f.key).value.trim(); });
+  state.settings.keys[provId] = keys;
+  state.settings.concurrency = Math.max(1, Math.min(10, parseInt(document.getElementById('sf-concurrency').value)||3));
+  state.settings.delay = Math.max(0, Math.min(5000, parseInt(document.getElementById('sf-delay').value)||600));
+  state.settings.results = Math.max(1, Math.min(20, parseInt(document.getElementById('sf-results').value)||5));
+  state.settings.napStrict = document.getElementById('sf-nap-strict').checked;
+  state.settings.cats = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el=>el.dataset.cat);
+  saveState();
+  closeSettings();
+  renderAll();
+  toast('Settings saved','success');
+}
+
+/* ---------- DATA EXPORT / IMPORT ---------- */
+function exportData(format){
+  const b = activeBiz();
+  if(!b){ toast('Add a business first','err'); return; }
+  let blob, filename, mime;
+  if(format==='csv'){
+    const dirs = getActiveDirectories();
+    const rows = [['directory','domain','category','country','da','status','found_url','title','snippet','nap_name','nap_phone','nap_addr','submit_url']];
+    dirs.forEach(d=>{
+      const c = b.citations[d.id] || {};
+      const nc = c.napCheck || {};
+      rows.push([d.name,d.domain,d.cat,d.countries.join('|'),d.da,c.status||'idle',c.url||'',c.title||'',c.snippet||'',nc.name||'',nc.phone||'',nc.addr||'',d.submitUrl||'']);
+    });
+    blob = new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')], {type:'text/csv'});
+    filename = `citations-${b.name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.csv`;
+  } else if(format==='json'){
+    blob = new Blob([JSON.stringify({business:b, scanned:new Date().toISOString(), directories: getActiveDirectories().map(d=>({...d, _citation: b.citations[d.id]||null}))}, null, 2)], {type:'application/json'});
+    filename = `citations-${b.name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.json`;
+  } else if(format==='report'){
+    blob = new Blob([buildReportHTML(b)], {type:'text/html'});
+    filename = `citation-report-${b.name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.html`;
+  } else {
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();}, 100);
+  toast('Exported','success');
+}
+
+function importJSON(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try {
+        const data = JSON.parse(ev.target.result);
+        if(data.businesses){ // full state
+          if(!confirm('Replace ALL businesses with imported data?')) return;
+          state = Object.assign(clone(defaultState), data, {settings: Object.assign(clone(state.settings), data.settings||{})});
+          saveState(); renderAll(); toast('Imported','success');
+        } else if(data.business){ // single biz export
+          const b = data.business; b.id = uid(); b.createdAt = Date.now();
+          state.businesses.unshift(b); state.activeBizId = b.id;
+          saveState(); renderAll(); toast('Imported business','success');
+        } else { toast('Unrecognized JSON','err'); }
+      } catch(err){ toast('Bad JSON','err'); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+}
+
+function importCSV(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.csv';
+  input.onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try {
+        const lines = ev.target.result.split(/\r?\n/).filter(l=>l.trim());
+        if(lines.length<2){ toast('CSV needs header + rows','err'); return; }
+        const header = lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/['"]/g,''));
+        const need = ['name','phone'];
+        if(!need.every(n=>header.includes(n))){ toast('CSV needs columns: name, phone (+ optional website,address,city,state,zip,country,category)','err'); return; }
+        let count = 0;
+        for(let i=1;i<lines.length;i++){
+          const cells = parseCSVLine(lines[i]);
+          if(!cells[header.indexOf('name')]) continue;
+          const b = {
+            id: uid(),
+            name: cells[header.indexOf('name')]||'',
+            phone: cells[header.indexOf('phone')]||'',
+            website: header.includes('website')?cells[header.indexOf('website')]||'':'',
+            addr: header.includes('address')?cells[header.indexOf('address')]||'':(header.includes('addr')?cells[header.indexOf('addr')]||'':''),
+            city: header.includes('city')?cells[header.indexOf('city')]||'':'',
+            state: header.includes('state')?cells[header.indexOf('state')]||'':'',
+            zip: header.includes('zip')?cells[header.indexOf('zip')]||'':'',
+            country: (header.includes('country')?cells[header.indexOf('country')]||'us':'us').toLowerCase(),
+            category: (header.includes('category')?cells[header.indexOf('category')]||'general':'general').toLowerCase(),
+            citations: {}, status:'idle', createdAt: Date.now()
+          };
+          state.businesses.push(b); count++;
+        }
+        if(!state.activeBizId && state.businesses[0]) state.activeBizId = state.businesses[0].id;
+        saveState(); renderAll();
+        toast(`Imported ${count} business(es)`, 'success');
+      } catch(err){ toast('Bad CSV','err'); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+}
+function parseCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(inQ){ if(c==='"' && line[i+1]==='"'){cur+='"';i++;} else if(c==='"'){inQ=false;} else cur+=c; }
+    else { if(c===','){out.push(cur);cur='';} else if(c==='"' && !cur){inQ=true;} else cur+=c; }
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+
+function clearAllData(){
+  if(!confirm('Clear ALL businesses, citations, and settings? This cannot be undone.')) return;
+  if(!confirm('Are you SURE? Type Yes to confirm.')) return;
+  localStorage.removeItem(STORE_KEY);
+  state = clone(defaultState);
+  renderAll();
+  toast('All data cleared','success');
+}
+
+/* ---------- SCAN ENGINE ---------- */
+let scanCancel = false;
+
+async function scanActive(){
+  const b = activeBiz();
+  if(!b){ toast('Select a business first','err'); return; }
+  await runScan(b);
+}
+
+async function scanAllPending(){
+  for(const b of state.businesses){
+    if(scanCancel) break;
+    if(Object.keys(b.citations||{}).length < getActiveDirectories().length){
+      state.activeBizId = b.id;
+      renderBizList();
+      await runScan(b);
+    }
+  }
+}
+
+async function runScan(biz){
+  const provId = state.settings.provider;
+  const prov = PROVIDERS[provId];
+  if(!prov){ toast('Unknown provider','err'); return; }
+  if(provId === 'manual'){
+    // Manual mode: fill in Google search links for each directory without running queries
+    const dirs = getActiveDirectories();
+    biz.citations = biz.citations || {};
+    dirs.forEach(d=>{
+      const q = manualQuery(biz, d);
+      biz.citations[d.id] = {status:'idle', manualUrl:`https://www.google.com/search?q=${encodeURIComponent(q)}`};
+    });
+    biz.status = 'idle';
+    saveState(); renderAll();
+    toast('Manual mode: click 🔎 in the Citations tab to verify each directory.', 'info');
+    return;
+  }
+  const keys = state.settings.keys[provId];
+  if(!keys || !prov.fields.every(f=>keys[f.key])){
+    toast('Provider not configured. Open Settings.','err');
+    openSettings(); return;
+  }
+
+  scanCancel = false;
+  biz.status = 'running';
+  biz.citations = biz.citations || {};
+  saveState(); renderBizList();
+  document.getElementById('ft-status').textContent = `Scanning ${biz.name}…`;
+  setTab('citations'); // jump to citations view
+
+  const dirs = getActiveDirectories();
+  let done = 0;
+  const total = dirs.length;
+  const queue = dirs.slice();
+  const concur = state.settings.concurrency;
+  const workers = Array.from({length:concur}, ()=>worker());
+
+  async function worker(){
+    while(queue.length){
+      if(scanCancel) return;
+      const d = queue.shift();
+      if(!d) return;
+      biz.citations[d.id] = biz.citations[d.id] || {};
+      biz.citations[d.id].status = 'running';
+      renderCenter();
+      try {
+        const country = (biz.country==='all'?'us':biz.country);
+        const query = `site:${d.domain} ("${biz.name.replace(/"/g,'')}" OR "${phonePretty(biz.phone)}" OR "${biz.phone}")`;
+        const results = await prov.search({query, num: state.settings.results, country, key: keys});
+        const match = pickMatch(biz, d, results);
+        biz.citations[d.id] = match;
+      } catch(err){
+        biz.citations[d.id] = {status:'err', error: String(err.message||err).slice(0,200)};
+      }
+      done++;
+      document.getElementById('ft-status').textContent = `Scanning ${biz.name} (${done}/${total})…`;
+      renderCenter(); saveState();
+      if(state.settings.delay) await sleep(state.settings.delay);
+    }
+  }
+  await Promise.all(workers);
+
+  biz.status = scanCancel ? 'idle' : 'done';
+  saveState(); renderAll();
+  document.getElementById('ft-status').textContent = scanCancel ? 'Scan cancelled' : `Done — ${biz.name}`;
+  if(!scanCancel) toast(`Scan complete: ${biz.name}`, 'success');
+}
+
+function phonePretty(p){ const d = phoneDigits(p); if(d.length===10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; return p; }
+
+function manualQuery(b, d){
+  return `site:${d.domain} ("${b.name}" OR "${b.phone}")`;
+}
+
+function pickMatch(biz, dir, results){
+  if(!results || !results.length) return {status:'miss'};
+  // Filter to the directory's domain
+  const onDomain = results.filter(r=>{
+    try { const u = new URL(r.link); return u.hostname.includes(dir.domain.replace(/^www\./,'')); } catch(e){ return false; }
+  });
+  if(!onDomain.length) return {status:'miss', considered: results.length};
+  // Score each by NAP overlap
+  const scored = onDomain.map(r=>{
+    const text = ((r.title||'')+' '+(r.snippet||'')+' '+(r.link||'')).toLowerCase();
+    const nameNorm = normalize(biz.name);
+    const phoneNorm = phoneDigits(biz.phone);
+    let score = 0;
+    const napCheck = {};
+    // name
+    const textNorm = normalize(text);
+    if(textNorm.includes(nameNorm) && nameNorm.length>=3){ score+=4; napCheck.name='ok'; }
+    else {
+      // fuzzy
+      const titleNorm = normalize(r.title||'');
+      const dist = Math.min(levenshtein(nameNorm.slice(0,Math.min(40,nameNorm.length)), titleNorm.slice(0,Math.min(40,titleNorm.length))));
+      if(!state.settings.napStrict && dist<=2 && nameNorm.length>=4){ score+=3; napCheck.name='fuzzy'; }
+      else napCheck.name = 'bad';
+    }
+    // phone
+    if(phoneNorm && text.replace(/\D/g,'').includes(phoneNorm)){ score+=4; napCheck.phone='ok'; }
+    else napCheck.phone='un';
+    // address parts
+    const cityN = normalize(biz.city);
+    const zipN = normalize(biz.zip);
+    const stateN = normalize(biz.state);
+    if(cityN && textNorm.includes(cityN)){ score+=2; napCheck.addr='ok'; }
+    else if(zipN && text.replace(/\D/g,'').includes(zipN)){ score+=2; napCheck.addr='ok'; }
+    else if(stateN && textNorm.includes(stateN)){ score+=1; napCheck.addr='partial'; }
+    else napCheck.addr='un';
+    return {r, score, napCheck};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  const best = scored[0];
+  if(best.score >= 4) {
+    // Determine partial vs full match
+    const isFull = best.napCheck.name==='ok' && best.napCheck.phone==='ok';
+    return {
+      status: isFull ? 'found' : 'partial',
+      url: best.r.link,
+      title: best.r.title,
+      snippet: best.r.snippet,
+      napCheck: best.napCheck,
+      otherMatches: scored.length>1 ? scored.length-1 : 0,
+    };
+  }
+  return {status:'miss', considered: results.length};
+}
+
+/* ---------- RENDERING ---------- */
+function setTab(t){
+  state.tab = t;
+  document.querySelectorAll('.cb-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  renderCenter();
+}
+
+function renderAll(){
+  renderBizList();
+  renderHeader();
+  renderCenter();
+  document.getElementById('ft-provider-name').textContent = PROVIDERS[state.settings.provider]?.label || 'none';
+}
+
+function renderHeader(){
+  const b = activeBiz();
+  const dirs = getActiveDirectories();
+  const found = b ? Object.values(b.citations||{}).filter(c=>c.status==='found' || c.status==='partial').length : 0;
+  const miss = b ? Object.values(b.citations||{}).filter(c=>c.status==='miss').length : 0;
+  document.getElementById('stat-dir').textContent = dirs.length;
+  document.getElementById('stat-found').textContent = found;
+  document.getElementById('stat-miss').textContent = miss;
+  document.getElementById('tab-count-cit').textContent = found;
+  document.getElementById('tab-count-miss').textContent = miss;
+}
+
+function renderCenter(){
+  const body = document.getElementById('center-body');
+  const b = activeBiz();
+  if(!b){
+    body.innerHTML = `<div class="empty-state" id="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <div><div class="es-t">Citation Finder Pro</div><div class="es-d">Add a business on the left, configure a SERP provider in <strong>Settings</strong>, and click <strong>Scan</strong>.</div></div>
+    </div>`;
+    return;
+  }
+  const tab = state.tab;
+  if(tab==='overview') return renderOverview(body, b);
+  if(tab==='citations') return renderCitations(body, b, 'all');
+  if(tab==='missing')   return renderCitations(body, b, 'miss');
+  if(tab==='nap')       return renderNAPAudit(body, b);
+  if(tab==='directories')return renderDirectories(body, b);
+}
+
+function renderOverview(body, b){
+  const dirs = getActiveDirectories();
+  const found = dirs.filter(d=>['found','partial'].includes(b.citations[d.id]?.status)).length;
+  const miss  = dirs.filter(d=>b.citations[d.id]?.status==='miss').length;
+  const fullM = dirs.filter(d=>b.citations[d.id]?.status==='found').length;
+  const partM = dirs.filter(d=>b.citations[d.id]?.status==='partial').length;
+  const scanned = found + miss;
+  const pct = dirs.length ? Math.round(scanned/dirs.length*100) : 0;
+  // NAP issue count
+  const napIssues = dirs.filter(d=>{
+    const c = b.citations[d.id]; if(!c||!c.napCheck) return false;
+    return c.napCheck.name==='bad' || c.napCheck.phone==='un';
+  }).length;
+  // Top miss recommendations
+  const topMiss = dirs.filter(d=>b.citations[d.id]?.status==='miss' || !b.citations[d.id]).sort((a,b)=>b.da-a.da).slice(0,10);
+  body.innerHTML = `
+    <div class="summary-grid">
+      <div class="scard"><div class="scard-label">Business</div><div class="scard-val" style="font-size:15px;line-height:1.3;font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(b.name)}</div><div class="scard-sub">${flagFor(b.country)} ${escapeHtml(b.city||b.country.toUpperCase())} · ${escapeHtml(b.category)}</div></div>
+      <div class="scard"><div class="scard-label">Directories</div><div class="scard-val">${dirs.length}</div><div class="scard-sub">${state.settings.cats.length} categories enabled</div></div>
+      <div class="scard found"><div class="scard-label">Citations Found</div><div class="scard-val">${found}</div><div class="scard-sub">${fullM} full + ${partM} partial</div></div>
+      <div class="scard miss"><div class="scard-label">Missing</div><div class="scard-val">${miss}</div><div class="scard-sub">${dirs.length-scanned} not yet scanned</div></div>
+      <div class="scard partial"><div class="scard-label">NAP Issues</div><div class="scard-val">${napIssues}</div><div class="scard-sub">Inconsistent name/phone</div></div>
+      <div class="scard"><div class="scard-label">Scan Coverage</div><div class="scard-val">${pct}%</div><div class="scard-sub">${scanned}/${dirs.length} directories scanned</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-hdr"><h3>Top Missing Citation Opportunities</h3><span class="badge miss">${topMiss.length} of ${miss+dirs.filter(d=>!b.citations[d.id]).length}</span></div>
+      <div class="section-body">
+        ${topMiss.length ? `<table class="ctable">
+          <thead><tr><th>#</th><th>Directory</th><th>DA</th><th>Country</th><th>Category</th><th style="text-align:right">Action</th></tr></thead>
+          <tbody>${topMiss.map((d,i)=>`
+            <tr>
+              <td style="color:var(--text3);font-family:var(--mono)">${i+1}</td>
+              <td><div class="dir-name">${escapeHtml(d.name)}</div><div class="dir-domain">${escapeHtml(d.domain)}</div></td>
+              <td>${daPill(d.da)}</td>
+              <td><span class="country-flag">${d.countries.map(c=>flagFor(c)).slice(0,3).join('')}</span></td>
+              <td style="font-size:11px;color:var(--text2)">${escapeHtml(catLabel(d.cat))}</td>
+              <td style="text-align:right">
+                <div class="row-actions" style="justify-content:flex-end">
+                  ${d.submitUrl ? `<a href="${escapeAttr(d.submitUrl)}" target="_blank" rel="noopener" title="Submit listing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></a>` : ''}
+                  <a href="https://www.google.com/search?q=${encodeURIComponent(manualQuery(b,d))}" target="_blank" rel="noopener" title="Verify on Google"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></a>
+                </div>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : `<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px">No missing directories — nice work, or scan to populate.</div>`}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-hdr"><h3>Quick Actions</h3></div>
+      <div class="section-body" style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">
+        <button class="cb-btn primary" onclick="scanActive()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Scan / Re-scan ${escapeHtml(b.name)}</button>
+        <button class="cb-btn" onclick="openEditBiz('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z"/></svg> Edit Business Details</button>
+        <button class="cb-btn" onclick="setTab('missing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> View ${miss} missing citations</button>
+        <button class="cb-btn" onclick="setTab('nap')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> NAP Audit (${napIssues} issues)</button>
+        <button class="cb-btn" onclick="exportData('report')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generate White-label Report</button>
+      </div>
+    </div>
+  `;
+}
+
+function catLabel(id){ return (DIRECTORY_CATEGORIES.find(c=>c.id===id)||{}).label || id; }
+
+function renderCitations(body, b, filter){
+  const dirs = getActiveDirectories();
+  let rows = dirs.map(d=>({dir:d, c: b.citations[d.id]||{status:'idle'}}));
+  if(filter==='miss') rows = rows.filter(r=>r.c.status==='miss'||r.c.status==='idle'||!r.c.status);
+  // Sort: found first by DA then miss by DA
+  rows.sort((a,bx)=>{
+    const order = {found:0,partial:1,running:2,idle:3,err:4,miss:5};
+    const oa = order[a.c.status]||3, ob = order[bx.c.status]||3;
+    if(oa!==ob) return oa-ob;
+    return bx.dir.da - a.dir.da;
+  });
+  body.innerHTML = `
+    <div class="section">
+      <div class="section-hdr">
+        <h3>${filter==='miss'?'Missing Citations':'All Directories'} — ${escapeHtml(b.name)}</h3>
+        <span class="badge">${rows.length}</span>
+      </div>
+      <div class="section-body">
+        <table class="ctable">
+          <thead><tr>
+            <th>Directory</th>
+            <th>DA</th>
+            <th>Country</th>
+            <th>Status</th>
+            <th>Found URL</th>
+            <th>NAP</th>
+            <th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody>
+          ${rows.map(({dir,c})=>{
+            const status = c.status||'idle';
+            const napFlag = c.napCheck ? `<div class="nap-flag">
+              <span class="${c.napCheck.name==='ok'?'ok':c.napCheck.name==='fuzzy'?'ok':c.napCheck.name==='bad'?'bad':'un'}" title="Name">N</span>
+              <span class="${c.napCheck.phone==='ok'?'ok':c.napCheck.phone==='un'?'un':'bad'}" title="Phone">P</span>
+              <span class="${c.napCheck.addr==='ok'?'ok':c.napCheck.addr==='partial'?'un':'un'}" title="Address">A</span>
+            </div>` : '<span style="color:var(--text3);font-size:10px;font-family:var(--mono)">—</span>';
+            return `<tr>
+              <td><div class="dir-name">${escapeHtml(dir.name)}</div><div class="dir-domain">${escapeHtml(dir.domain)} · ${escapeHtml(catLabel(dir.cat))}</div></td>
+              <td>${daPill(dir.da)}</td>
+              <td>${dir.countries.map(c=>flagFor(c)).slice(0,3).join('')}</td>
+              <td><span class="status-pill ${status}"><span class="dot"></span> ${status==='idle'?'Not scanned':status==='miss'?'Missing':status==='partial'?'Partial':status==='found'?'Found':status==='running'?'Scanning':status==='err'?'Error':status}</span></td>
+              <td style="max-width:260px;font-size:10.5px;font-family:var(--mono)">${c.url ? `<a href="${escapeAttr(c.url)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(c.url)}</a><div style="color:var(--text3);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${escapeHtml(c.title||'')}</div>`:c.error?`<span style="color:var(--danger)">${escapeHtml(c.error)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
+              <td>${napFlag}</td>
+              <td style="text-align:right">
+                <div class="row-actions" style="justify-content:flex-end">
+                  ${c.url ? `<a href="${escapeAttr(c.url)}" target="_blank" rel="noopener" title="Open listing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:''}
+                  ${dir.submitUrl?`<a href="${escapeAttr(dir.submitUrl)}" target="_blank" rel="noopener" title="Submit / Claim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></a>`:''}
+                  <a href="${c.manualUrl||'https://www.google.com/search?q='+encodeURIComponent(manualQuery(b,dir))}" target="_blank" rel="noopener" title="Verify on Google"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></a>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderNAPAudit(body, b){
+  const dirs = getActiveDirectories();
+  const found = dirs.filter(d=>b.citations[d.id]?.status==='found' || b.citations[d.id]?.status==='partial');
+  const issues = found.filter(d=>{
+    const c = b.citations[d.id]; return c.napCheck && (c.napCheck.name==='bad' || c.napCheck.phone==='un' || c.napCheck.addr==='un' || c.napCheck.name==='fuzzy');
+  });
+  body.innerHTML = `
+    <div class="summary-grid">
+      <div class="scard"><div class="scard-label">Listings Found</div><div class="scard-val">${found.length}</div></div>
+      <div class="scard partial"><div class="scard-label">With NAP Issues</div><div class="scard-val">${issues.length}</div></div>
+      <div class="scard found"><div class="scard-label">Consistent</div><div class="scard-val">${found.length-issues.length}</div></div>
+      <div class="scard"><div class="scard-label">Health Score</div><div class="scard-val">${found.length?Math.round((found.length-issues.length)/found.length*100):0}%</div></div>
+    </div>
+    <div class="section">
+      <div class="section-hdr"><h3>NAP Inconsistency Report — ${escapeHtml(b.name)}</h3><span class="badge partial">${issues.length} flagged</span></div>
+      <div class="section-body">
+        <div style="padding:10px 14px;font-size:11.5px;color:var(--text2);border-bottom:1px solid var(--border);font-family:var(--mono);background:var(--bg3)">
+          Reference: <strong style="color:var(--text)">${escapeHtml(b.name)}</strong> · ${escapeHtml(b.phone)} · ${escapeHtml([b.addr,b.city,b.state,b.zip].filter(Boolean).join(', '))}
+        </div>
+        ${issues.length ? `<table class="ctable">
+          <thead><tr><th>Directory</th><th>Listing URL</th><th>Name match</th><th>Phone</th><th>Address</th><th>Snippet (evidence)</th></tr></thead>
+          <tbody>${issues.map(d=>{
+            const c = b.citations[d.id];
+            return `<tr>
+              <td><div class="dir-name">${escapeHtml(d.name)}</div><div class="dir-domain">${escapeHtml(d.domain)}</div></td>
+              <td style="max-width:200px;font-size:10.5px;font-family:var(--mono)"><a href="${escapeAttr(c.url||'#')}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(c.url||'')}</a></td>
+              <td>${napFlagCell(c.napCheck?.name)}</td>
+              <td>${napFlagCell(c.napCheck?.phone)}</td>
+              <td>${napFlagCell(c.napCheck?.addr)}</td>
+              <td style="max-width:260px;font-size:10.5px;color:var(--text2);line-height:1.45">${escapeHtml((c.snippet||'').slice(0,180))}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>` : `<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px">No NAP inconsistencies detected.</div>`}
+      </div>
+    </div>`;
+}
+
+function napFlagCell(v){
+  if(v==='ok') return `<span class="status-pill found"><span class="dot"></span> OK</span>`;
+  if(v==='fuzzy') return `<span class="status-pill partial"><span class="dot"></span> Fuzzy</span>`;
+  if(v==='bad') return `<span class="status-pill miss"><span class="dot"></span> Mismatch</span>`;
+  if(v==='partial') return `<span class="status-pill partial"><span class="dot"></span> Partial</span>`;
+  return `<span class="status-pill idle"><span class="dot"></span> Unknown</span>`;
+}
+
+function renderDirectories(body, b){
+  body.innerHTML = `
+    <div class="section">
+      <div class="section-hdr"><h3>Directory Database — ${DIRECTORIES.length} directories</h3><span class="badge">${getActiveDirectories().length} active for ${b? flagFor(b.country):'all'}</span></div>
+      <div class="section-body">
+        <table class="ctable">
+          <thead><tr><th>Directory</th><th>Category</th><th>DA</th><th>Countries</th><th>Free?</th><th>Submit URL</th></tr></thead>
+          <tbody>${DIRECTORIES.map(d=>`
+            <tr>
+              <td><div class="dir-name">${escapeHtml(d.name)}</div><div class="dir-domain">${escapeHtml(d.domain)}</div>${d.note?`<div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--font)">${escapeHtml(d.note)}</div>`:''}</td>
+              <td><span class="status-pill idle" style="background:var(--bg3)">${escapeHtml(catLabel(d.cat))}</span></td>
+              <td>${daPill(d.da)}</td>
+              <td>${d.countries.map(c=>flagFor(c)).join(' ')}</td>
+              <td>${d.free? '<span style="color:var(--success);font-weight:700;font-family:var(--mono);font-size:11px">FREE</span>' : '<span style="color:var(--amber);font-weight:700;font-family:var(--mono);font-size:11px">PAID</span>'}</td>
+              <td>${d.submitUrl ? `<a href="${escapeAttr(d.submitUrl)}" target="_blank" rel="noopener" style="color:var(--accent);font-family:var(--mono);font-size:10.5px;text-decoration:none">Submit →</a>` : '<span style="color:var(--text3)">—</span>'}</td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ---------- WHITE-LABEL HTML REPORT ---------- */
+function buildReportHTML(b){
+  const dirs = getActiveDirectories();
+  const found = dirs.filter(d=>['found','partial'].includes(b.citations[d.id]?.status));
+  const miss  = dirs.filter(d=>b.citations[d.id]?.status==='miss'||!b.citations[d.id]);
+  const issues = found.filter(d=>{
+    const c = b.citations[d.id]; return c.napCheck && (c.napCheck.name==='bad' || c.napCheck.phone==='un' || c.napCheck.addr==='un');
+  });
+  const score = dirs.length ? Math.round(found.length/dirs.length*100) : 0;
+  const css = `
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,sans-serif}
+body{padding:24px;background:#f3f6fb;color:#0f1a2e;font-size:13px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 4px 16px rgba(15,26,46,.1);padding:34px}
+.hdr{display:flex;align-items:center;gap:14px;border-bottom:2px solid #e9eef7;padding-bottom:20px;margin-bottom:24px}
+.logo{width:46px;height:46px;background:linear-gradient(135deg,#2563eb,#0d9488);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:800}
+h1{font-size:22px;font-weight:800;margin-bottom:3px}
+h2{font-size:16px;font-weight:700;margin:24px 0 10px;color:#0f1a2e}
+.sub{font-size:12px;color:#5b6b88}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.card{background:#f3f6fb;border:1px solid #e9eef7;border-radius:10px;padding:14px 16px}
+.card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#5b6b88;font-weight:700}
+.card .val{font-size:24px;font-weight:800;color:#0f1a2e;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.card.green .val{color:#16a34a}
+.card.red .val{color:#dc2626}
+.card.amber .val{color:#d97706}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11.5px}
+th{background:#f3f6fb;text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:#5b6b88;border-bottom:1px solid #d1d9e8}
+td{padding:8px 10px;border-bottom:1px solid #e9eef7;vertical-align:middle}
+.pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.pill.found{background:#dcfce7;color:#16a34a}
+.pill.miss{background:#fee2e2;color:#dc2626}
+.pill.partial{background:#fef3c7;color:#d97706}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+.foot{margin-top:32px;padding-top:14px;border-top:1px solid #e9eef7;font-size:11px;color:#5b6b88;text-align:center}
+@media print{body{padding:0;background:#fff}.wrap{box-shadow:none;border-radius:0;padding:20px}}
+`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Citation Report — ${escapeHtml(b.name)}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><style>${css}</style></head><body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="logo">📍</div>
+    <div>
+      <h1>Citation Report — ${escapeHtml(b.name)}</h1>
+      <div class="sub">${flagFor(b.country)} ${escapeHtml(b.city||'')} · ${escapeHtml(b.phone)} · Generated ${new Date().toLocaleDateString()}</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="lbl">Directories Scanned</div><div class="val">${dirs.length}</div></div>
+    <div class="card green"><div class="lbl">Citations Found</div><div class="val">${found.length}</div></div>
+    <div class="card red"><div class="lbl">Missing</div><div class="val">${miss.length}</div></div>
+    <div class="card amber"><div class="lbl">NAP Issues</div><div class="val">${issues.length}</div></div>
+  </div>
+  <h2>Citation Health Score: ${score}%</h2>
+  <p class="sub">A higher score means broader directory coverage. Aim for ${'>'}70% on Tier-1 + your industry directories. Fix NAP issues before submitting new citations to prevent duplicate listings.</p>
+
+  <h2>Citations Found (${found.length})</h2>
+  <table><thead><tr><th>Directory</th><th>DA</th><th>Status</th><th>Listing URL</th></tr></thead><tbody>
+    ${found.map(d=>{const c=b.citations[d.id];return `<tr><td><strong>${escapeHtml(d.name)}</strong><br><span style="color:#8a9ab5;font-family:'JetBrains Mono',monospace;font-size:10px">${escapeHtml(d.domain)}</span></td><td>${d.da}</td><td><span class="pill ${c.status}">${c.status.toUpperCase()}</span></td><td><a href="${escapeAttr(c.url)}" target="_blank">${escapeHtml(c.url||'')}</a></td></tr>`;}).join('')}
+  </tbody></table>
+
+  <h2>Top Missing Opportunities (${Math.min(20,miss.length)} of ${miss.length})</h2>
+  <table><thead><tr><th>Directory</th><th>DA</th><th>Country</th><th>Submit</th></tr></thead><tbody>
+    ${miss.sort((a,b)=>b.da-a.da).slice(0,20).map(d=>`<tr><td><strong>${escapeHtml(d.name)}</strong><br><span style="color:#8a9ab5;font-family:'JetBrains Mono',monospace;font-size:10px">${escapeHtml(d.domain)}</span></td><td>${d.da}</td><td>${d.countries.map(c=>flagFor(c)).join(' ')}</td><td>${d.submitUrl?`<a href="${escapeAttr(d.submitUrl)}" target="_blank">Submit →</a>`:'—'}</td></tr>`).join('')}
+  </tbody></table>
+
+  ${issues.length ? `<h2>NAP Inconsistencies (${issues.length})</h2>
+  <table><thead><tr><th>Directory</th><th>Name</th><th>Phone</th><th>Address</th><th>URL</th></tr></thead><tbody>
+    ${issues.map(d=>{const c=b.citations[d.id];return `<tr><td><strong>${escapeHtml(d.name)}</strong></td><td><span class="pill ${c.napCheck.name==='bad'?'miss':c.napCheck.name==='fuzzy'?'partial':'found'}">${(c.napCheck.name||'').toUpperCase()}</span></td><td><span class="pill ${c.napCheck.phone==='ok'?'found':'miss'}">${(c.napCheck.phone||'').toUpperCase()}</span></td><td><span class="pill ${c.napCheck.addr==='ok'?'found':'partial'}">${(c.napCheck.addr||'').toUpperCase()}</span></td><td><a href="${escapeAttr(c.url)}" target="_blank">View</a></td></tr>`;}).join('')}
+  </tbody></table>`:''}
+
+  <div class="foot">Generated by Citation Finder Pro · ${new Date().toLocaleString()}<br>Mukesh Kr · techie1418@gmail.com</div>
+</div>
+<script src="global-nav.js"><\/script>
+</body></html>`;
+}
+
+/* ---------- BOOT ---------- */
+renderAll();
+window.addEventListener('beforeunload', ()=>saveState());
+
+</script>
+
+<script src="global-nav.js"></script>
+</body>
+</html>
