@@ -737,7 +737,7 @@ html:not(.gn-hide-pagehdr) #header{flex-wrap:wrap;height:auto;min-height:52px;ro
           <a href="#" id="gn-foot-add">Add Tool</a>
         </span>
         <span class="gn-foot-sp"></span>
-        <span class="gn-foot-meta">${n} tools · Local SEO Suite · Developed by <a href="mailto:techie1418@gmail.com">Mukesh&nbsp;Kr</a></span>
+        <span class="gn-foot-meta">© 2026 <a href="mailto:techie1418@gmail.com">Mukesh&nbsp;Kr</a> · All rights reserved · ${n} tools · Developed by Mukesh&nbsp;Kr</span>
         <button class="gn-foot-theme" id="gn-foot-theme" title="Toggle light / dark (global)"><span data-gn-theme-icon></span><span class="gn-theme-lbl">Light</span></button>
       </div>
     `;
