@@ -14,7 +14,7 @@
  * The moment AUTH_SECRET is set, the login gate is enforced on every request.
  * ========================================================================== */
 export const config = {
-  matcher: ['/((?!login|api/login|api/logout|favicon.ico|robots.txt|sitemap.xml|_vercel).*)'],
+  matcher: ['/((?!login|api/|favicon.ico|robots.txt|sitemap.xml|_vercel).*)'],
 };
 
 const enc = new TextEncoder();

@@ -7,6 +7,45 @@ client-side now vs. what needs a backend.
 
 ---
 
+## ✅ Phase 1 backend — BUILT & tested (free tier). Turn it on in ~5 min.
+
+A real backend now ships in this repo (`/api`, `/lib`, `/db`, `vercel.json`). It is
+**off by default** and the site works 100% without it; it activates when you add a
+free Neon database. Everything below runs on **free** plans.
+
+**What it adds:** saved data in a real database (businesses, keywords, scans,
+schedules) + **unattended scheduled scans** that run on the server via Vercel Cron
+(daily) even when no browser is open. The geo-grid tool gets a **"Save to cloud &
+schedule"** button (Scheduled Scans panel) once the DB is connected.
+
+**Setup (all free):**
+1. **Create a free Neon database** → https://neon.tech (free tier). Copy the
+   **pooled** connection string (looks like `postgresql://user:pass@ep-xxx-pooler.<region>.aws.neon.tech/neondb?sslmode=require`).
+2. In **Vercel → your project → Settings → Environment Variables**, add:
+   - `DATABASE_URL` = the Neon pooled connection string
+   - `SERPER_KEY` = a free Serper.dev key (for the server-side cron scans)
+   - *(optional)* `CRON_SECRET` = any random string (locks the cron endpoint to Vercel)
+3. **Redeploy.** Then create the tables once: while signed in, send a POST to
+   **`/api/migrate`** (e.g. browser console on your site:
+   `fetch('/api/migrate',{method:'POST'}).then(r=>r.json()).then(console.log)`).
+4. Open the **Geo-Grid Tracker** → Scheduled Scans → **"Save to cloud & schedule"**.
+   The daily Vercel cron (`0 6 * * *`) will rescan and store results automatically.
+
+**Verify:** `GET /api/health` returns `{configured:true, db:true}` when connected.
+
+**Paid upgrades (add later when you want):**
+- Sub-daily / more cron jobs → Vercel **Pro**.
+- Higher-accuracy or higher-volume scans → **DataForSEO** (`DATAFORSEO_KEY`) or paid
+  Serper/SerpAPI tiers.
+- Email reports/alerts → add **Resend** (free 3k/mo) — Phase 3.
+
+> Tested locally end-to-end against Postgres (Docker): auth, migrate, business /
+> keyword / scan / schedule CRUD, and the cron engine running a due schedule,
+> scanning all keywords, storing results, and rescheduling. 16/16 backend checks +
+> browser cloud-sync checks passed.
+
+---
+
 ## Reality check (read this first)
 
 The suite is **100% static HTML on Vercel** (plus a tiny auth middleware). That shapes

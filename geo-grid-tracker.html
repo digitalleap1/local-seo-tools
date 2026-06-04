@@ -230,6 +230,7 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
         <option value="monthly">Monthly</option>
       </select></div>
       <div class="hint" id="sched-hint"></div>
+      <div id="cloud-box" style="margin-top:9px"></div>
     </div>
 
     <div class="sec">
@@ -299,12 +300,14 @@ const STORE='gg_state_v1';
 const DEFAULTS={biz:'',loc:'',center:null,keywords:[],kw:'',grid:7,radius:2,unit:'mi',circular:false,
   excluded:{},src:'demo',keys:{dataforseo:'',serpapi:'',serper:'',places:''},key:'',
   usage:{serper:0,serpapi:0,dataforseo:0},
+  cloud:{businessId:null,scheduleId:null},
   schedule:{freq:'off',nextRun:null,lastRun:null},scans:[],active:null,reportTitle:''};
 let state=load();
 function load(){
   let s;try{s=Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(STORE))||{});}catch(e){s=Object.assign({},DEFAULTS);}
   s.keys=Object.assign({dataforseo:'',serpapi:'',serper:'',places:''},s.keys||{});
   s.usage=Object.assign({serper:0,serpapi:0,dataforseo:0},s.usage||{});
+  s.cloud=Object.assign({businessId:null,scheduleId:null},s.cloud||{});
   s.schedule=Object.assign({freq:'off',nextRun:null,lastRun:null},s.schedule||{});
   s.excluded=s.excluded||{};
   if(!Array.isArray(s.keywords)) s.keywords=[];
@@ -543,6 +546,7 @@ async function runScan(opts){
     const scan={id:Date.now()+ki,ts:new Date().toISOString(),biz:state.biz,kw,center,grid:state.grid,radius:state.radius,unit:state.unit,circular:state.circular,
       src:state.src,results:data.results,comps:data.comps||[],metrics:computeMetrics(data.results)};
     state.scans.unshift(scan); lastScan=scan; ok++;
+    pushScanToCloud(scan);
   }
   state.scans=state.scans.slice(0,50); state.active=lastScan?lastScan.id:state.active; state.kw=lastScan?lastScan.kw:state.kw; save();
   if(lastScan) viewScan(lastScan.id);
@@ -754,6 +758,63 @@ function checkSchedule(){
   }
 }
 
+/* ---------- CLOUD SYNC (optional — free Vercel + Neon backend) ----------
+ * Fully graceful: if /api isn't there (GitHub Pages) or DATABASE_URL isn't set,
+ * the tool stays 100% local. When a free Neon DB is configured, you can push the
+ * business + keywords + a schedule so scans run on the server (cron) unattended. */
+const cloudState={available:false};
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:{'content-type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  return {status:r.status,j};
+}
+async function checkCloud(){
+  try{ const r=await fetch('/api/health',{cache:'no-store'}); if(!r.ok){cloudState.available=false;} else { const j=await r.json(); cloudState.available=!!(j&&j.configured&&j.db); } }
+  catch(e){ cloudState.available=false; }
+  renderCloud();
+}
+function renderCloud(){
+  const box=document.getElementById('cloud-box'); if(!box) return;
+  if(!cloudState.available){
+    box.innerHTML='<div class="hint">☁️ <b>Cloud sync: off</b> (local storage only — free). Connect a free Neon database in Vercel to enable saved history + <b>unattended server scans</b>. See <code>LOCAL-SEO-PLATFORM.md</code>.</div>';
+    return;
+  }
+  box.innerHTML='<div class="upsell" style="background:linear-gradient(135deg,rgba(22,163,74,.12),rgba(37,99,235,.07))"><b style="color:var(--green)">☁️ Cloud connected.</b> Save this business + keywords + schedule so the server runs scans automatically — even with this tab closed.'+
+    '<button class="ub" style="background:linear-gradient(135deg,var(--green),var(--primary))" onclick="saveToCloud()">Save to cloud &amp; schedule →</button>'+
+    (state.cloud.businessId?'<div class="hint" style="margin-top:6px">✓ Saved. Server runs the schedule via daily cron (set <code>SERPER_KEY</code> in Vercel for live data). Completed scans on this device also sync up.</div>':'')+'</div>';
+}
+async function saveToCloud(){
+  if(!cloudState.available){ toast('Cloud not configured','err'); return; }
+  state.biz=document.getElementById('in-biz').value.trim();
+  if(!state.biz||!state.center){ toast('Set business name + center first','err'); return; }
+  if(!state.keywords.length){ toast('Add at least one keyword first','err'); return; }
+  const freq=document.getElementById('in-sched').value; const freqEff=freq==='off'?'weekly':freq;
+  try{
+    const city=(state.loc||'').split(',')[0].trim()||null;
+    const bp={name:state.biz,latitude:state.center.lat,longitude:state.center.lng,city};
+    if(state.cloud.businessId) bp.id=state.cloud.businessId;
+    let r=await api('POST','/api/businesses',bp);
+    if(r.status===401){ toast('Please sign in first (open the site via the login page), then retry','err'); return; }
+    if(r.status!==200&&r.status!==201){ toast('Cloud save failed: '+(r.j.error||r.status),'err'); return; }
+    const bid=r.j.business.id; state.cloud.businessId=bid;
+    const ex=await api('GET','/api/keywords?business_id='+bid);
+    const have=new Set((ex.j.keywords||[]).map(k=>(k.keyword||'').toLowerCase()));
+    const missing=state.keywords.map(k=>k.kw).filter(kw=>!have.has(kw.toLowerCase()));
+    if(missing.length) await api('POST','/api/keywords',{business_id:bid,keywords:missing});
+    const sp={business_id:bid,frequency:freqEff,provider:(LIVE[state.src]?state.src:'serper'),grid:state.grid,radius:state.radius,unit:state.unit,circular:state.circular};
+    if(state.cloud.scheduleId) sp.id=state.cloud.scheduleId;
+    const sr=await api('POST','/api/schedules',sp);
+    if(sr.j&&sr.j.schedule) state.cloud.scheduleId=sr.j.schedule.id;
+    save(); renderCloud();
+    document.getElementById('in-sched').value=freqEff; onSchedChange();
+    toast('Saved to cloud — server will rescan '+freqEff+' (set SERPER_KEY in Vercel for live data)','ok');
+  }catch(e){ toast('Cloud error: '+(e.message||e),'err'); }
+}
+async function pushScanToCloud(scan){
+  if(!cloudState.available||!state.cloud.businessId) return;
+  try{ await api('POST','/api/scans',{business_id:state.cloud.businessId,keyword:scan.kw,center_lat:scan.center.lat,center_lng:scan.center.lng,grid:scan.grid,radius:scan.radius,unit:scan.unit,circular:scan.circular,source:scan.src,metrics:scan.metrics,results:scan.results,comps:scan.comps}); }catch(e){}
+}
+
 /* ---------- heatmap canvas (for PNG / PDF, theme-independent) ---------- */
 const RHEX={r1:'#16a34a',r2:'#65a30d',r3:'#ca8a04',r4:'#ea580c',r5:'#dc2626',rx:'#7f1d1d'};
 function rankHex(rank){if(rank===0)return RHEX.rx;if(rank<=3)return RHEX.r1;if(rank<=7)return RHEX.r2;if(rank<=10)return RHEX.r3;if(rank<=15)return RHEX.r4;return RHEX.r5;}
@@ -888,7 +949,7 @@ function boot(){
   document.getElementById('in-src').value=state.src||'demo'; onSrcChange();
   document.getElementById('in-sched').value=state.schedule.freq||'off';
   document.getElementById('btn-circular').classList.toggle('on',!!state.circular);
-  updateSelectBtn(); updateGridHint(); renderSchedHint();
+  updateSelectBtn(); updateGridHint(); renderSchedHint(); checkCloud();
   // floating Run button (also keeps old #btn-scan id for compatibility)
   injectRunButton();
   if(state.active){const s=state.scans.find(x=>x.id===state.active);if(s){state.center=s.center;setTimeout(()=>viewScan(s.id),250);}}
