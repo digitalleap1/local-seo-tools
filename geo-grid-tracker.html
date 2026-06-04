@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Geo-Grid Rank Tracker — Local SEO Tools</title>
-<meta name="description" content="Local Falcon-style geo-grid local rank tracker: scan your Google local-pack rank across a map grid, see a heatmap, Average Rank Position, Share of Local Voice, competitors, and scan history.">
+<meta name="description" content="Local Falcon-style geo-grid local rank tracker: unlimited keywords, auto + custom grids with point selection, real Google Maps rank via DataForSEO/SerpAPI/Serper, heatmaps, scheduled scans, and PDF/Excel/CSV/PNG reports.">
 <script>(function(){var s=localStorage.getItem('seohub_theme_v1');var d=s?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);})();</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
@@ -30,7 +30,7 @@
 html,body{height:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased}
 button{font-family:var(--font);cursor:pointer;border:none;background:none}
-input,select{font-family:var(--font);outline:none}
+input,select,textarea{font-family:var(--font);outline:none}
 a{color:inherit;text-decoration:none}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}::-webkit-scrollbar-track{background:transparent}
 
@@ -46,29 +46,48 @@ a{color:inherit;text-decoration:none}
 .hstat .l{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 .theme-tg{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600}
 .theme-tg svg{width:14px;height:14px}
+.mtog{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text);flex-shrink:0}
+.mtog svg{width:18px;height:18px}
 
 #app{flex:1;display:flex;overflow:hidden;min-height:0}
-#side{width:340px;min-width:340px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
-.sec{padding:14px 16px;border-bottom:1px solid var(--border)}
+#side{width:344px;min-width:344px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sec{padding:13px 16px;border-bottom:1px solid var(--border)}
 .sec h3{font-size:10px;font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.sec h3 .ct{margin-left:auto;color:var(--text3);font-weight:700}
 .f{margin-bottom:10px}
+.f:last-child{margin-bottom:0}
 .f label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
-.f input,.f select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--text)}
-.f input:focus,.f select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.f input,.f select,.f textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--text)}
+.f textarea{resize:vertical;min-height:60px;font-family:var(--mono);font-size:12px}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{flex:1;text-align:center;padding:8px 4px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;color:var(--text2);background:var(--bg);cursor:pointer;min-width:42px}
+.chip{flex:1;text-align:center;padding:8px 4px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;color:var(--text2);background:var(--bg);cursor:pointer;min-width:40px}
 .chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
 .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:10px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.32)}
 .btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.6;cursor:wait}
 .btn svg{width:16px;height:16px}
 .btn.sec2{background:var(--bg3);color:var(--text);box-shadow:none;border:1px solid var(--border);font-size:12px;padding:9px}
+.btn.sec2:hover{filter:none;border-color:var(--primary);color:var(--primary)}
+.btn.sec2.on{background:var(--primary);color:#fff;border-color:var(--primary)}
 .hint{font-size:10.5px;color:var(--text3);line-height:1.5;margin-top:7px;font-family:var(--mono)}
+.hint code{background:var(--bg3);padding:1px 5px;border-radius:4px}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .mc{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
 .mc .v{font-size:24px;font-weight:900;font-family:var(--mono);line-height:1}
 .mc .l{font-size:10px;color:var(--text3);margin-top:4px;font-weight:600}
 .mc.arp .v{color:var(--primary)}.mc.solv .v{color:var(--green)}.mc.cov .v{color:var(--amber)}.mc.t3 .v{color:var(--purple)}
+/* keyword manager */
+.kwadd{display:flex;gap:7px}
+.kwadd input{flex:1}
+.kwadd button{width:auto;padding:9px 13px}
+.kwlist{margin-top:9px;display:flex;flex-direction:column;gap:5px;max-height:170px;overflow-y:auto}
+.kwrow{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer}
+.kwrow.on{border-color:var(--primary);background:var(--primary-soft)}
+.kwrow .kn{flex:1;min-width:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kwrow .kr{font-family:var(--mono);font-weight:800;font-size:13px}
+.kwrow .kx{color:var(--text3);font-size:13px;padding:2px 5px}.kwrow .kx:hover{color:var(--red)}
+.kwrow .ktag{font-size:9px;font-family:var(--mono);color:var(--text3)}
 .hist-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--bg)}
 .hist-item:hover{border-color:var(--primary)}.hist-item.on{border-color:var(--primary);background:var(--primary-soft)}
 .hist-item .hk{flex:1;min-width:0}
@@ -76,18 +95,32 @@ a{color:inherit;text-decoration:none}
 .hist-item .hd{font-size:10px;color:var(--text3);font-family:var(--mono)}
 .hist-item .ha{font-family:var(--mono);font-weight:800;font-size:15px}
 .hist-x{color:var(--text3);font-size:14px;padding:2px 5px}.hist-x:hover{color:var(--red)}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 
 #main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
-#map{flex:1;background:var(--bg3);z-index:1}
+#kwbar{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;min-height:44px}
+#kwbar::-webkit-scrollbar{height:5px}
+.kwpill{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:18px;font-size:12px;font-weight:700;color:var(--text2);background:var(--bg);cursor:pointer;white-space:nowrap}
+.kwpill.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.kwpill .pa{font-family:var(--mono);font-size:11px;opacity:.85}
+#kwbar .kwbar-lbl{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.6px;color:var(--text3);flex-shrink:0}
+#mapwrap{flex:1;position:relative;min-height:0}
+#map{position:absolute;inset:0;background:var(--bg3);z-index:1}
 .gp{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;color:#fff;border-radius:50%;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.gp.ex{background:transparent!important;border:2px dashed var(--text3);color:var(--text3)}
+.gp.pv{opacity:.92}
 .legend{position:absolute;bottom:18px;right:18px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;z-index:20;box-shadow:var(--shadow-md);font-size:11px}
 .legend .lr{display:flex;align-items:center;gap:7px;margin:3px 0}
 .legend .sw{width:14px;height:14px;border-radius:4px}
 .legend h4{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:6px}
-.overlay{position:absolute;inset:0;background:rgba(6,16,31,.45);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:25;flex-direction:column;gap:14px;color:#fff}
+.maptip{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--primary);color:var(--text);padding:6px 13px;border-radius:18px;z-index:22;font-size:11.5px;font-weight:600;box-shadow:var(--shadow-md);display:none}
+.maptip.show{display:block}
+.overlay{position:absolute;inset:0;background:rgba(6,16,31,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:25;flex-direction:column;gap:14px;color:#fff}
 .overlay.show{display:flex}
 .spin{width:42px;height:42px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.ov-bar{width:240px;height:6px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden}
+.ov-bar>div{height:100%;width:0;background:#fff;transition:width .2s}
 #botpanel{height:230px;flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;overflow:hidden}
 .bp-col{flex:1;overflow-y:auto;padding:12px 16px;border-right:1px solid var(--border)}
 .bp-col:last-child{border-right:none}
@@ -98,14 +131,22 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
 .bizrow td:first-child{font-weight:700}
 .you{color:var(--primary);font-weight:800}
 .empty{padding:40px 16px;text-align:center;color:var(--text3);font-size:12.5px}
-.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--primary);color:var(--text);padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);z-index:9999;opacity:0;transition:.3s}
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--primary);color:var(--text);padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);z-index:9999;opacity:0;transition:.3s;max-width:90vw}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.err{border-color:var(--red)}.toast.ok{border-color:var(--green)}
-@media(max-width:900px){#side{position:absolute;left:0;top:0;bottom:0;z-index:40;transform:translateX(-101%);transition:.25s;box-shadow:var(--shadow-lg)}#side.open{transform:none}#botpanel{height:200px}}
+.mini-modal{position:fixed;inset:0;background:rgba(6,16,31,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:9998;padding:16px}
+.mini-modal.show{display:flex}
+.mm-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:430px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden}
+.mm-card h3{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;display:flex;align-items:center;gap:9px;background:var(--bg3)}
+.mm-card .mm-b{padding:16px 18px;display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow-y:auto}
+.mm-card .mm-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:900px){#side{position:absolute;left:0;top:0;bottom:0;z-index:40;transform:translateX(-101%);transition:.25s;box-shadow:var(--shadow-lg)}#side.open{transform:none}#botpanel{height:190px}.mtog{display:flex}}
+@media(max-width:560px){#hdr .hstat{display:none}#hdr{gap:8px;padding:0 10px}#botpanel{flex-direction:column;height:auto;max-height:240px}.bp-col{border-right:none;border-bottom:1px solid var(--border)}}
 </style>
 </head>
 <body>
 <div id="hdr">
+  <button class="mtog" onclick="document.getElementById('side').classList.toggle('open')" title="Menu" aria-label="Toggle sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="logo"><div class="logo-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><line x1="12" y1="1" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="1" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="23" y2="12"/></svg></div>
     <div><div class="logo-n">Geo<span>Grid</span> Tracker</div></div><span class="logo-tag">LOCAL RANK</span></div>
   <div class="hdr-sp"></div>
@@ -118,16 +159,57 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
 <div id="app">
   <div id="side">
     <div class="sec">
-      <h3>📍 Scan Setup</h3>
-      <div class="f"><label>Business name</label><input id="in-biz" placeholder="Patriot Express Tire & Oil"></div>
-      <div class="f"><label>Keyword / search term</label><input id="in-kw" placeholder="auto repair shop"></div>
+      <h3>🏢 Business &amp; Center</h3>
+      <div class="f"><label>Business name (your listing to track)</label><input id="in-biz" placeholder="Patriot Express Tire &amp; Oil"></div>
       <div class="f"><label>Center (address, or "lat,lng") — or click the map</label>
         <div style="display:flex;gap:7px"><input id="in-loc" placeholder="Plano, TX"><button class="btn sec2" style="width:auto;padding:9px 12px" onclick="geocode()">Locate</button></div></div>
+    </div>
+
+    <div class="sec">
+      <h3>🔑 Keywords <span class="ct" id="kw-count"></span></h3>
+      <div class="kwadd"><input id="in-kw" placeholder="auto repair shop" onkeydown="if(event.key==='Enter')addKeyword()"><button class="btn" onclick="addKeyword()" style="box-shadow:none">Add</button></div>
+      <div class="kwlist" id="kwlist"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn sec2" onclick="openImportKw()">Bulk import</button>
+        <button class="btn sec2" onclick="exportKeywords()">Export list</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>🗺️ Grid &amp; Area</h3>
       <div class="f"><label>Grid size</label><div class="chips" id="grid-chips"></div></div>
-      <div class="f"><label>Radius — distance from center to edge</label>
-        <div style="display:flex;gap:7px;align-items:center"><input id="in-radius" type="number" value="2" min="0.2" step="0.1" style="flex:1"><select id="in-unit" style="width:90px"><option value="mi">miles</option><option value="km">km</option></select></div></div>
-      <button class="btn" id="btn-scan" onclick="runScan()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Geo-Grid Scan</button>
-      <div class="hint" id="src-hint">Demo mode — realistic simulated rankings. Add a key in Data Source for live data.</div>
+      <div class="f"><label>Radius — center to edge</label>
+        <div style="display:flex;gap:7px;align-items:center"><input id="in-radius" type="number" value="2" min="0.2" step="0.1" style="flex:1" onchange="onGridParam()"><select id="in-unit" style="width:84px" onchange="onGridParam()"><option value="mi">miles</option><option value="km">km</option></select></div></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sec2" id="btn-circular" onclick="toggleCircular()">◯ Circular</button>
+        <button class="btn sec2" id="btn-preview" onclick="previewGrid()">Preview grid</button>
+      </div>
+      <button class="btn sec2" id="btn-select" onclick="toggleSelectMode()" style="margin-top:6px">✛ Select points: off</button>
+      <div class="hint" id="grid-hint">7×7 = 49 points. Use "Select points" to click points on the map and include/exclude them.</div>
+    </div>
+
+    <div class="sec">
+      <h3>⚙️ Data Source</h3>
+      <div class="f"><select id="in-src" onchange="onSrcChange()">
+        <option value="demo">Demo — simulated (works offline, free)</option>
+        <option value="dataforseo">Live — DataForSEO Maps (per-coordinate)</option>
+        <option value="serpapi">Live — SerpAPI Google Maps (ll)</option>
+        <option value="serper">Live — Serper Maps (ll)</option>
+        <option value="engine">Live — local engine (127.0.0.1)</option>
+      </select></div>
+      <div id="key-wrap"></div>
+      <div class="hint" id="src-hint"></div>
+    </div>
+
+    <div class="sec">
+      <h3>🕒 Scheduled Scans</h3>
+      <div class="f"><label>Auto-rescan frequency</label><select id="in-sched" onchange="onSchedChange()">
+        <option value="off">Off (manual only)</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select></div>
+      <div class="hint" id="sched-hint"></div>
     </div>
 
     <div class="sec">
@@ -140,32 +222,33 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
       </div>
     </div>
 
-    <div class="sec">
-      <h3>⚙️ Data Source</h3>
-      <div class="f"><select id="in-src" onchange="onSrcChange()">
-        <option value="demo">Demo (simulated — works offline)</option>
-        <option value="engine">Live via local engine (real rankings)</option>
-      </select></div>
-      <div id="key-wrap" style="display:none">
-        <div class="f"><label>Google Places API key (used by the engine)</label><input id="in-key" type="password" placeholder="AIza…"></div>
-        <div class="hint">Live mode needs the local engine running:<br><code style="background:var(--bg3);padding:1px 5px;border-radius:4px">python gbp_auditor.py --serve</code><br>The engine queries Google Places per grid point and returns real local-pack ranks. Free Google credit covers normal use.</div>
-      </div>
-    </div>
-
     <div class="sec" style="flex:1">
-      <h3>🕒 Scan History <span id="hist-count" style="margin-left:auto;color:var(--text3)"></span></h3>
+      <h3>🗂️ Scan History <span class="ct" id="hist-count"></span></h3>
       <div id="hist"></div>
-      <div style="display:flex;gap:7px;margin-top:8px">
-        <button class="btn sec2" onclick="exportScan('json')">Export JSON</button>
-        <button class="btn sec2" onclick="exportScan('csv')">Export CSV</button>
+      <div class="f" style="margin-top:9px"><label>Report scope</label><select id="exp-scope">
+        <option value="active">Active scan only</option>
+        <option value="latest">Latest scan per keyword</option>
+        <option value="all">All scans in history</option>
+      </select></div>
+      <div class="exp-grid">
+        <button class="btn sec2" onclick="exportReport('pdf')">📄 PDF report</button>
+        <button class="btn sec2" onclick="exportReport('xlsx')">📊 Excel</button>
+        <button class="btn sec2" onclick="exportReport('csv')">CSV</button>
+        <button class="btn sec2" onclick="exportReport('png')">🖼️ Heatmap PNG</button>
+        <button class="btn sec2" onclick="exportReport('json')">JSON</button>
+        <button class="btn sec2" onclick="clearHistory()">Clear all</button>
       </div>
     </div>
   </div>
 
   <div id="main">
-    <div id="map"></div>
-    <div class="legend" id="legend"></div>
-    <div class="overlay" id="overlay"><div class="spin"></div><div id="ov-txt" style="font-weight:700">Scanning grid…</div></div>
+    <div id="kwbar"><span class="kwbar-lbl">Keyword</span><div id="kwpills" style="display:flex;gap:6px"></div></div>
+    <div id="mapwrap">
+      <div id="map"></div>
+      <div class="maptip" id="maptip"></div>
+      <div class="legend" id="legend"></div>
+      <div class="overlay" id="overlay"><div class="spin"></div><div id="ov-txt" style="font-weight:700">Scanning grid…</div><div class="ov-bar"><div id="ov-fill"></div></div></div>
+    </div>
     <div id="botpanel">
       <div class="bp-col">
         <h4>Competitors (Share of Local Voice)</h4>
@@ -178,38 +261,74 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
     </div>
   </div>
 </div>
+
+<div class="mini-modal" id="modal"><div class="mm-card" id="modal-card"></div></div>
 <div class="toast" id="toast"></div>
+<canvas id="hm-canvas" width="760" height="860" style="display:none"></canvas>
 
 <script src="global-nav.js"></script>
 <script>
-/* ============================================================
- * GEO-GRID RANK TRACKER  (Local Falcon-style)
- * Demo engine works offline; live mode calls the local Python
- * engine (/grid) which queries Google Places for real ranks.
- * ============================================================ */
+/* ===========================================================================
+ * GEO-GRID RANK TRACKER — Local SEO platform module (Local Falcon / BrightLocal style)
+ * - Unlimited keywords, auto + custom grids with per-point include/exclude,
+ *   circular grids, real per-coordinate Google Maps rank via DataForSEO / SerpAPI /
+ *   Serper, demo + local-engine fallbacks, scheduled (page-open) rescans, and
+ *   PDF / Excel / CSV / PNG reports. Backward-compatible with the prior gg_state_v1.
+ * =========================================================================== */
 const STORE='gg_state_v1';
+const DEFAULTS={biz:'',loc:'',center:null,keywords:[],kw:'',grid:7,radius:2,unit:'mi',circular:false,
+  excluded:{},src:'demo',keys:{dataforseo:'',serpapi:'',serper:'',places:''},key:'',
+  schedule:{freq:'off',nextRun:null,lastRun:null},scans:[],active:null,reportTitle:''};
 let state=load();
-function load(){try{return Object.assign({biz:'',kw:'',loc:'',center:null,grid:7,radius:2,unit:'mi',src:'demo',key:'',scans:[],active:null},JSON.parse(localStorage.getItem(STORE))||{})}catch(e){return{biz:'',kw:'',loc:'',center:null,grid:7,radius:2,unit:'mi',src:'demo',key:'',scans:[],active:null}}}
-function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}}
+function load(){
+  let s;try{s=Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(STORE))||{});}catch(e){s=Object.assign({},DEFAULTS);}
+  s.keys=Object.assign({dataforseo:'',serpapi:'',serper:'',places:''},s.keys||{});
+  s.schedule=Object.assign({freq:'off',nextRun:null,lastRun:null},s.schedule||{});
+  s.excluded=s.excluded||{};
+  if(!Array.isArray(s.keywords)) s.keywords=[];
+  // migrate legacy single-keyword + legacy places key
+  if(!s.keywords.length && s.kw) s.keywords=[{kw:s.kw}];
+  if(s.key && !s.keys.places) s.keys.places=s.key;
+  inheritKeys(s);
+  return s;
+}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(trimForStorage(state)));}catch(e){}}
+function trimForStorage(s){ // keep storage small: cap scans, keep compact results
+  const c=Object.assign({},s); c.scans=(s.scans||[]).slice(0,50); return c;
+}
+// inherit SERP API keys entered once in Citation Finder (cf_state_v1.settings.keys)
+function inheritKeys(s){
+  try{
+    const cf=JSON.parse(localStorage.getItem('cf_state_v1')||'null');
+    const k=cf&&cf.settings&&cf.settings.keys;
+    if(k){
+      if(k.dataforseo&&k.dataforseo.key&&!s.keys.dataforseo) s.keys.dataforseo=k.dataforseo.key;
+      if(k.serpapi&&k.serpapi.key&&!s.keys.serpapi) s.keys.serpapi=k.serpapi.key;
+      if(k.serper&&k.serper.key&&!s.keys.serper) s.keys.serper=k.serper.key;
+    }
+  }catch(e){}
+}
 function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('seohub_theme_v1',n);document.getElementById('th-l').textContent=n==='dark'?'Dark':'Light';if(window.map)setTimeout(()=>map.invalidateSize(),50);}
 document.getElementById('th-l').textContent=document.documentElement.getAttribute('data-theme')==='dark'?'Dark':'Light';
-function toast(m,t){var e=document.getElementById('toast');e.className='toast show'+(t?' '+t:'');e.textContent=m;setTimeout(()=>e.classList.remove('show'),2600);}
+function toast(m,t){var e=document.getElementById('toast');e.className='toast show'+(t?' '+t:'');e.textContent=m;clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),3200);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
 
 /* ---------- map ---------- */
-let map, gridLayer, centerMarker;
+let map, gridLayer, centerMarker, selectMode=false, previewPts=null;
 function initMap(){
   map=L.map('map',{zoomControl:true,attributionControl:true}).setView([39.5,-98.35],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
   gridLayer=L.layerGroup().addTo(map);
-  map.on('click',e=>{ setCenter(e.latlng.lat,e.latlng.lng,true); });
+  map.on('click',e=>{ if(selectMode) return; setCenter(e.latlng.lat,e.latlng.lng,true); });
 }
 function setCenter(lat,lng,fromClick){
   state.center={lat,lng}; save();
   if(centerMarker) centerMarker.setLatLng([lat,lng]);
   else centerMarker=L.marker([lat,lng]).addTo(map);
   centerMarker.bindTooltip('Business center',{permanent:false});
-  if(fromClick){ map.setView([lat,lng], map.getZoom()<11?13:map.getZoom()); toast('Center set — now Run Geo-Grid Scan'); }
+  if(fromClick){ map.setView([lat,lng], map.getZoom()<11?13:map.getZoom()); toast('Center set — add keywords, then Run scan'); }
 }
 
 /* ---------- geocode (free, OSM) ---------- */
@@ -239,8 +358,17 @@ function buildGrid(center,n,radius,unit){
   return pts;
 }
 function milesBetween(a,b){const dl=(b.lat-a.lat)*69;const dn=(b.lng-a.lng)*69*Math.cos(a.lat*Math.PI/180);return Math.sqrt(dl*dl+dn*dn);}
+function ptKey(p){return p.r+'_'+p.c;}
+// effective exclusion: user-excluded ∪ (circular ? outside radius)
+function isExcluded(p,center,radiusMiles){
+  if(state.excluded[ptKey(p)]) return true;
+  if(state.circular && center){ if(milesBetween(center,p) > radiusMiles*1.001) return true; }
+  return false;
+}
+function radiusMiles(){return state.unit==='km'?state.radius*0.621371:state.radius;}
+function activePoints(center){ const pts=buildGrid(center,state.grid,state.radius,state.unit); const rm=radiusMiles(); return pts.filter(p=>!isExcluded(p,center,rm)); }
 
-/* ---------- deterministic demo ranking ---------- */
+/* ---------- deterministic demo ranking (offline) ---------- */
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0);}
 function rng(seed){let x=seed||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return ((x>>>0)/4294967296);};}
 function demoScan(biz,kw,center,pts){
@@ -271,66 +399,194 @@ const CN1=['Express','Pro','Elite','Prime','Metro','City','Star','Apex','First',
 const CN2=['Auto','Tire','Service','Garage','Motors','Car Care','Mechanics','Repair','Lube','Brothers'];
 function compName(seed){const r=rng(seed);return CN1[Math.floor(r()*CN1.length)]+' '+CN2[Math.floor(r()*CN2.length)];}
 
-/* ---------- run scan ---------- */
-let scanning=false;
-async function runScan(){
-  if(scanning)return;
-  state.biz=document.getElementById('in-biz').value.trim();
-  state.kw=document.getElementById('in-kw').value.trim();
-  state.radius=parseFloat(document.getElementById('in-radius').value)||2;
-  state.unit=document.getElementById('in-unit').value;
-  if(!state.biz||!state.kw){toast('Enter a business name and keyword','err');return;}
-  if(!state.center){toast('Set a center: type a location and click Locate, or click the map','err');return;}
-  save();
-  const center=state.center, pts=buildGrid(center,state.grid,state.radius,state.unit);
-  scanning=true; const btn=document.getElementById('btn-scan'); btn.disabled=true;
-  document.getElementById('overlay').classList.add('show');
-  document.getElementById('ov-txt').textContent='Scanning '+pts.length+' grid points…';
-  gridLayer.clearLayers();
-  let data;
-  try{
-    if(state.src==='engine'){ data=await engineScan(state.biz,state.kw,center,pts); }
-    else { data=demoScan(state.biz,state.kw,center,pts); }
-  }catch(e){
-    toast('Live engine unavailable — using demo. '+(e.message||''),'err');
-    data=demoScan(state.biz,state.kw,center,pts);
-  }
-  map.setView([center.lat,center.lng], zoomForRadius(state.radius,state.unit));
-  for(let i=0;i<data.results.length;i++){
-    drawPoint(data.results[i]);
-    if(i%3===0) await new Promise(r=>setTimeout(r,18));
-  }
-  const scan={id:Date.now(),ts:new Date().toISOString(),biz:state.biz,kw:state.kw,center,grid:state.grid,radius:state.radius,unit:state.unit,
-    results:data.results,comps:data.comps||[],metrics:computeMetrics(data.results)};
-  state.scans.unshift(scan); state.scans=state.scans.slice(0,40); state.active=scan.id; save();
-  renderMetrics(scan.metrics); renderComps(scan); renderDist(scan); renderHistory(); fitGrid(data.results);
-  document.getElementById('overlay').classList.remove('show'); btn.disabled=false; scanning=false;
-  toast('Scan complete — ARP '+scan.metrics.arp,'ok');
+/* ---------- LIVE providers (real per-coordinate Google Maps rank) ----------
+ * Each provider exposes pointRank(kw, lat, lng) -> {rank, top:[names]} where
+ * rank = the target business's position in the local results at that coordinate
+ * (1..20, or 0 = not found in top 20). top = top-3 business names at that point.   */
+function matchBiz(title,biz){ if(!biz) return false; const a=norm(title),b=norm(biz); if(!a||!b) return false; return a.indexOf(b)>=0||b.indexOf(a)>=0; }
+function placesToResult(places,biz){
+  // places: ordered [{name}] ; find target position, top-3 names
+  let rank=0;
+  for(let i=0;i<places.length;i++){ if(matchBiz(places[i].name,biz)){ rank=i+1; break; } }
+  if(rank>20) rank=0;
+  return {rank, top:places.slice(0,3).map(p=>p.name)};
 }
-function zoomForRadius(radius,unit){const mi=unit==='km'?radius*0.62:radius;return mi>8?10:mi>4?11:mi>2?12:mi>1?13:14;}
+function zoomForRadius2(){ const mi=radiusMiles(); return mi>8?11:mi>4?12:mi>2?13:14; }
+async function dataforseoPoint(kw,lat,lng,biz){
+  const cred=state.keys.dataforseo.trim(); if(!cred||cred.indexOf(':')<0) throw new Error('DataForSEO key must be "login:password"');
+  const rkm=Math.max(0.5,Math.min(50, (radiusMiles()/((state.grid-1)/2||1))*1.60934 ));
+  const body=[{keyword:kw,language_code:'en',device:'desktop',os:'windows',depth:20,location_coordinate:`${lat.toFixed(6)},${lng.toFixed(6)},${rkm.toFixed(2)}`}];
+  const r=await fetch('https://api.dataforseo.com/v3/serp/google/maps/live/advanced',{method:'POST',headers:{'Authorization':'Basic '+btoa(cred),'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('DataForSEO '+r.status);
+  const j=await r.json();
+  if(j.status_code&&j.status_code!==20000) throw new Error('DataForSEO: '+(j.status_message||j.status_code));
+  const items=((((j.tasks||[])[0]||{}).result||[])[0]||{}).items||[];
+  const places=items.filter(it=>it&&(it.title!=null)&&it.rank_absolute!=null).sort((a,b)=>a.rank_absolute-b.rank_absolute).map(it=>({name:it.title}));
+  return placesToResult(places,biz);
+}
+async function serpapiPoint(kw,lat,lng,biz){
+  const key=state.keys.serpapi.trim(); if(!key) throw new Error('SerpAPI key required');
+  const u=`https://serpapi.com/search.json?engine=google_maps&type=search&q=${encodeURIComponent(kw)}&ll=@${lat.toFixed(6)},${lng.toFixed(6)},${zoomForRadius2()}z&api_key=${encodeURIComponent(key)}`;
+  const r=await fetch(u); if(!r.ok) throw new Error('SerpAPI '+r.status);
+  const j=await r.json(); if(j.error) throw new Error('SerpAPI: '+j.error);
+  const lr=j.local_results||(j.place_results?[j.place_results]:[]);
+  const places=(Array.isArray(lr)?lr:[]).map(p=>({name:p.title}));
+  return placesToResult(places,biz);
+}
+async function serperPoint(kw,lat,lng,biz){
+  const key=state.keys.serper.trim(); if(!key) throw new Error('Serper key required');
+  const r=await fetch('https://google.serper.dev/maps',{method:'POST',headers:{'X-API-KEY':key,'Content-Type':'application/json'},body:JSON.stringify({q:kw,ll:`@${lat.toFixed(6)},${lng.toFixed(6)},${zoomForRadius2()}z`})});
+  if(!r.ok) throw new Error('Serper '+r.status);
+  const j=await r.json();
+  const places=(j.places||[]).map(p=>({name:p.title}));
+  return placesToResult(places,biz);
+}
+const LIVE={dataforseo:dataforseoPoint,serpapi:serpapiPoint,serper:serperPoint};
+async function liveScan(provider,biz,kw,center,pts,onProg){
+  const fn=LIVE[provider]; const results=[]; const compTally={};
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i]; let res;
+    try{ res=await fn(kw,p.lat,p.lng,biz); }
+    catch(e){ if(i===0) throw e; res={rank:0,top:[]}; }
+    (res.top||[]).forEach(n=>{ if(!matchBiz(n,biz)) compTally[n]=(compTally[n]||0)+1; });
+    results.push({r:p.r,c:p.c,lat:p.lat,lng:p.lng,rank:res.rank,top:res.top||[]});
+    if(onProg) onProg(i+1,pts.length);
+    await sleep(140); // be gentle on rate limits
+  }
+  const comps=Object.keys(compTally).sort((a,b)=>compTally[b]-compTally[a]).slice(0,12);
+  return {results,comps};
+}
 
+/* ---------- local engine (unchanged) ---------- */
 async function engineScan(biz,kw,center,pts){
   const bases=['http://127.0.0.1:8765','http://127.0.0.1:8766'];
   let base=null;
   for(const b of bases){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),1400);const r=await fetch(b+'/ping',{signal:c.signal});clearTimeout(t);if(r.ok){base=b;break;}}catch(e){}}
   if(!base) throw new Error('engine not running');
-  const q=new URLSearchParams({biz,kw,lat:center.lat,lng:center.lng,grid:state.grid,radius:state.radius,unit:state.unit,key:document.getElementById('in-key').value.trim()});
+  const q=new URLSearchParams({biz,kw,lat:center.lat,lng:center.lng,grid:state.grid,radius:state.radius,unit:state.unit,key:state.keys.places});
   const r=await fetch(base+'/grid?'+q.toString()); if(!r.ok)throw new Error('engine '+r.status);
   const j=await r.json(); if(j.error)throw new Error(j.error);
   return j;
 }
 
-/* ---------- draw + metrics ---------- */
+/* ---------- run scan (single or all keywords) ---------- */
+let scanning=false;
+async function runScan(opts){
+  opts=opts||{};
+  if(scanning)return;
+  state.biz=document.getElementById('in-biz').value.trim();
+  state.radius=parseFloat(document.getElementById('in-radius').value)||2;
+  state.unit=document.getElementById('in-unit').value;
+  if(!state.biz){toast('Enter a business name','err');return;}
+  if(!state.center){toast('Set a center: type a location and click Locate, or click the map','err');return;}
+  syncKeywords();
+  let kws = opts.all ? state.keywords.map(k=>k.kw) : [activeKeyword()].filter(Boolean);
+  kws=kws.filter(Boolean);
+  if(!kws.length){toast('Add at least one keyword','err');return;}
+  save();
+  const center=state.center, pts=activePoints(center);
+  if(!pts.length){toast('All grid points are excluded — clear some exclusions','err');return;}
+
+  // cost confirmation for live providers
+  if(state.src!=='demo' && state.src!=='engine' && !opts.scheduled){
+    const calls=pts.length*kws.length;
+    if(calls>30 && !confirm(`This will make ${calls} live API calls (${pts.length} points × ${kws.length} keyword${kws.length>1?'s':''}) and may incur cost on your ${state.src} account. Continue?`)) return;
+  }
+
+  scanning=true; const btn=document.getElementById('btn-scan'); if(btn) btn.disabled=true;
+  document.getElementById('overlay').classList.add('show');
+  selectMode=false; updateSelectBtn();
+  let lastScan=null, ok=0;
+  for(let ki=0;ki<kws.length;ki++){
+    const kw=kws[ki];
+    document.getElementById('ov-txt').textContent=(kws.length>1?`(${ki+1}/${kws.length}) `:'')+'Scanning "'+kw+'" — '+pts.length+' points';
+    setProg(0);
+    gridLayer.clearLayers();
+    let data;
+    try{
+      if(state.src==='engine'){ data=await engineScan(state.biz,kw,center,pts); setProg(100); }
+      else if(LIVE[state.src]){ data=await liveScan(state.src,state.biz,kw,center,pts,(d,t)=>setProg(d/t*100)); }
+      else { data=demoScan(state.biz,kw,center,pts); setProg(100); }
+    }catch(e){
+      toast('"'+kw+'": '+(e.message||'scan failed')+' — using demo for this keyword','err');
+      data=demoScan(state.biz,kw,center,pts);
+    }
+    map.setView([center.lat,center.lng], zoomForRadius(state.radius,state.unit));
+    for(let i=0;i<data.results.length;i++){ drawPoint(data.results[i]); if(i%4===0) await sleep(6); }
+    const scan={id:Date.now()+ki,ts:new Date().toISOString(),biz:state.biz,kw,center,grid:state.grid,radius:state.radius,unit:state.unit,circular:state.circular,
+      src:state.src,results:data.results,comps:data.comps||[],metrics:computeMetrics(data.results)};
+    state.scans.unshift(scan); lastScan=scan; ok++;
+  }
+  state.scans=state.scans.slice(0,50); state.active=lastScan?lastScan.id:state.active; state.kw=lastScan?lastScan.kw:state.kw; save();
+  if(lastScan) viewScan(lastScan.id);
+  renderKwPills();
+  setProg(100);
+  document.getElementById('overlay').classList.remove('show'); if(btn) btn.disabled=false; scanning=false;
+  toast('Scan complete — '+ok+' keyword'+(ok>1?'s':'')+(lastScan?' · ARP '+lastScan.metrics.arp:''),'ok');
+}
+function setProg(pct){const f=document.getElementById('ov-fill');if(f)f.style.width=Math.max(0,Math.min(100,pct))+'%';}
+function zoomForRadius(radius,unit){const mi=unit==='km'?radius*0.62:radius;return mi>8?10:mi>4?11:mi>2?12:mi>1?13:14;}
+
+/* ---------- keywords ---------- */
+function syncKeywords(){ /* state.keywords is the source of truth */ }
+function activeKeyword(){ return state.kw || (state.keywords[0]&&state.keywords[0].kw) || ''; }
+function addKeyword(){
+  const inp=document.getElementById('in-kw'); const v=inp.value.trim(); if(!v) return;
+  v.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).forEach(kw=>{
+    if(!state.keywords.some(k=>k.kw.toLowerCase()===kw.toLowerCase())) state.keywords.push({kw});
+  });
+  if(!state.kw) state.kw=state.keywords[0].kw;
+  inp.value=''; save(); renderKeywords(); renderKwPills();
+}
+function delKeyword(kw){
+  state.keywords=state.keywords.filter(k=>k.kw!==kw);
+  if(state.kw===kw) state.kw=state.keywords[0]?state.keywords[0].kw:'';
+  save(); renderKeywords(); renderKwPills();
+}
+function setActiveKeyword(kw){
+  state.kw=kw; save(); renderKeywords(); renderKwPills();
+  const s=latestScanFor(kw); if(s){ viewScan(s.id); } else { gridLayer.clearLayers(); renderMetrics(blankMetrics()); document.getElementById('comp-tbl').innerHTML='<div class="empty">No scan yet for "'+esc(kw)+'". Run a scan.</div>'; document.getElementById('dist').innerHTML='<div class="empty">—</div>'; }
+}
+function latestScanFor(kw){ return state.scans.find(s=>s.kw===kw && s.biz===state.biz) || state.scans.find(s=>s.kw===kw); }
+function blankMetrics(){return {arp:'—',solv:0,cov:0,t3:0,t10:0,found:0,total:0};}
+function renderKeywords(){
+  document.getElementById('kw-count').textContent=state.keywords.length?state.keywords.length:'';
+  const el=document.getElementById('kwlist');
+  if(!state.keywords.length){ el.innerHTML='<div class="empty" style="padding:14px;font-size:11.5px">No keywords yet. Add one above.</div>'; return; }
+  el.innerHTML=state.keywords.map(k=>{
+    const s=latestScanFor(k.kw); const arp=s?s.metrics.arp:'—';
+    return '<div class="kwrow '+(state.kw===k.kw?'on':'')+'" onclick="setActiveKeyword('+JSON.stringify(k.kw).replace(/"/g,'&quot;')+')">'+
+      '<span class="kn" title="'+esc(k.kw)+'">'+esc(k.kw)+'</span>'+
+      (s?'<span class="kr" style="color:'+arpColor(arp)+'">'+arp+'</span>':'<span class="ktag">no scan</span>')+
+      '<span class="kx" onclick="event.stopPropagation();delKeyword('+JSON.stringify(k.kw).replace(/"/g,'&quot;')+')">✕</span></div>';
+  }).join('');
+}
+function renderKwPills(){
+  const el=document.getElementById('kwpills');
+  if(!state.keywords.length){ el.innerHTML='<span style="font-size:11.5px;color:var(--text3)">Add keywords in the sidebar →</span>'; return; }
+  el.innerHTML=state.keywords.map(k=>{
+    const s=latestScanFor(k.kw); const arp=s?s.metrics.arp:'';
+    return '<button class="kwpill '+(state.kw===k.kw?'on':'')+'" onclick="setActiveKeyword('+JSON.stringify(k.kw).replace(/"/g,'&quot;')+')">'+esc(k.kw)+(arp?'<span class="pa">'+arp+'</span>':'')+'</button>';
+  }).join('');
+}
+function openImportKw(){
+  showModal('Bulk import keywords',
+    '<div class="f"><label>One keyword per line (or comma-separated)</label><textarea id="imp-kw" placeholder="auto repair shop\nbrake repair near me\noil change [city]" style="min-height:140px"></textarea></div>',
+    [{label:'Import',primary:true,fn:()=>{const t=document.getElementById('imp-kw').value;document.getElementById('in-kw').value=t;addKeyword();closeModal();}}]);
+}
+function exportKeywords(){ downloadBlob(new Blob([state.keywords.map(k=>k.kw).join('\n')],{type:'text/plain'}),'keywords.txt'); }
+
+/* ---------- draw + metrics (preserved) ---------- */
 function rankColor(rank){if(rank===0)return getCSS('--rx');if(rank<=3)return getCSS('--r1');if(rank<=7)return getCSS('--r2');if(rank<=10)return getCSS('--r3');if(rank<=15)return getCSS('--r4');return getCSS('--r5');}
 function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#888';}
 function drawPoint(p){
-  const sz=state.grid<=5?34:state.grid<=9?28:22;
+  const sz=state.grid<=5?34:state.grid<=9?28:state.grid<=11?23:19;
   const label=p.rank===0?'20+':p.rank;
   const icon=L.divIcon({className:'',html:'<div class="gp" style="width:'+sz+'px;height:'+sz+'px;background:'+rankColor(p.rank)+';font-size:'+(sz<24?10:12)+'px">'+label+'</div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
   const m=L.marker([p.lat,p.lng],{icon}).addTo(gridLayer);
   m.bindPopup('<b style="font:700 13px Inter">Rank '+(p.rank===0?'not in top 20':'#'+p.rank)+'</b><br><span style="font:11px Inter;color:#5b6b88">Top 3 here:</span><br>'+(p.top||[]).map((t,i)=>'<span style="font:12px Inter">'+(i+1)+'. '+esc(t)+'</span>').join('<br>'));
 }
-function fitGrid(res){const lats=res.map(r=>r.lat),lngs=res.map(r=>r.lng);map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]],{padding:[40,40]});}
+function fitGrid(res){if(!res.length)return;const lats=res.map(r=>r.lat),lngs=res.map(r=>r.lng);map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]],{padding:[40,40]});}
 function computeMetrics(res){
   const found=res.filter(r=>r.rank>0);
   const arp=found.length?(found.reduce((a,r)=>a+r.rank,0)/found.length):0;
@@ -351,7 +607,7 @@ function renderMetrics(m){
 }
 function renderComps(scan){
   const tally={};
-  scan.results.forEach(p=>(p.top||[]).forEach((name,idx)=>{if(name===scan.biz)return;tally[name]=tally[name]||{name,t3:0,wt:0};tally[name].t3++;tally[name].wt+=(3-idx);}));
+  scan.results.forEach(p=>(p.top||[]).forEach((name,idx)=>{if(matchBiz(name,scan.biz))return;tally[name]=tally[name]||{name,t3:0,wt:0};tally[name].t3++;tally[name].wt+=(3-idx);}));
   const youT3=scan.results.filter(p=>p.rank>0&&p.rank<=3).length;
   const rows=Object.values(tally).sort((a,b)=>b.wt-a.wt).slice(0,8);
   const totalWt=rows.reduce((a,r)=>a+r.wt,0)+youT3*3||1;
@@ -361,10 +617,10 @@ function renderComps(scan){
   html+='</table>';
   document.getElementById('comp-tbl').innerHTML=html;
 }
+function distCounts(results){const counts=[0,0,0,0,0,0];results.forEach(p=>{const r=p.rank;if(r===0)counts[5]++;else if(r<=3)counts[0]++;else if(r<=7)counts[1]++;else if(r<=10)counts[2]++;else if(r<=15)counts[3]++;else counts[4]++;});return counts;}
 function renderDist(scan){
   const buckets=[['1–3','--r1'],['4–7','--r2'],['8–10','--r3'],['11–15','--r4'],['16–20','--r5'],['20+ / none','--rx']];
-  const counts=[0,0,0,0,0,0];
-  scan.results.forEach(p=>{const r=p.rank;if(r===0)counts[5]++;else if(r<=3)counts[0]++;else if(r<=7)counts[1]++;else if(r<=10)counts[2]++;else if(r<=15)counts[3]++;else counts[4]++;});
+  const counts=distCounts(scan.results);
   const max=Math.max(...counts,1);
   let html='';
   buckets.forEach((b,i)=>{html+='<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><span style="width:62px;color:var(--text2)">'+b[0]+'</span><div style="flex:1;height:14px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+(counts[i]/max*100)+'%;background:var('+b[1]+')"></div></div><span style="width:24px;text-align:right;font-family:var(--mono);font-weight:700">'+counts[i]+'</span></div>';});
@@ -373,24 +629,183 @@ function renderDist(scan){
 function renderHistory(){
   const h=document.getElementById('hist'); document.getElementById('hist-count').textContent=state.scans.length?state.scans.length:'';
   if(!state.scans.length){h.innerHTML='<div class="empty" style="padding:18px">No scans yet.</div>';return;}
-  h.innerHTML=state.scans.map(s=>'<div class="hist-item '+(s.id===state.active?'on':'')+'" onclick="viewScan('+s.id+')"><div class="hk"><div class="ht">'+esc(s.kw||'—')+'</div><div class="hd">'+esc(s.biz||'')+' · '+new Date(s.ts).toLocaleDateString()+' · '+s.grid+'×'+s.grid+'</div></div><div class="ha" style="color:'+arpColor(s.metrics.arp)+'">'+s.metrics.arp+'</div><span class="hist-x" onclick="event.stopPropagation();delScan('+s.id+')">✕</span></div>').join('');
+  h.innerHTML=state.scans.map(s=>'<div class="hist-item '+(s.id===state.active?'on':'')+'" onclick="viewScan('+s.id+')"><div class="hk"><div class="ht">'+esc(s.kw||'—')+'</div><div class="hd">'+esc(s.biz||'')+' · '+new Date(s.ts).toLocaleDateString()+' · '+s.grid+'×'+s.grid+(s.src&&s.src!=='demo'?' · '+s.src:' · demo')+'</div></div><div class="ha" style="color:'+arpColor(s.metrics.arp)+'">'+s.metrics.arp+'</div><span class="hist-x" onclick="event.stopPropagation();delScan('+s.id+')">✕</span></div>').join('');
 }
 function arpColor(arp){const a=parseFloat(arp);if(!a)return 'var(--rx)';if(a<=3)return 'var(--r1)';if(a<=7)return 'var(--r2)';if(a<=10)return 'var(--r3)';if(a<=15)return 'var(--r4)';return 'var(--r5)';}
-function viewScan(id){const s=state.scans.find(x=>x.id===id);if(!s)return;state.active=id;save();gridLayer.clearLayers();s.results.forEach(drawPoint);renderMetrics(s.metrics);renderComps(s);renderDist(s);renderHistory();state.center=s.center;document.getElementById('in-biz').value=s.biz;document.getElementById('in-kw').value=s.kw;if(centerMarker)centerMarker.setLatLng([s.center.lat,s.center.lng]);else centerMarker=L.marker([s.center.lat,s.center.lng]).addTo(map);fitGrid(s.results);}
-function delScan(id){state.scans=state.scans.filter(s=>s.id!==id);save();renderHistory();if(state.active===id){gridLayer.clearLayers();}}
+function viewScan(id){const s=state.scans.find(x=>x.id===id);if(!s)return;state.active=id;state.kw=s.kw;save();gridLayer.clearLayers();selectMode=false;updateSelectBtn();s.results.forEach(drawPoint);renderMetrics(s.metrics);renderComps(s);renderDist(s);renderHistory();renderKeywords();renderKwPills();state.center=s.center;document.getElementById('in-biz').value=s.biz;if(centerMarker)centerMarker.setLatLng([s.center.lat,s.center.lng]);else centerMarker=L.marker([s.center.lat,s.center.lng]).addTo(map);fitGrid(s.results);}
+function delScan(id){state.scans=state.scans.filter(s=>s.id!==id);save();renderHistory();renderKeywords();renderKwPills();if(state.active===id){gridLayer.clearLayers();state.active=state.scans[0]?state.scans[0].id:null;if(state.active)viewScan(state.active);}}
+function clearHistory(){ if(!state.scans.length)return; if(!confirm('Delete all '+state.scans.length+' scans from history?'))return; state.scans=[];state.active=null;save();gridLayer.clearLayers();renderHistory();renderKeywords();renderKwPills();renderMetrics(blankMetrics());toast('History cleared'); }
 
-/* ---------- export ---------- */
-function exportScan(fmt){
-  const s=state.scans.find(x=>x.id===state.active)||state.scans[0];
-  if(!s){toast('No scan to export','err');return;}
-  let blob,fn;
-  if(fmt==='csv'){
-    const rows=[['row','col','lat','lng','rank','top1','top2','top3']];
-    s.results.forEach(p=>rows.push([p.r,p.c,p.lat.toFixed(6),p.lng.toFixed(6),p.rank||'20+'].concat(p.top||['','',''])));
-    blob=new Blob([rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});fn='geogrid.csv';
-  }else{blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});fn='geogrid.json';}
-  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(u),100);toast('Exported','ok');
+/* ---------- grid preview + point selection ---------- */
+function previewGrid(){
+  if(!state.center){toast('Set a center first','err');return;}
+  const center=state.center, pts=buildGrid(center,state.grid,state.radius,state.unit), rm=radiusMiles();
+  previewPts=pts; gridLayer.clearLayers();
+  pts.forEach(p=>{
+    const ex=isExcluded(p,center,rm); const sz=state.grid<=5?28:state.grid<=9?22:state.grid<=11?18:15;
+    const icon=L.divIcon({className:'',html:'<div class="gp pv '+(ex?'ex':'')+'" style="width:'+sz+'px;height:'+sz+'px;'+(ex?'':'background:var(--primary)')+';font-size:9px">'+(ex?'×':'•')+'</div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+    const m=L.marker([p.lat,p.lng],{icon,interactive:true}).addTo(gridLayer);
+    m.on('click',()=>{ if(!selectMode)return; const k=ptKey(p); if(state.excluded[k]) delete state.excluded[k]; else state.excluded[k]=1; save(); previewGrid(); });
+  });
+  map.setView([center.lat,center.lng], zoomForRadius(state.radius,state.unit)); fitGrid(pts);
+  const active=pts.filter(p=>!isExcluded(p,center,rm)).length;
+  document.getElementById('grid-hint').textContent=active+' of '+pts.length+' points active'+(state.circular?' (circular)':'')+'. '+(selectMode?'Click points on the map to include/exclude.':'Turn on "Select points" to edit.');
 }
+function toggleSelectMode(){ selectMode=!selectMode; updateSelectBtn(); if(selectMode){ if(!state.center){toast('Set a center first','err');selectMode=false;updateSelectBtn();return;} previewGrid(); showMapTip('Select mode ON — click grid points to include/exclude'); } else { hideMapTip(); } }
+function updateSelectBtn(){const b=document.getElementById('btn-select');if(b){b.textContent='✛ Select points: '+(selectMode?'on':'off');b.classList.toggle('on',selectMode);}}
+function toggleCircular(){ state.circular=!state.circular; save(); document.getElementById('btn-circular').classList.toggle('on',state.circular); if(previewPts||selectMode) previewGrid(); onGridParam(); }
+function onGridParam(){ state.radius=parseFloat(document.getElementById('in-radius').value)||2; state.unit=document.getElementById('in-unit').value; save(); updateGridHint(); if(selectMode) previewGrid(); }
+function updateGridHint(){ const n=state.grid; const total=n*n; document.getElementById('grid-hint').textContent=n+'×'+n+' = '+total+' points'+(state.circular?' (circular mask on)':'')+'. Live providers make ~'+total+' API calls per keyword.'; }
+function showMapTip(t){const e=document.getElementById('maptip');e.textContent=t;e.classList.add('show');}
+function hideMapTip(){document.getElementById('maptip').classList.remove('show');}
+
+/* ---------- data source UI ---------- */
+function onSrcChange(){
+  state.src=document.getElementById('in-src').value; save();
+  const wrap=document.getElementById('key-wrap'); const hint=document.getElementById('src-hint');
+  let html='', h='';
+  if(state.src==='dataforseo'){ html='<div class="f"><label>DataForSEO key — "login:password"</label><input id="k-df" type="password" placeholder="login:password" value="'+esc(state.keys.dataforseo)+'"></div>'; h='Highest-fidelity per-coordinate Google Maps rank. Get credentials at dataforseo.com. ~$ per 1000 calls.'; }
+  else if(state.src==='serpapi'){ html='<div class="f"><label>SerpAPI key</label><input id="k-sa" type="password" placeholder="serpapi key" value="'+esc(state.keys.serpapi)+'"></div>'; h='Uses SerpAPI google_maps engine with ll=@lat,lng. Free 100/mo. CORS-enabled.'; }
+  else if(state.src==='serper'){ html='<div class="f"><label>Serper.dev API key</label><input id="k-sp" type="password" placeholder="serper key" value="'+esc(state.keys.serper)+'"></div>'; h='Uses Serper /maps with ll coordinate. Free 2,500 credits. CORS-enabled.'; }
+  else if(state.src==='engine'){ html='<div class="f"><label>Google Places API key (used by the local engine)</label><input id="k-pl" type="password" placeholder="AIza…" value="'+esc(state.keys.places)+'"></div>'; h='Live mode via your local engine: run <code>python gbp_auditor.py --serve</code>. The browser posts grid points to 127.0.0.1; the engine queries Google Places.'; }
+  else { h='Demo mode — realistic simulated rankings, no key, no cost. Switch to a Live source for real Google Maps data (your API key, billed per scan).'; }
+  wrap.innerHTML=html; hint.innerHTML=h;
+  const bind=(id,prop)=>{const el=document.getElementById(id);if(el)el.addEventListener('input',e=>{state.keys[prop]=e.target.value;state.key=state.keys.places;save();});};
+  bind('k-df','dataforseo');bind('k-sa','serpapi');bind('k-sp','serper');bind('k-pl','places');
+}
+
+/* ---------- scheduling (page-open honest scheduling) ---------- */
+function onSchedChange(){ state.schedule.freq=document.getElementById('in-sched').value; state.schedule.nextRun=state.schedule.freq==='off'?null:computeNextRun(state.schedule.freq,Date.now()); save(); renderSchedHint(); }
+function computeNextRun(freq,from){ const d=new Date(from); if(freq==='daily')d.setDate(d.getDate()+1); else if(freq==='weekly')d.setDate(d.getDate()+7); else if(freq==='monthly')d.setMonth(d.getMonth()+1); else return null; return d.getTime(); }
+function renderSchedHint(){
+  const s=state.schedule; const el=document.getElementById('sched-hint');
+  if(s.freq==='off'){ el.innerHTML='No automatic rescans. Scans run only when you click Run.'; return; }
+  const next=s.nextRun?new Date(s.nextRun).toLocaleString():'—'; const last=s.lastRun?new Date(s.lastRun).toLocaleString():'never';
+  el.innerHTML='Auto-rescans <b>'+s.freq+'</b> (all keywords). Next: '+esc(next)+' · Last: '+esc(last)+'.<br><b>Note:</b> runs when this page is open or next time you open it. For 24/7 unattended scans a server is required (see roadmap).';
+}
+function checkSchedule(){
+  const s=state.schedule; if(s.freq==='off'||!s.nextRun||scanning) return;
+  if(Date.now()>=s.nextRun){
+    if(state.src==='demo'||LIVE[state.src]||state.src==='engine'){
+      if(!state.center||!state.keywords.length){ s.nextRun=computeNextRun(s.freq,Date.now()); save(); renderSchedHint(); return; }
+      toast('Scheduled rescan starting…','ok');
+      runScan({all:true,scheduled:true}).then(()=>{ s.lastRun=Date.now(); s.nextRun=computeNextRun(s.freq,Date.now()); save(); renderSchedHint(); });
+    }
+  }
+}
+
+/* ---------- heatmap canvas (for PNG / PDF, theme-independent) ---------- */
+const RHEX={r1:'#16a34a',r2:'#65a30d',r3:'#ca8a04',r4:'#ea580c',r5:'#dc2626',rx:'#7f1d1d'};
+function rankHex(rank){if(rank===0)return RHEX.rx;if(rank<=3)return RHEX.r1;if(rank<=7)return RHEX.r2;if(rank<=10)return RHEX.r3;if(rank<=15)return RHEX.r4;return RHEX.r5;}
+function renderHeatmapCanvas(scan){
+  const cv=document.getElementById('hm-canvas'); const ctx=cv.getContext('2d');
+  const W=760,H=860; cv.width=W;cv.height=H; ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  // header
+  ctx.fillStyle='#0f1a2e';ctx.font='800 26px Inter,Arial';ctx.fillText(esc2(scan.biz||'Business'),40,52);
+  ctx.fillStyle='#5b6b88';ctx.font='600 16px Inter,Arial';ctx.fillText('"'+(scan.kw||'')+'"  ·  '+scan.grid+'×'+scan.grid+' grid  ·  '+new Date(scan.ts).toLocaleString(),40,80);
+  // metrics row
+  const m=scan.metrics; const mx=[['Avg Rank',m.arp,'#2563eb'],['SoLV',m.solv+'%','#16a34a'],['Coverage',m.cov+'%','#d97706'],['Top-3',m.t3+'/'+m.total,'#7c3aed']];
+  mx.forEach((q,i)=>{const x=40+i*180;ctx.fillStyle='#f3f6fb';roundRect(ctx,x,100,165,64,10);ctx.fill();ctx.fillStyle=q[2];ctx.font='900 24px JetBrains Mono,monospace';ctx.fillText(q[1],x+14,134);ctx.fillStyle='#5b6b88';ctx.font='600 11px Inter,Arial';ctx.fillText(q[0],x+14,152);});
+  // grid
+  const n=scan.grid; const gx=40,gy=190,gw=W-80; const cell=gw/n; const cs=Math.min(cell-6,64);
+  const byKey={}; scan.results.forEach(p=>byKey[p.r+'_'+p.c]=p);
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    const p=byKey[r+'_'+c]; const cx=gx+c*cell+cell/2, cy=gy+r*cell+cell/2;
+    if(!p){ ctx.fillStyle='#e9eef7';circle(ctx,cx,cy,cs/2-2);ctx.fill(); continue; }
+    ctx.fillStyle=rankHex(p.rank); circle(ctx,cx,cy,cs/2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=2;circle(ctx,cx,cy,cs/2);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='800 '+Math.round(cs*0.4)+'px JetBrains Mono,monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.rank===0?'20+':String(p.rank),cx,cy); ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
+  // legend
+  const ly=gy+gw+24; const leg=[['1–3',RHEX.r1],['4–7',RHEX.r2],['8–10',RHEX.r3],['11–15',RHEX.r4],['16–20',RHEX.r5],['20+',RHEX.rx]];
+  ctx.font='600 13px Inter,Arial'; leg.forEach((l,i)=>{const x=40+i*120;ctx.fillStyle=l[1];roundRect(ctx,x,ly,16,16,4);ctx.fill();ctx.fillStyle='#5b6b88';ctx.fillText(l[0],x+22,ly+13);});
+  ctx.fillStyle='#8a9ab5';ctx.font='600 11px Inter,Arial';ctx.fillText('Generated by Geo-Grid Rank Tracker · '+new Date().toLocaleDateString(),40,H-22);
+  return cv;
+}
+function esc2(s){return String(s||'');}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function circle(ctx,x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.closePath();}
+
+/* ---------- exports / reports ---------- */
+function downloadBlob(blob,fn){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(u),200);}
+function loadScript(src){return new Promise((res,rej)=>{if([].some.call(document.scripts,s=>s.src===src))return res();const s=document.createElement('script');s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error('Failed to load '+src));document.head.appendChild(s);});}
+async function ensureJsPDF(){ if(window.jspdf&&window.jspdf.jsPDF)return; await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'); }
+async function ensureXLSX(){ if(window.XLSX)return; await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'); }
+function scopeScans(){
+  const scope=document.getElementById('exp-scope').value;
+  if(scope==='all') return state.scans.slice();
+  if(scope==='latest'){ const seen={},out=[]; state.scans.forEach(s=>{const k=s.biz+'|'+s.kw; if(!seen[k]){seen[k]=1;out.push(s);}}); return out; }
+  const a=state.scans.find(s=>s.id===state.active)||state.scans[0]; return a?[a]:[];
+}
+async function exportReport(fmt){
+  const scans=scopeScans();
+  if(!scans.length){toast('No scan to export — run a scan first','err');return;}
+  try{
+    if(fmt==='csv') return exportCSV(scans);
+    if(fmt==='json') return downloadBlob(new Blob([JSON.stringify(scans.length===1?scans[0]:scans,null,2)],{type:'application/json'}),'geogrid-report.json');
+    if(fmt==='png') { renderHeatmapCanvas(scans[0]).toBlob(b=>downloadBlob(b,'heatmap-'+slug(scans[0].kw)+'.png')); return toast('Heatmap PNG exported','ok'); }
+    if(fmt==='xlsx'){ toast('Building Excel…'); await ensureXLSX(); return exportXLSX(scans); }
+    if(fmt==='pdf'){ toast('Building PDF report…'); await ensureJsPDF(); return exportPDF(scans); }
+  }catch(e){ toast('Export failed: '+(e.message||e),'err'); }
+}
+function slug(s){return String(s||'scan').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40)||'scan';}
+function exportCSV(scans){
+  const rows=[['keyword','business','date','grid','row','col','lat','lng','rank','top1','top2','top3']];
+  scans.forEach(s=>s.results.forEach(p=>rows.push([s.kw,s.biz,s.ts,s.grid+'x'+s.grid,p.r,p.c,p.lat.toFixed(6),p.lng.toFixed(6),p.rank||'20+'].concat((p.top||['','','']).slice(0,3)))));
+  const csv='﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  downloadBlob(new Blob([csv],{type:'text/csv'}),'geogrid-'+(scans.length>1?'report':slug(scans[0].kw))+'.csv'); toast('CSV exported','ok');
+}
+function exportXLSX(scans){
+  const XLSX=window.XLSX; const wb=XLSX.utils.book_new();
+  const summary=[['Keyword','Business','Date','Grid','Avg Rank','SoLV %','Coverage %','Top-3 pts','Found','Total']];
+  scans.forEach(s=>summary.push([s.kw,s.biz,new Date(s.ts).toLocaleString(),s.grid+'x'+s.grid,s.metrics.arp,s.metrics.solv,s.metrics.cov,s.metrics.t3,s.metrics.found,s.metrics.total]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'Summary');
+  const pts=[['Keyword','Row','Col','Lat','Lng','Rank','Top1','Top2','Top3']];
+  scans.forEach(s=>s.results.forEach(p=>pts.push([s.kw,p.r,p.c,+p.lat.toFixed(6),+p.lng.toFixed(6),p.rank||'20+'].concat((p.top||['','','']).slice(0,3)))));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pts),'Grid Points');
+  // competitors from first scan
+  const comp=[['Business','Top-3 points (across scans)']]; const tally={};
+  scans.forEach(s=>s.results.forEach(p=>(p.top||[]).forEach(n=>{if(!matchBiz(n,s.biz)){tally[n]=(tally[n]||0)+1;}})));
+  Object.keys(tally).sort((a,b)=>tally[b]-tally[a]).slice(0,30).forEach(n=>comp.push([n,tally[n]]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(comp),'Competitors');
+  XLSX.writeFile(wb,'geogrid-report.xlsx'); toast('Excel exported','ok');
+}
+function exportPDF(scans){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'}); const PW=doc.internal.pageSize.getWidth();
+  const title=state.reportTitle||'Local Rank Report';
+  scans.forEach((s,idx)=>{
+    if(idx>0) doc.addPage();
+    doc.setFillColor(37,99,235);doc.rect(0,0,PW,8,'F');
+    doc.setTextColor(15,26,46);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(s.biz||'Business',40,46);
+    doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(91,107,136);
+    doc.text('"'+s.kw+'"   ·   '+s.grid+'×'+s.grid+' grid   ·   '+new Date(s.ts).toLocaleString(),40,64);
+    // heatmap image
+    const img=renderHeatmapCanvas(s).toDataURL('image/png');
+    const iw=300, ih=iw*(860/760); doc.addImage(img,'PNG',40,80,iw,ih);
+    // metrics + competitors table to the right
+    const tx=360;
+    doc.autoTable({startY:84,margin:{left:tx},tableWidth:PW-tx-40,theme:'grid',styles:{fontSize:9,cellPadding:4},headStyles:{fillColor:[37,99,235]},
+      head:[['Metric','Value']],body:[['Avg Rank Position',String(s.metrics.arp)],['Share of Local Voice',s.metrics.solv+'%'],['Coverage (found)',s.metrics.cov+'%'],['Top-3 points',s.metrics.t3+'/'+s.metrics.total],['Top-10 points',(s.metrics.t10||0)+'/'+s.metrics.total],['Data source',s.src||'demo']]});
+    const tally={}; s.results.forEach(p=>(p.top||[]).forEach((n,i)=>{if(!matchBiz(n,s.biz)){tally[n]=tally[n]||{t3:0,wt:0};tally[n].t3++;tally[n].wt+=(3-i);}}));
+    const comp=Object.keys(tally).sort((a,b)=>tally[b].wt-tally[a].wt).slice(0,8).map(n=>[n,String(tally[n].t3)]);
+    doc.autoTable({startY:(doc.lastAutoTable?doc.lastAutoTable.finalY:200)+14,margin:{left:tx},tableWidth:PW-tx-40,theme:'striped',styles:{fontSize:9,cellPadding:4},headStyles:{fillColor:[124,58,237]},head:[['Top competitor','Top-3 pts']],body:comp.length?comp:[['—','0']]});
+    doc.setFontSize(8);doc.setTextColor(138,154,181);doc.text(title+'  ·  Geo-Grid Rank Tracker  ·  '+new Date().toLocaleDateString(),40,doc.internal.pageSize.getHeight()-24);
+  });
+  doc.save('geogrid-report-'+(scans.length>1?'all':slug(scans[0].kw))+'.pdf'); toast('PDF report exported','ok');
+}
+
+/* ---------- modal helper ---------- */
+function showModal(title,bodyHtml,actions){
+  const card=document.getElementById('modal-card');
+  card.innerHTML='<h3>'+esc(title)+'</h3><div class="mm-b">'+bodyHtml+'</div><div class="mm-f"></div>';
+  const foot=card.querySelector('.mm-f');
+  foot.innerHTML='<button class="btn sec2" style="width:auto;padding:8px 14px" onclick="closeModal()">Cancel</button>';
+  (actions||[]).forEach(a=>{const b=document.createElement('button');b.className='btn'+(a.primary?'':' sec2');b.style.width='auto';b.style.padding='8px 16px';b.textContent=a.label;b.onclick=a.fn;foot.appendChild(b);});
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
 /* ---------- legend + chips + boot ---------- */
 function renderLegend(){
@@ -399,27 +814,36 @@ function renderLegend(){
     .map(b=>'<div class="lr"><span class="sw" style="background:var('+b[1]+')"></span>'+b[0]+'</div>').join('');
 }
 function renderChips(){
-  const sizes=[3,5,7,9,11,13];
+  const sizes=[3,5,7,9,11,13,15];
   document.getElementById('grid-chips').innerHTML=sizes.map(n=>'<div class="chip '+(state.grid===n?'on':'')+'" onclick="setGrid('+n+')">'+n+'×'+n+'</div>').join('');
 }
-function setGrid(n){state.grid=n;save();renderChips();}
-function onSrcChange(){state.src=document.getElementById('in-src').value;save();
-  document.getElementById('key-wrap').style.display=state.src==='engine'?'block':'none';
-  document.getElementById('src-hint').textContent=state.src==='engine'?'Live mode — needs the local engine running (see note).':'Demo mode — realistic simulated rankings. Switch to Live for real data.';
-}
+function setGrid(n){state.grid=n;state.excluded={};save();renderChips();updateGridHint();if(selectMode||previewPts)previewGrid();}
 function boot(){
-  initMap(); renderLegend(); renderChips(); renderHistory();
+  initMap(); renderLegend(); renderChips(); renderHistory(); renderKeywords(); renderKwPills();
   document.getElementById('in-biz').value=state.biz||'';
-  document.getElementById('in-kw').value=state.kw||'';
+  document.getElementById('in-biz').addEventListener('input',e=>{state.biz=e.target.value;save();});
   document.getElementById('in-loc').value=state.loc||'';
   document.getElementById('in-radius').value=state.radius||2;
   document.getElementById('in-unit').value=state.unit||'mi';
   document.getElementById('in-src').value=state.src||'demo'; onSrcChange();
-  document.getElementById('in-key').value=state.key||'';
-  document.getElementById('in-key').addEventListener('input',e=>{state.key=e.target.value;save();});
+  document.getElementById('in-sched').value=state.schedule.freq||'off';
+  document.getElementById('btn-circular').classList.toggle('on',!!state.circular);
+  updateSelectBtn(); updateGridHint(); renderSchedHint();
+  // floating Run button (also keeps old #btn-scan id for compatibility)
+  injectRunButton();
   if(state.active){const s=state.scans.find(x=>x.id===state.active);if(s){state.center=s.center;setTimeout(()=>viewScan(s.id),250);}}
   else if(state.center){setCenter(state.center.lat,state.center.lng);map.setView([state.center.lat,state.center.lng],12);}
+  checkSchedule(); setInterval(checkSchedule,60000);
   window.addEventListener('beforeunload',save);
+}
+function injectRunButton(){
+  // Run controls live in the Keywords section footer; create them under the keyword list
+  const host=document.querySelector('#side .sec:nth-child(2)'); // Keywords section
+  if(!host||document.getElementById('btn-scan'))return;
+  const wrap=document.createElement('div'); wrap.style.cssText='display:flex;gap:6px;margin-top:9px';
+  wrap.innerHTML='<button class="btn" id="btn-scan" onclick="runScan({all:false})" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Scan active</button>'+
+    '<button class="btn sec2" onclick="runScan({all:true})" style="flex:1;font-weight:700">Scan all</button>';
+  host.appendChild(wrap);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 </script>

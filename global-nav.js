@@ -86,7 +86,7 @@
     bs:  {url:'brand-serp.html',         name:'Brand SERP Auditor',     code:'BS', color:'#db2777', key:'bs_state_v1',  desc:'Knowledge panel, sitelinks, brand SERP'},
 
     // Rankings
-    gg:  {url:'geo-grid-tracker.html',   name:'Geo-Grid Tracker',       code:'GG', color:'#7c3aed', key:'gg_state_v1',  desc:'Geo-grid rank tracking with SoLV'},
+    gg:  {url:'geo-grid-tracker.html',   name:'Geo-Grid Tracker',       code:'GG', color:'#7c3aed', key:'gg_state_v1',  desc:'Geo-grid Maps rank tracking: unlimited keywords, heatmaps, scheduled scans, PDF/Excel reports', isNew:true},
     pt:  {url:'pack-tracker.html',       name:'Pack Tracker',           code:'PT', color:'#7c3aed', key:'pt_state_v1',  desc:'Local pack position monitoring'},
     sr2: {url:'serp-ranker.html',        name:'SERP Ranker',            code:'SRP',color:'#7c3aed', key:'sr2_state_v1', desc:'SERP feature & ranking analyzer'},
     ctr: {url:'ctr-title-lab.html',      name:'CTR Title Lab',          code:'CTR',color:'#7c3aed', key:'ctr_state_v1', desc:'Title/meta variants + CTR prediction'},
@@ -216,6 +216,7 @@
       if(Array.isArray(d.reviews) && d.reviews.length) return true;
       if(Array.isArray(d.posts) && d.posts.length) return true;
       if(Array.isArray(d.keywords) && d.keywords.length) return true;
+      if(Array.isArray(d.scans) && d.scans.length) return true;
       if(Array.isArray(d.questions) && d.questions.length) return true;
       if(Array.isArray(d.locations) && d.locations.length) return true;
       if(Array.isArray(d.backlinks) && d.backlinks.length) return true;
