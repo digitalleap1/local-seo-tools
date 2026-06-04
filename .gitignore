@@ -1,0 +1,7 @@
+.claude/
+.vercel/
+_*.mjs
+_*.png
+_*.py
+__pycache__/
+node_modules/

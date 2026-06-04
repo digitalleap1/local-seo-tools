@@ -735,6 +735,7 @@ html:not(.gn-hide-pagehdr) #header{flex-wrap:wrap;height:auto;min-height:52px;ro
           <a href="ai-assistant.html">AI Assistant</a>
           <a href="glossary.html">Glossary</a>
           <a href="#" id="gn-foot-add">Add Tool</a>
+          <a href="#" id="gn-foot-logout">Sign out</a>
         </span>
         <span class="gn-foot-sp"></span>
         <span class="gn-foot-meta">© 2026 <a href="mailto:techie1418@gmail.com">Mukesh&nbsp;Kr</a> · All rights reserved · ${n} tools · Developed by Mukesh&nbsp;Kr</span>
@@ -744,6 +745,7 @@ html:not(.gn-hide-pagehdr) #header{flex-wrap:wrap;height:auto;min-height:52px;ro
     document.body.appendChild(f);
     f.querySelector('#gn-foot-theme').addEventListener('click', gnToggleTheme);
     f.querySelector('#gn-foot-add').addEventListener('click', e=>{ e.preventDefault(); openAddTool(); });
+    f.querySelector('#gn-foot-logout').addEventListener('click', e=>{ e.preventDefault(); fetch('/api/logout',{method:'POST'}).catch(()=>{}).finally(()=>{ location.href='/login.html'; }); });
     _foot = f;
   }
 

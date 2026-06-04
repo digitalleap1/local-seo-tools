@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Sign in · Local SEO Tools</title>
+<script>
+(function(){
+  var saved = localStorage.getItem('seohub_theme_v1');
+  var d = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --border:#d1d9e8; --border2:#c2cde0;
+  --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
+  --blue:#2563eb; --purple:#7c3aed; --danger:#dc2626; --success:#16a34a;
+  --font:'Inter',system-ui,-apple-system,sans-serif; --mono:'JetBrains Mono',monospace;
+  --shadow:0 24px 60px rgba(15,26,46,.18);
+}
+[data-theme="dark"]{
+  --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --border:#1e2d44; --border2:#2a3b56;
+  --text:#eaf0fb; --text2:#9fb0cc; --text3:#6b7d9c;
+  --blue:#3b82f6; --purple:#a78bfa; --shadow:0 24px 60px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--font); background:var(--bg); color:var(--text);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  position:relative; overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+/* ambient gradient backdrop */
+body::before{
+  content:''; position:absolute; inset:-30%;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(37,99,235,.22), transparent 42%),
+    radial-gradient(circle at 82% 75%, rgba(124,58,237,.20), transparent 45%),
+    radial-gradient(circle at 60% 10%, rgba(13,148,136,.14), transparent 40%);
+  filter:blur(6px); z-index:0;
+}
+.card{
+  position:relative; z-index:1; width:100%; max-width:400px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:18px;
+  box-shadow:var(--shadow); padding:34px 30px 26px; animation:rise .5s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.brand{display:flex; align-items:center; gap:11px; margin-bottom:22px}
+.brand .logo{
+  width:42px; height:42px; border-radius:12px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  box-shadow:0 8px 20px rgba(37,99,235,.32);
+}
+.brand .logo svg{width:23px; height:23px; color:#fff}
+.brand .bn{font-size:16px; font-weight:800; line-height:1.1; letter-spacing:-.2px}
+.brand .bs{font-size:10px; font-family:var(--mono); font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1.5px; margin-top:3px}
+h1{font-size:21px; font-weight:800; letter-spacing:-.3px; margin-bottom:5px}
+.sub{font-size:12.5px; color:var(--text2); margin-bottom:22px; line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block; font-size:10.5px; font-family:var(--mono); font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px}
+.ipwrap{position:relative; display:flex; align-items:center}
+.ipwrap svg.lead{position:absolute; left:12px; width:15px; height:15px; color:var(--text3); pointer-events:none}
+input{
+  width:100%; background:var(--bg); border:1.5px solid var(--border); border-radius:10px;
+  padding:11px 12px 11px 36px; font-size:13.5px; color:var(--text); font-family:var(--font); outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+input::placeholder{color:var(--text3)}
+input:focus{border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.toggle{position:absolute; right:6px; background:none; border:none; color:var(--text3); cursor:pointer; padding:7px; border-radius:7px; display:flex}
+.toggle:hover{color:var(--text); background:var(--bg3)}
+.toggle svg{width:16px; height:16px}
+.err{
+  display:none; align-items:center; gap:8px; background:rgba(220,38,38,.1);
+  border:1px solid rgba(220,38,38,.3); color:var(--danger); font-size:12px; font-weight:600;
+  padding:9px 11px; border-radius:9px; margin-bottom:14px; line-height:1.4;
+}
+.err.show{display:flex}
+.err svg{width:15px; height:15px; flex-shrink:0}
+.btn{
+  width:100%; border:none; border-radius:10px; padding:12px; cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),var(--purple)); color:#fff;
+  font-family:var(--font); font-size:14px; font-weight:700; letter-spacing:.2px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 10px 24px rgba(37,99,235,.3); transition:transform .12s, filter .15s, opacity .15s;
+}
+.btn:hover{filter:brightness(1.07); transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.65; cursor:not-allowed; transform:none}
+.spin{width:16px; height:16px; border:2.5px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:sp .6s linear infinite; display:none}
+.btn.loading .spin{display:inline-block}
+.btn.loading .lbl{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.foot{margin-top:22px; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px}
+.foot .note{font-size:10.5px; font-family:var(--mono); color:var(--text3); display:flex; align-items:center; gap:6px}
+.foot .note svg{width:12px; height:12px; color:var(--success)}
+.foot .cr{font-size:10.5px; color:var(--text3)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></div>
+      <div><div class="bn">SEO Hub</div><div class="bs">Local SEO Tools</div></div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="sub">Admin access only. Enter your credentials to open the tools.</p>
+
+    <div class="err" id="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="err-msg"></span></div>
+
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <label for="u">Username</label>
+        <div class="ipwrap">
+          <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input id="u" name="username" type="text" placeholder="admin" autocomplete="username" autofocus>
+        </div>
+      </div>
+      <div class="field">
+        <label for="p">Password</label>
+        <div class="ipwrap">
+          <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input id="p" name="password" type="password" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="toggle" id="toggle" aria-label="Show password" title="Show / hide password">
+            <svg id="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn" id="submit" type="submit"><span class="spin"></span><span class="lbl">Sign in</span></button>
+    </form>
+
+    <div class="foot">
+      <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Secured</span>
+      <span class="cr">© 2026 Mukesh Kr</span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var form = document.getElementById('form');
+  var err = document.getElementById('err'), errMsg = document.getElementById('err-msg');
+  var btn = document.getElementById('submit');
+  var u = document.getElementById('u'), p = document.getElementById('p');
+
+  // show / hide password
+  var EYE = '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+  var EYE_OFF = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  document.getElementById('toggle').addEventListener('click', function(){
+    var show = p.type === 'password';
+    p.type = show ? 'text' : 'password';
+    document.getElementById('eye').innerHTML = show ? EYE_OFF : EYE;
+    p.focus();
+  });
+
+  // only allow same-origin relative redirect targets
+  function safeNext(){
+    try{
+      var n = new URLSearchParams(location.search).get('next');
+      if(n && /^\/[A-Za-z0-9]/.test(n) && !n.startsWith('//')) return n;
+    }catch(e){}
+    return '/index.html';
+  }
+  function showErr(m){ errMsg.textContent = m; err.classList.add('show'); }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    err.classList.remove('show');
+    if(!u.value.trim() || !p.value){ showErr('Enter your username and password.'); return; }
+    btn.classList.add('loading'); btn.disabled = true;
+    try{
+      var res = await fetch('/api/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username: u.value.trim(), password: p.value })
+      });
+      var data = {};
+      try{ data = await res.json(); }catch(_){}
+      if(res.ok && data.ok){ location.href = safeNext(); return; }
+      showErr(data.error || 'Sign in failed. Please try again.');
+    }catch(ex){
+      showErr('Network error. Please try again.');
+    }
+    btn.classList.remove('loading'); btn.disabled = false;
+    p.focus(); p.select();
+  });
+})();
+</script>
+</body>
+</html>
