@@ -72,6 +72,19 @@ a{color:inherit;text-decoration:none}
 .btn.sec2.on{background:var(--primary);color:#fff;border-color:var(--primary)}
 .hint{font-size:10.5px;color:var(--text3);line-height:1.5;margin-top:7px;font-family:var(--mono)}
 .hint code{background:var(--bg3);padding:1px 5px;border-radius:4px}
+.planbadge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.5px;margin-bottom:8px}
+.planbadge.free{background:rgba(22,163,74,.14);color:var(--green)}
+.planbadge.paid{background:rgba(124,58,237,.14);color:var(--purple)}
+.usewrap{margin:8px 0 2px}
+.userow{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--text2);margin-bottom:4px}
+.usebar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.usebar>div{height:100%;width:0;background:var(--green);transition:width .3s}
+.usebar>div.warn{background:var(--amber)}.usebar>div.over{background:var(--red)}
+.srclink{color:var(--primary);font-weight:700}
+.srclink:hover{text-decoration:underline}
+.upsell{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(37,99,235,.08));border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-top:9px;font-size:11px;line-height:1.55;color:var(--text2)}
+.upsell b{color:var(--purple)}
+.upsell .ub{margin-top:7px;display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-weight:700}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .mc{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
 .mc .v{font-size:24px;font-weight:900;font-family:var(--mono);line-height:1}
@@ -189,16 +202,23 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
     </div>
 
     <div class="sec">
-      <h3>⚙️ Data Source</h3>
+      <h3>⚙️ Data Source &amp; Plan</h3>
       <div class="f"><select id="in-src" onchange="onSrcChange()">
-        <option value="demo">Demo — simulated (works offline, free)</option>
-        <option value="dataforseo">Live — DataForSEO Maps (per-coordinate)</option>
-        <option value="serpapi">Live — SerpAPI Google Maps (ll)</option>
-        <option value="serper">Live — Serper Maps (ll)</option>
-        <option value="engine">Live — local engine (127.0.0.1)</option>
+        <optgroup label="🆓 Free to start">
+          <option value="demo">Demo — simulated, offline (free, unlimited)</option>
+          <option value="serper">Serper Maps — free 2,500 lookups</option>
+          <option value="serpapi">SerpAPI Maps — free 100 / month</option>
+        </optgroup>
+        <optgroup label="💎 Paid — continue / unlimited">
+          <option value="dataforseo">DataForSEO Maps — pay as you go (best accuracy)</option>
+          <option value="engine">Local engine — your own Google key</option>
+        </optgroup>
       </select></div>
+      <div id="plan-badge"></div>
       <div id="key-wrap"></div>
       <div class="hint" id="src-hint"></div>
+      <div id="usage-box"></div>
+      <div id="upsell-box"></div>
     </div>
 
     <div class="sec">
@@ -278,11 +298,13 @@ td{padding:5px 6px;border-top:1px solid var(--border)}
 const STORE='gg_state_v1';
 const DEFAULTS={biz:'',loc:'',center:null,keywords:[],kw:'',grid:7,radius:2,unit:'mi',circular:false,
   excluded:{},src:'demo',keys:{dataforseo:'',serpapi:'',serper:'',places:''},key:'',
+  usage:{serper:0,serpapi:0,dataforseo:0},
   schedule:{freq:'off',nextRun:null,lastRun:null},scans:[],active:null,reportTitle:''};
 let state=load();
 function load(){
   let s;try{s=Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(STORE))||{});}catch(e){s=Object.assign({},DEFAULTS);}
   s.keys=Object.assign({dataforseo:'',serpapi:'',serper:'',places:''},s.keys||{});
+  s.usage=Object.assign({serper:0,serpapi:0,dataforseo:0},s.usage||{});
   s.schedule=Object.assign({freq:'off',nextRun:null,lastRun:null},s.schedule||{});
   s.excluded=s.excluded||{};
   if(!Array.isArray(s.keywords)) s.keywords=[];
@@ -487,10 +509,15 @@ async function runScan(opts){
   const center=state.center, pts=activePoints(center);
   if(!pts.length){toast('All grid points are excluded — clear some exclusions','err');return;}
 
-  // cost confirmation for live providers
-  if(state.src!=='demo' && state.src!=='engine' && !opts.scheduled){
-    const calls=pts.length*kws.length;
-    if(calls>30 && !confirm(`This will make ${calls} live API calls (${pts.length} points × ${kws.length} keyword${kws.length>1?'s':''}) and may incur cost on your ${state.src} account. Continue?`)) return;
+  // plan-aware confirmation for live providers
+  if(LIVE[state.src] && !opts.scheduled){
+    const calls=pts.length*kws.length; const m=SRC_META[state.src]||{};
+    if(calls>20){
+      const msg = m.tier==='free'
+        ? `This live scan uses ≈${calls} of your ${m.name} FREE quota (${pts.length} points × ${kws.length} keyword${kws.length>1?'s':''}). Continue?`
+        : `This will make ≈${calls} PAID ${m.name} API calls (${pts.length} points × ${kws.length} keyword${kws.length>1?'s':''}) and may incur cost. Continue?`;
+      if(!confirm(msg)) return;
+    }
   }
 
   scanning=true; const btn=document.getElementById('btn-scan'); if(btn) btn.disabled=true;
@@ -505,7 +532,7 @@ async function runScan(opts){
     let data;
     try{
       if(state.src==='engine'){ data=await engineScan(state.biz,kw,center,pts); setProg(100); }
-      else if(LIVE[state.src]){ data=await liveScan(state.src,state.biz,kw,center,pts,(d,t)=>setProg(d/t*100)); }
+      else if(LIVE[state.src]){ data=await liveScan(state.src,state.biz,kw,center,pts,(d,t)=>setProg(d/t*100)); state.usage[state.src]=(state.usage[state.src]||0)+pts.length; }
       else { data=demoScan(state.biz,kw,center,pts); setProg(100); }
     }catch(e){
       toast('"'+kw+'": '+(e.message||'scan failed')+' — using demo for this keyword','err');
@@ -519,7 +546,7 @@ async function runScan(opts){
   }
   state.scans=state.scans.slice(0,50); state.active=lastScan?lastScan.id:state.active; state.kw=lastScan?lastScan.kw:state.kw; save();
   if(lastScan) viewScan(lastScan.id);
-  renderKwPills();
+  renderKwPills(); renderUsage(); renderUpsell();
   setProg(100);
   document.getElementById('overlay').classList.remove('show'); if(btn) btn.disabled=false; scanning=false;
   toast('Scan complete — '+ok+' keyword'+(ok>1?'s':'')+(lastScan?' · ARP '+lastScan.metrics.arp:''),'ok');
@@ -659,20 +686,53 @@ function updateGridHint(){ const n=state.grid; const total=n*n; document.getElem
 function showMapTip(t){const e=document.getElementById('maptip');e.textContent=t;e.classList.add('show');}
 function hideMapTip(){document.getElementById('maptip').classList.remove('show');}
 
-/* ---------- data source UI ---------- */
+/* ---------- data source / plan UI ---------- */
+const SRC_META={
+  demo:{tier:'free',name:'Demo (offline)',note:'Realistic <b>simulated</b> rankings — 100% free, unlimited, no key. Perfect to try the tool. For real Google Maps positions, pick a free tier (Serper / SerpAPI) above.'},
+  serper:{tier:'free',name:'Serper Maps',keyProp:'serper',keyLabel:'Serper.dev API key',ph:'serper key',cap:2500,unit:'free lookups (one-time credit)',signup:'https://serper.dev',note:'Real per-coordinate Google Maps rank (/maps + ll). CORS-enabled, runs in your browser.'},
+  serpapi:{tier:'free',name:'SerpAPI Maps',keyProp:'serpapi',keyLabel:'SerpAPI key',ph:'serpapi key',cap:100,unit:'free searches / month',signup:'https://serpapi.com/users/sign_up',note:'Real Google Maps rank via the google_maps engine (ll=@lat,lng). Free tier resets monthly.'},
+  dataforseo:{tier:'paid',name:'DataForSEO Maps',keyProp:'dataforseo',keyLabel:'DataForSEO key — "login:password"',ph:'login:password',signup:'https://dataforseo.com',note:'Pay-as-you-go, <b>highest accuracy</b> per coordinate (location_coordinate). Best for large grids and many keywords.'},
+  engine:{tier:'paid',name:'Local engine',keyProp:'places',keyLabel:'Google Places API key',ph:'AIza…',note:'Runs <code>python gbp_auditor.py --serve</code> locally and queries Google Places with your own Google Cloud key (billed by Google).'},
+};
 function onSrcChange(){
   state.src=document.getElementById('in-src').value; save();
-  const wrap=document.getElementById('key-wrap'); const hint=document.getElementById('src-hint');
-  let html='', h='';
-  if(state.src==='dataforseo'){ html='<div class="f"><label>DataForSEO key — "login:password"</label><input id="k-df" type="password" placeholder="login:password" value="'+esc(state.keys.dataforseo)+'"></div>'; h='Highest-fidelity per-coordinate Google Maps rank. Get credentials at dataforseo.com. ~$ per 1000 calls.'; }
-  else if(state.src==='serpapi'){ html='<div class="f"><label>SerpAPI key</label><input id="k-sa" type="password" placeholder="serpapi key" value="'+esc(state.keys.serpapi)+'"></div>'; h='Uses SerpAPI google_maps engine with ll=@lat,lng. Free 100/mo. CORS-enabled.'; }
-  else if(state.src==='serper'){ html='<div class="f"><label>Serper.dev API key</label><input id="k-sp" type="password" placeholder="serper key" value="'+esc(state.keys.serper)+'"></div>'; h='Uses Serper /maps with ll coordinate. Free 2,500 credits. CORS-enabled.'; }
-  else if(state.src==='engine'){ html='<div class="f"><label>Google Places API key (used by the local engine)</label><input id="k-pl" type="password" placeholder="AIza…" value="'+esc(state.keys.places)+'"></div>'; h='Live mode via your local engine: run <code>python gbp_auditor.py --serve</code>. The browser posts grid points to 127.0.0.1; the engine queries Google Places.'; }
-  else { h='Demo mode — realistic simulated rankings, no key, no cost. Switch to a Live source for real Google Maps data (your API key, billed per scan).'; }
-  wrap.innerHTML=html; hint.innerHTML=h;
-  const bind=(id,prop)=>{const el=document.getElementById(id);if(el)el.addEventListener('input',e=>{state.keys[prop]=e.target.value;state.key=state.keys.places;save();});};
-  bind('k-df','dataforseo');bind('k-sa','serpapi');bind('k-sp','serper');bind('k-pl','places');
+  const m=SRC_META[state.src]||SRC_META.demo;
+  // plan badge
+  document.getElementById('plan-badge').innerHTML='<span class="planbadge '+m.tier+'">'+(m.tier==='free'?'🆓 FREE PLAN':'💎 PAID PLAN')+'</span>';
+  // key input
+  let keyHtml='';
+  if(m.keyProp){ keyHtml='<div class="f"><label>'+m.keyLabel+(m.signup?' · <a class="srclink" href="'+m.signup+'" target="_blank" rel="noopener">get a '+(m.tier==='free'?'free ':'')+'key →</a>':'')+'</label><input id="k-src" type="password" placeholder="'+m.ph+'" value="'+esc(state.keys[m.keyProp]||'')+'"></div>'; }
+  document.getElementById('key-wrap').innerHTML=keyHtml;
+  document.getElementById('src-hint').innerHTML=m.note;
+  const el=document.getElementById('k-src');
+  if(el) el.addEventListener('input',e=>{ state.keys[m.keyProp]=e.target.value; state.key=state.keys.places; save(); });
+  renderUsage(); renderUpsell();
 }
+function renderUsage(){
+  const box=document.getElementById('usage-box'); const m=SRC_META[state.src]||{};
+  if(m.tier!=='free'||!m.cap){ box.innerHTML=''; return; }
+  const used=state.usage[state.src]||0; const pct=Math.min(100,used/m.cap*100);
+  const cls=pct>=100?'over':pct>=80?'warn':'';
+  box.innerHTML='<div class="usewrap"><div class="userow"><span>Free tier used (estimated)</span><span><b>'+used+'</b> / '+m.cap+'</span></div>'+
+    '<div class="usebar"><div class="'+cls+'" style="width:'+pct+'%"></div></div>'+
+    '<div class="hint" style="margin-top:5px">≈ counts 1 lookup per grid point. '+m.unit+'.</div></div>';
+}
+function renderUpsell(){
+  const box=document.getElementById('upsell-box'); const m=SRC_META[state.src]||{};
+  let html='';
+  if(state.src==='demo'){
+    html='<div class="upsell"><b>You\'re on the free plan.</b> Demo data is free & unlimited. For <b>real Google Maps rankings</b>, choose a free tier (Serper 2,500 / SerpAPI 100/mo) above. Need high volume or automation? <b>Continue on a paid plan</b> (DataForSEO).<button class="ub" onclick="switchSrc(\'serper\')">Start free with Serper →</button></div>';
+  } else if(m.tier==='free'){
+    const used=state.usage[state.src]||0; const near=m.cap&&used>=m.cap*0.8;
+    if(near){
+      html='<div class="upsell"><b>You\'ve used ≈'+used+' of your '+m.cap+' free '+(state.src==='serper'?'lookups':'searches')+'.</b> To keep tracking without limits, continue on a paid plan.<button class="ub" onclick="switchSrc(\'dataforseo\')">Continue on paid (DataForSEO) →</button></div>';
+    } else {
+      html='<div class="upsell">On the free tier you get '+m.cap+' '+(state.src==='serper'?'lookups':'searches/mo')+'. Run out? <b>Continue on a paid plan</b> for unlimited tracking & bigger grids. <button class="ub" onclick="switchSrc(\'dataforseo\')">See paid (DataForSEO) →</button></div>';
+    }
+  } else { box.innerHTML=''; return; }
+  box.innerHTML=html;
+}
+function switchSrc(src){ document.getElementById('in-src').value=src; onSrcChange(); }
 
 /* ---------- scheduling (page-open honest scheduling) ---------- */
 function onSchedChange(){ state.schedule.freq=document.getElementById('in-sched').value; state.schedule.nextRun=state.schedule.freq==='off'?null:computeNextRun(state.schedule.freq,Date.now()); save(); renderSchedHint(); }
