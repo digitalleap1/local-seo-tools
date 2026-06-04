@@ -33,11 +33,20 @@ schedule"** button (Scheduled Scans panel) once the DB is connected.
 
 **Verify:** `GET /api/health` returns `{configured:true, db:true}` when connected.
 
+**Cloud Rank Dashboard** (`cloud-dashboard.html`, in the Rankings menu): view/manage
+cloud businesses, keywords, and schedules; see cron-collected scans as **heatmap
+tiles** and **rank-over-time trend charts**; **Run now** triggers an immediate scan.
+
+**Optional email rank-drop alerts (free — Resend):** after each scheduled scan the
+server compares to the previous scan and emails you if average rank worsened. Add in
+Vercel env: `RESEND_KEY` (free at resend.com, 3k/mo), `ALERT_EMAIL` (your address),
+optional `ALERT_DROP` (positions, default 3) and `ALERT_FROM` (defaults to Resend's
+shared test sender). No alerts are sent until these are set.
+
 **Paid upgrades (add later when you want):**
 - Sub-daily / more cron jobs → Vercel **Pro**.
 - Higher-accuracy or higher-volume scans → **DataForSEO** (`DATAFORSEO_KEY`) or paid
   Serper/SerpAPI tiers.
-- Email reports/alerts → add **Resend** (free 3k/mo) — Phase 3.
 
 > Tested locally end-to-end against Postgres (Docker): auth, migrate, business /
 > keyword / scan / schedule CRUD, and the cron engine running a due schedule,

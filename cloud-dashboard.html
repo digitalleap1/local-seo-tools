@@ -7,6 +7,7 @@
 <meta name="description" content="View and manage your server-side scheduled geo-grid rank scans: businesses, keywords, schedules, and cron-collected heatmaps stored in your cloud database.">
 <script>(function(){var s=localStorage.getItem('seohub_theme_v1');var d=s?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);})();</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#f3f6fb;--bg2:#fff;--bg3:#e9eef7;--bg4:#dde4f0;--border:#d1d9e8;--border2:#c2cde0;
@@ -176,7 +177,27 @@ async function selectBiz(id){
     scans=(await api('GET','/api/scans?business_id='+id+'&limit=120')).j.scans||[];
   }catch(e){ toast(e.message,'err'); return; }
   const s=schedFor(id);
-  det.innerHTML=bizHeader(b)+scheduleCard(b,s)+keywordsCard(b)+scansCard(b);
+  det.innerHTML=bizHeader(b)+scheduleCard(b,s)+keywordsCard(b)+trendsCard(b)+scansCard(b);
+  drawTrend();
+}
+function trendsCard(b){
+  if(scans.length<1) return '';
+  const multi=scans.length>=2;
+  return '<div class="card"><h3>Rank trends <span style="color:var(--text3)">(average rank over time · lower is better)</span></h3>'+
+    '<div style="position:relative;height:240px">'+(multi?'<canvas id="trend-chart"></canvas>':'<div class="empty">Need at least 2 scans to plot a trend — run the schedule again or wait for the next cron.</div>')+'</div></div>';
+}
+const PAL=['#2563eb','#16a34a','#db2777','#ea580c','#7c3aed','#0891b2','#d97706','#dc2626'];
+function drawTrend(){
+  const cv=document.getElementById('trend-chart'); if(!cv||!window.Chart) return;
+  if(window._tc){ try{window._tc.destroy();}catch(e){} window._tc=null; }
+  const byKw={}; scans.forEach(s=>{ const a=parseFloat(s.metrics&&s.metrics.arp); (byKw[s.keyword]=byKw[s.keyword]||[]).push({x:Date.parse(s.created_at),y:isNaN(a)?null:a}); });
+  const ds=Object.keys(byKw).map((kw,i)=>({label:kw,data:byKw[kw].sort((a,b)=>a.x-b.x),borderColor:PAL[i%PAL.length],backgroundColor:PAL[i%PAL.length],tension:.25,spanGaps:true,pointRadius:3,borderWidth:2}));
+  const cs=getComputedStyle(document.documentElement);
+  const txt=cs.getPropertyValue('--text2').trim()||'#5b6b88', grid=cs.getPropertyValue('--border').trim()||'#d1d9e8';
+  window._tc=new window.Chart(cv,{type:'line',data:{datasets:ds},options:{maintainAspectRatio:false,responsive:true,interaction:{mode:'nearest'},
+    plugins:{legend:{labels:{color:txt,boxWidth:12,font:{size:11}}},tooltip:{callbacks:{title:items=>new Date(items[0].parsed.x).toLocaleString()}}},
+    scales:{x:{type:'linear',ticks:{color:txt,callback:v=>new Date(v).toLocaleDateString(),maxRotation:0,font:{size:10}},grid:{color:grid}},
+      y:{reverse:true,suggestedMin:1,ticks:{color:txt,precision:0,font:{size:10}},grid:{color:grid},title:{display:true,text:'Avg rank',color:txt}}}}});
 }
 function bizHeader(b){
   return '<div class="card"><h3>Business<span class="r"><button class="btn sm" onclick="editBusiness(\''+b.id+'\')">Edit</button><button class="btn sm dng" onclick="delBusiness(\''+b.id+'\')">Delete</button></span></h3>'+
