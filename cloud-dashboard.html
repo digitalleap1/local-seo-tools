@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Rank Dashboard — Local SEO Tools</title>
+<meta name="description" content="View and manage your server-side scheduled geo-grid rank scans: businesses, keywords, schedules, and cron-collected heatmaps stored in your cloud database.">
+<script>(function(){var s=localStorage.getItem('seohub_theme_v1');var d=s?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);})();</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6fb;--bg2:#fff;--bg3:#e9eef7;--bg4:#dde4f0;--border:#d1d9e8;--border2:#c2cde0;
+  --primary:#2563eb;--primary-soft:rgba(37,99,235,.08);--purple:#7c3aed;
+  --green:#16a34a;--amber:#d97706;--red:#dc2626;
+  --text:#0f1a2e;--text2:#5b6b88;--text3:#8a9ab5;
+  --shadow-sm:0 1px 3px rgba(15,26,46,.07);--shadow-md:0 6px 20px rgba(15,26,46,.09);
+  --radius:12px;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --bg:#06101f;--bg2:#0c1828;--bg3:#142236;--bg4:#1c2e45;--border:#1e2d44;--border2:#2a3b56;
+  --primary:#3b82f6;--primary-soft:rgba(59,130,246,.14);--purple:#a78bfa;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --text:#e2ecf8;--text2:#7e95b8;--text3:#506a8c;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);--shadow-md:0 8px 24px rgba(0,0,0,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:13.5px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;outline:none}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 60px}
+.page-h{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.page-h .ic{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.page-h .ic svg{width:21px;height:21px;color:#fff}
+.page-h h1{font-size:21px;font-weight:800;letter-spacing:-.4px}
+.page-h .sub{font-size:12px;color:var(--text2)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);font-weight:700;padding:4px 10px;border-radius:20px;margin-left:auto}
+.chip.on{background:rgba(22,163,74,.14);color:var(--green)}
+.chip.off{background:rgba(220,38,38,.12);color:var(--red)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.setup{padding:26px;margin-top:18px;line-height:1.7}
+.setup h2{font-size:17px;font-weight:800;margin-bottom:10px}
+.setup ol{margin:12px 0 12px 20px}.setup li{margin:6px 0}
+.setup code{background:var(--bg3);padding:1px 6px;border-radius:5px;font-family:var(--mono);font-size:12px}
+.toolbar{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text)}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn.pri{background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;border:none}
+.btn.pri:hover{filter:brightness(1.08);color:#fff}
+.btn.dng:hover{border-color:var(--red);color:var(--red)}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.bizlist{display:flex;flex-direction:column;gap:8px}
+.bizcard{padding:12px 13px;cursor:pointer;border:1px solid var(--border);border-radius:11px;background:var(--bg2);transition:.12s}
+.bizcard:hover{border-color:var(--border2)}
+.bizcard.on{border-color:var(--primary);background:var(--primary-soft)}
+.bizcard .bn{font-size:14px;font-weight:800}
+.bizcard .bm{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.bizcard .badge{font-size:9px;font-family:var(--mono);font-weight:800;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2)}
+.bizcard .badge.sch{background:rgba(124,58,237,.14);color:var(--purple)}
+.detail .card{padding:16px;margin-bottom:14px}
+.detail h3{font-size:11px;font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.detail h3 .r{margin-left:auto;display:flex;gap:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.fld input,.fld select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text)}
+.fld input:focus,.fld select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.kw-add{display:flex;gap:7px;margin-bottom:10px}.kw-add input{flex:1}
+.kwrow{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:var(--bg)}
+.kwrow .kn{flex:1;font-weight:600}
+.kwrow .kx{color:var(--text3);padding:2px 6px}.kwrow .kx:hover{color:var(--red)}
+.scan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.scan{border:1px solid var(--border);border-radius:11px;padding:13px;background:var(--bg)}
+.scan .st{font-weight:800;font-size:14px}.scan .sd{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-bottom:8px}
+.mrow{display:flex;gap:6px;margin-bottom:10px}
+.metric{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center}
+.metric .v{font-size:16px;font-weight:900;font-family:var(--mono)}.metric .l{font-size:8.5px;color:var(--text3);text-transform:uppercase}
+.hm{display:grid;gap:2px;margin:0 auto;max-width:170px}
+.hm .c{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;font-family:var(--mono)}
+.hm .c.none{background:var(--bg3);color:var(--text3)}
+.empty{padding:34px;text-align:center;color:var(--text3)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--bg2);border:1px solid var(--primary);color:var(--text);padding:10px 16px;border-radius:9px;font-size:13px;font-weight:600;box-shadow:var(--shadow-md);z-index:9999;opacity:0;transition:.3s;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{border-color:var(--red)}.toast.ok{border-color:var(--green)}
+.modal{position:fixed;inset:0;background:rgba(6,16,31,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:9998;padding:16px}
+.modal.show{display:flex}
+.modal .mc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:440px;width:100%;box-shadow:var(--shadow-md)}
+.modal .mc h3{padding:14px 18px;border-bottom:1px solid var(--border);font-size:15px;font-weight:800;background:var(--bg3)}
+.modal .mb{padding:16px 18px;display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow:auto}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:820px){.layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page-h">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+    <div><h1>Cloud Rank Dashboard</h1><div class="sub">Server-side scheduled scans, stored in your database</div></div>
+    <span class="chip off" id="cloud-chip">checking…</span>
+  </div>
+  <div id="content"></div>
+</div>
+
+<div class="modal" id="modal"><div class="mc" id="modal-card"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="global-nav.js"></script>
+<script>
+const RHEX={r1:'#16a34a',r2:'#65a30d',r3:'#ca8a04',r4:'#ea580c',r5:'#dc2626',rx:'#7f1d1d'};
+function rankHex(r){if(r===0||r==null)return RHEX.rx;if(r<=3)return RHEX.r1;if(r<=7)return RHEX.r2;if(r<=10)return RHEX.r3;if(r<=15)return RHEX.r4;return RHEX.r5;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m,t){const e=document.getElementById('toast');e.className='toast show'+(t?' '+t:'');e.textContent=m;clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),3400);}
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:{'content-type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  let j={}; try{j=await r.json();}catch(e){}
+  if(r.status===401) throw new Error('Not signed in — open the site via the login page first.');
+  if(!r.ok && r.status!==503) throw new Error(j.error||('HTTP '+r.status));
+  return {status:r.status,j};
+}
+
+let businesses=[], sel=null, keywords=[], schedules=[], scans=[];
+
+async function boot(){
+  let health={};
+  try{ const r=await fetch('/api/health',{cache:'no-store'}); if(r.ok) health=await r.json(); }catch(e){}
+  const chip=document.getElementById('cloud-chip');
+  if(!health.configured || !health.db){
+    chip.className='chip off'; chip.textContent='● cloud off';
+    document.getElementById('content').innerHTML=setupCard(health);
+    return;
+  }
+  chip.className='chip on'; chip.textContent='● cloud connected';
+  document.getElementById('content').innerHTML=
+    '<div class="toolbar"><button class="btn pri" onclick="addBusiness()">+ Add business</button><button class="btn" onclick="loadAll()">↻ Refresh</button>'+
+    '<a class="btn" href="geo-grid-tracker.html">← Geo-Grid Tracker</a></div>'+
+    '<div class="layout"><div class="bizlist" id="bizlist"></div><div class="detail" id="detail"></div></div>';
+  await loadAll();
+}
+function setupCard(h){
+  return '<div class="card setup"><h2>☁️ Cloud is not connected yet</h2>'+
+    '<p>This dashboard shows scans collected automatically by the server. It runs on <b>free tiers</b>. To turn it on:</p>'+
+    '<ol><li>Create a free <b>Neon</b> database at <code>neon.tech</code> and copy the pooled connection string.</li>'+
+    '<li>In <b>Vercel → Settings → Environment Variables</b> add <code>DATABASE_URL</code> (Neon) and <code>SERPER_KEY</code> (free Serper key), then <b>redeploy</b>.</li>'+
+    '<li>Create the tables once: run <code>fetch(\'/api/migrate\',{method:\'POST\'})</code> in your browser console on this site.</li>'+
+    '<li>Open <b>Geo-Grid Tracker → Scheduled Scans → "Save to cloud &amp; schedule"</b>, or add a business below once connected.</li></ol>'+
+    '<p style="color:var(--text2);font-size:12.5px">Full steps &amp; the database schema are in <code>LOCAL-SEO-PLATFORM.md</code>.</p>'+
+    (h&&h.configured&&!h.db?'<p style="color:var(--red);margin-top:8px">DATABASE_URL is set but the connection failed: '+esc(h.error||'')+'</p>':'')+'</div>';
+}
+
+async function loadAll(){
+  try{
+    businesses=(await api('GET','/api/businesses')).j.businesses||[];
+    schedules=(await api('GET','/api/schedules')).j.schedules||[];
+    if(!sel && businesses.length) sel=businesses[0].id;
+    if(sel && !businesses.some(b=>b.id===sel)) sel=businesses[0]?businesses[0].id:null;
+    renderBizList();
+    if(sel) await selectBiz(sel); else document.getElementById('detail').innerHTML='<div class="card"><div class="empty">No businesses yet. Click <b>+ Add business</b> or use the Geo-Grid Tracker’s "Save to cloud".</div></div>';
+  }catch(e){ toast(e.message,'err'); }
+}
+function schedFor(bid){ return schedules.find(s=>s.business_id===bid); }
+function renderBizList(){
+  const el=document.getElementById('bizlist'); if(!el) return;
+  if(!businesses.length){ el.innerHTML='<div class="card" style="padding:14px;color:var(--text3);font-size:12.5px">No businesses.</div>'; return; }
+  el.innerHTML=businesses.map(b=>{
+    const s=schedFor(b.id);
+    return '<div class="bizcard '+(b.id===sel?'on':'')+'" onclick="selectBiz(\''+b.id+'\')"><div class="bn">'+esc(b.name)+'</div>'+
+      '<div class="bm">'+(b.city?'<span>'+esc(b.city)+'</span>':'')+(b.latitude!=null?'<span class="badge">'+(+b.latitude).toFixed(2)+', '+(+b.longitude).toFixed(2)+'</span>':'')+
+      (s?'<span class="badge sch">'+esc(s.frequency)+(s.enabled?'':' · paused')+'</span>':'<span class="badge">no schedule</span>')+'</div></div>';
+  }).join('');
+}
+async function selectBiz(id){
+  sel=id; renderBizList();
+  const b=businesses.find(x=>x.id===id); if(!b) return;
+  const det=document.getElementById('detail'); det.innerHTML='<div class="card"><div class="empty">Loading…</div></div>';
+  try{
+    keywords=(await api('GET','/api/keywords?business_id='+id)).j.keywords||[];
+    scans=(await api('GET','/api/scans?business_id='+id+'&limit=120')).j.scans||[];
+  }catch(e){ toast(e.message,'err'); return; }
+  const s=schedFor(id);
+  det.innerHTML=bizHeader(b)+scheduleCard(b,s)+keywordsCard(b)+scansCard(b);
+}
+function bizHeader(b){
+  return '<div class="card"><h3>Business<span class="r"><button class="btn sm" onclick="editBusiness(\''+b.id+'\')">Edit</button><button class="btn sm dng" onclick="delBusiness(\''+b.id+'\')">Delete</button></span></h3>'+
+    '<div style="font-size:18px;font-weight:800">'+esc(b.name)+'</div>'+
+    '<div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-top:4px">'+[b.city,b.website,(b.latitude!=null?(+b.latitude).toFixed(4)+', '+(+b.longitude).toFixed(4):'')].filter(Boolean).map(esc).join('  ·  ')+'</div></div>';
+}
+function scheduleCard(b,s){
+  const opts=(v,list)=>list.map(o=>'<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>').join('');
+  return '<div class="card"><h3>Schedule (server cron)'+(s?'<span class="r"><button class="btn sm" onclick="runNow(\''+s.id+'\')">▶ Run now</button><button class="btn sm dng" onclick="delSchedule(\''+s.id+'\')">Delete</button></span>':'')+'</h3>'+
+    '<div class="grid2">'+
+    '<div class="fld"><label>Frequency</label><select id="s-freq">'+opts(s?s.frequency:'weekly',[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']])+'</select></div>'+
+    '<div class="fld"><label>Provider (key from Vercel env)</label><select id="s-prov">'+opts(s?s.provider:'serper',[['serper','Serper (SERPER_KEY)'],['serpapi','SerpAPI (SERPAPI_KEY)'],['dataforseo','DataForSEO (DATAFORSEO_KEY)']])+'</select></div>'+
+    '<div class="fld"><label>Grid</label><select id="s-grid">'+opts(String(s?s.grid:5),[['3','3×3'],['5','5×5'],['7','7×7'],['9','9×9'],['11','11×11']])+'</select></div>'+
+    '<div class="fld"><label>Radius</label><input id="s-rad" type="number" step="0.1" min="0.2" value="'+(s?s.radius:2)+'"></div>'+
+    '<div class="fld"><label>Unit</label><select id="s-unit">'+opts(s?s.unit:'mi',[['mi','miles'],['km','km']])+'</select></div>'+
+    '<div class="fld"><label>Enabled</label><select id="s-en">'+opts(s?(s.enabled?'1':'0'):'1',[['1','Yes — runs on cron'],['0','Paused']])+'</select></div>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px"><button class="btn pri" onclick="saveSchedule(\''+b.id+'\','+(s?'\''+s.id+'\'':'null')+')">'+(s?'Save schedule':'Create schedule')+'</button>'+
+    (s?'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">next: '+fmt(s.next_run)+' · last: '+fmt(s.last_run)+'</span>':'<span style="font-size:11px;color:var(--text3)">No schedule yet — the daily cron runs enabled schedules.</span>')+'</div></div>';
+}
+function fmt(d){ return d?new Date(d).toLocaleString():'—'; }
+function keywordsCard(b){
+  return '<div class="card"><h3>Keywords <span style="color:var(--text3)">('+keywords.length+')</span></h3>'+
+    '<div class="kw-add"><input id="kw-in" placeholder="add keyword…" onkeydown="if(event.key===\'Enter\')addKw(\''+b.id+'\')"><button class="btn pri" onclick="addKw(\''+b.id+'\')">Add</button></div>'+
+    (keywords.length?keywords.map(k=>'<div class="kwrow"><span class="kn">'+esc(k.keyword)+'</span><span class="kx" onclick="delKw(\''+k.id+'\',\''+b.id+'\')">✕</span></div>').join(''):'<div style="color:var(--text3);font-size:12.5px">No keywords yet.</div>')+'</div>';
+}
+function scansCard(b){
+  if(!scans.length) return '<div class="card"><h3>Cloud scans</h3><div class="empty">No server scans yet. Create a schedule and click <b>Run now</b>, or wait for the daily cron.</div></div>';
+  // latest scan per keyword
+  const seen={},latest=[]; scans.forEach(s=>{ if(!seen[s.keyword]){seen[s.keyword]=1;latest.push(s);} });
+  return '<div class="card"><h3>Cloud scans <span style="color:var(--text3)">(latest per keyword · '+scans.length+' total)</span></h3>'+
+    '<div class="scan-grid">'+latest.map(scanTile).join('')+'</div></div>';
+}
+function scanTile(s){
+  const m=s.metrics||{}; const res=s.results||[]; const n=s.grid||Math.round(Math.sqrt(res.length))||5;
+  const by={}; res.forEach(p=>by[p.r+'_'+p.c]=p);
+  let cells='';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){const p=by[r+'_'+c];cells+=p?'<div class="c" style="background:'+rankHex(p.rank)+'">'+(p.rank===0?'·':p.rank)+'</div>':'<div class="c none">·</div>';}
+  return '<div class="scan"><div class="st">'+esc(s.keyword)+'</div><div class="sd">'+fmt(s.created_at)+' · '+esc(s.source||'')+' · '+n+'×'+n+'</div>'+
+    '<div class="mrow"><div class="metric"><div class="v" style="color:var(--primary)">'+(m.arp??'—')+'</div><div class="l">Avg</div></div>'+
+    '<div class="metric"><div class="v" style="color:var(--green)">'+(m.solv??0)+'%</div><div class="l">SoLV</div></div>'+
+    '<div class="metric"><div class="v" style="color:var(--amber)">'+(m.cov??0)+'%</div><div class="l">Cov</div></div></div>'+
+    '<div class="hm" style="grid-template-columns:repeat('+n+',1fr)">'+cells+'</div></div>';
+}
+
+/* ---- actions ---- */
+async function addKw(bid){ const inp=document.getElementById('kw-in'); const v=inp.value.trim(); if(!v)return;
+  try{ await api('POST','/api/keywords',{business_id:bid,keywords:v.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean)}); inp.value=''; await selectBiz(bid); }catch(e){ toast(e.message,'err'); } }
+async function delKw(id,bid){ try{ await api('DELETE','/api/keywords?id='+id); await selectBiz(bid); }catch(e){ toast(e.message,'err'); } }
+async function saveSchedule(bid,sid){
+  const body={business_id:bid,frequency:val('s-freq'),provider:val('s-prov'),grid:+val('s-grid'),radius:+val('s-rad'),unit:val('s-unit'),enabled:val('s-en')==='1'};
+  if(sid) body.id=sid;
+  try{ await api('POST','/api/schedules',body); toast('Schedule saved','ok'); schedules=(await api('GET','/api/schedules')).j.schedules||[]; renderBizList(); await selectBiz(bid); }catch(e){ toast(e.message,'err'); }
+}
+async function delSchedule(id){ if(!confirm('Delete this schedule?'))return; try{ await api('DELETE','/api/schedules?id='+id); schedules=(await api('GET','/api/schedules')).j.schedules||[]; renderBizList(); await selectBiz(sel); toast('Schedule deleted'); }catch(e){ toast(e.message,'err'); } }
+async function runNow(sid){ toast('Running scan on the server…'); try{ const r=await api('POST','/api/scan-now',{schedule_id:sid}); const res=r.j.result||{}; if(res.skipped){ toast('Skipped: '+res.skipped,'err'); } else { toast('Done — '+(res.done||0)+' keyword(s) scanned','ok'); } schedules=(await api('GET','/api/schedules')).j.schedules||[]; await selectBiz(sel); }catch(e){ toast(e.message,'err'); } }
+function val(id){ return document.getElementById(id).value; }
+
+async function delBusiness(id){ if(!confirm('Delete this business and all its keywords, schedules and scans?'))return; try{ await api('DELETE','/api/businesses?id='+id); sel=null; await loadAll(); toast('Business deleted'); }catch(e){ toast(e.message,'err'); } }
+function addBusiness(){ openBizModal(null); }
+function editBusiness(id){ openBizModal(businesses.find(b=>b.id===id)); }
+function openBizModal(b){
+  const card=document.getElementById('modal-card');
+  card.innerHTML='<h3>'+(b?'Edit business':'Add business')+'</h3><div class="mb">'+
+    fld('m-name','Business name *',b?b.name:'')+fld('m-city','City',b?b.city:'')+fld('m-web','Website',b?b.website:'')+fld('m-phone','Phone',b?b.phone:'')+
+    '<div class="grid2">'+fld('m-lat','Latitude *',b&&b.latitude!=null?b.latitude:'')+fld('m-lng','Longitude *',b&&b.longitude!=null?b.longitude:'')+'</div>'+
+    '<div style="font-size:11px;color:var(--text3)">Tip: get exact lat/lng from the Geo-Grid Tracker (click the map), or Google Maps.</div></div>'+
+    '<div class="mf"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="saveBusiness('+(b?'\''+b.id+'\'':'null')+')">Save</button></div>';
+  document.getElementById('modal').classList.add('show');
+}
+function fld(id,label,v){ return '<div class="fld"><label>'+label+'</label><input id="'+id+'" value="'+esc(v==null?'':v)+'"></div>'; }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+async function saveBusiness(id){
+  const name=val('m-name').trim(); const lat=parseFloat(val('m-lat')), lng=parseFloat(val('m-lng'));
+  if(!name){ toast('Name is required','err'); return; }
+  const body={name,city:val('m-city').trim()||null,website:val('m-web').trim()||null,phone:val('m-phone').trim()||null,latitude:isNaN(lat)?null:lat,longitude:isNaN(lng)?null:lng};
+  if(id) body.id=id;
+  try{ const r=await api('POST','/api/businesses',body); closeModal(); sel=r.j.business.id; await loadAll(); toast('Business saved','ok'); }catch(e){ toast(e.message,'err'); }
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+</script>
+</body>
+</html>

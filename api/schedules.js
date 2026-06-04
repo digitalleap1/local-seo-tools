@@ -1,15 +1,7 @@
 import { dbConfigured, q, one } from '../lib/db.js';
 import { requireAuth } from '../lib/auth.js';
 import { readJson, send, query } from '../lib/http.js';
-
-export function computeNextRun(freq, from){
-  const d = new Date(from);
-  if(freq==='daily') d.setDate(d.getDate()+1);
-  else if(freq==='weekly') d.setDate(d.getDate()+7);
-  else if(freq==='monthly') d.setMonth(d.getMonth()+1);
-  else return null;
-  return d.toISOString();
-}
+import { computeNextRun } from '../lib/sched.js';
 
 export default async function handler(req, res){
   const auth = requireAuth(req); if(!auth) return send(res, 401, { error:'unauthorized' });

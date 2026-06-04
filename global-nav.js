@@ -51,7 +51,7 @@
     {id:'citations', name:'Citations & Listings',   sub:'NAP, directories, niche, aggregators',    color:'#0d9488', tools:['cf','nap','cg','ml','agg','sam','nc']},
     {id:'gbp',       name:'Google Business Profile', sub:'GBP audit, categories, services, holidays',color:'#4285f4', tools:['gbp','gbpcat','gbpsv','ps','qa','gp','gpi','sr','ssen','gbpp','hol']},
     {id:'reviews',   name:'Reviews & Reputation',   sub:'Replies, sentiment, brand SERP, KP, press',color:'#db2777', tools:['rev','sm','bs','bm','kp','press']},
-    {id:'rankings',  name:'Rankings & SERP',        sub:'Geo-grid, pack, CTR, forecast, SERP, GSC',color:'#7c3aed', tools:['gg','pt','sr2','ctr','snip','fc','gsc']},
+    {id:'rankings',  name:'Rankings & SERP',        sub:'Geo-grid, pack, CTR, forecast, SERP, GSC',color:'#7c3aed', tools:['gg','cdash','pt','sr2','ctr','snip','fc','gsc']},
     {id:'content',   name:'Content & Keywords',     sub:'Keywords, briefs, FAQ, mapping, headings',color:'#ea580c', tools:['kw','cb','vf','aiw','aiss','cc','ha','km']},
     {id:'technical', name:'Technical SEO',          sub:'Schema, audits, crawl, mobile, redirects', color:'#0891b2', tools:['sch','sa','pa','sc','rs','iseo','il','mux','bsch','ba','hl','rd']},
     {id:'backlinks', name:'Backlinks & Outreach',   sub:'Profile, outreach, anchors, velocity',    color:'#9333ea', tools:['bl','lo','dis','at','bv']},
@@ -87,6 +87,7 @@
 
     // Rankings
     gg:  {url:'geo-grid-tracker.html',   name:'Geo-Grid Tracker',       code:'GG', color:'#7c3aed', key:'gg_state_v1',  desc:'Geo-grid Maps rank tracking: unlimited keywords, heatmaps, scheduled scans, PDF/Excel reports', isNew:true},
+    cdash:{url:'cloud-dashboard.html',   name:'Cloud Rank Dashboard',    code:'CLD',color:'#7c3aed', key:null,           desc:'Manage server-side scheduled scans & view cron-collected heatmaps (cloud)', isNew:true},
     pt:  {url:'pack-tracker.html',       name:'Pack Tracker',           code:'PT', color:'#7c3aed', key:'pt_state_v1',  desc:'Local pack position monitoring'},
     sr2: {url:'serp-ranker.html',        name:'SERP Ranker',            code:'SRP',color:'#7c3aed', key:'sr2_state_v1', desc:'SERP feature & ranking analyzer'},
     ctr: {url:'ctr-title-lab.html',      name:'CTR Title Lab',          code:'CTR',color:'#7c3aed', key:'ctr_state_v1', desc:'Title/meta variants + CTR prediction'},
