@@ -88,7 +88,21 @@ input,select{font-family:inherit;outline:none}
 .modal .mc h3{padding:14px 18px;border-bottom:1px solid var(--border);font-size:15px;font-weight:800;background:var(--bg3)}
 .modal .mb{padding:16px 18px;display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow:auto}
 .modal .mf{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.ov-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ov-stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+.ov-stat .v{font-size:22px;font-weight:900;font-family:var(--mono)}
+.ov-stat .l{font-size:10px;color:var(--text3);margin-top:2px;font-weight:600}
+.ovt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.ovt th{text-align:left;font-size:9px;font-family:var(--mono);text-transform:uppercase;color:var(--text3);padding:6px 8px;font-weight:700}
+.ovt td{padding:9px 8px;border-top:1px solid var(--border)}
+.ovt tbody tr{cursor:pointer}
+.ovt tbody tr:hover td{background:var(--bg3)}
+.ovt .bn{font-weight:800}
+.mv-up{color:var(--green);font-weight:800}.mv-dn{color:var(--red);font-weight:800}.mv-fl{color:var(--text3)}
+.pillg{font-size:9px;font-family:var(--mono);font-weight:800;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.14);color:var(--purple)}
+.pillg.off{background:var(--bg3);color:var(--text3)}
 @media(max-width:820px){.layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+@media(max-width:560px){.ov-stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -133,6 +147,7 @@ async function boot(){
   document.getElementById('content').innerHTML=
     '<div class="toolbar"><button class="btn pri" onclick="addBusiness()">+ Add business</button><button class="btn" onclick="loadAll()">↻ Refresh</button>'+
     '<a class="btn" href="geo-grid-tracker.html">← Geo-Grid Tracker</a></div>'+
+    '<div id="overview"></div>'+
     '<div class="layout"><div class="bizlist" id="bizlist"></div><div class="detail" id="detail"></div></div>';
   await loadAll();
 }
@@ -154,8 +169,34 @@ async function loadAll(){
     if(!sel && businesses.length) sel=businesses[0].id;
     if(sel && !businesses.some(b=>b.id===sel)) sel=businesses[0]?businesses[0].id:null;
     renderBizList();
+    try{ renderOverview((await api('GET','/api/overview')).j); }catch(e){}
     if(sel) await selectBiz(sel); else document.getElementById('detail').innerHTML='<div class="card"><div class="empty">No businesses yet. Click <b>+ Add business</b> or use the Geo-Grid Tracker’s "Save to cloud".</div></div>';
   }catch(e){ toast(e.message,'err'); }
+}
+function arpColor(a){ if(a==null)return 'var(--text3)'; if(a<=3)return 'var(--green)'; if(a<=7)return '#65a30d'; if(a<=10)return 'var(--amber)'; if(a<=15)return '#ea580c'; return 'var(--red)'; }
+function fmtShort(d){ return d?new Date(d).toLocaleDateString():'—'; }
+function renderOverview(ov){
+  const el=document.getElementById('overview'); if(!el) return;
+  if(!ov||!ov.totals){ el.innerHTML=''; return; }
+  const t=ov.totals;
+  const stat=(v,l)=>'<div class="ov-stat"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>';
+  let html='<div class="card" style="padding:16px;margin-bottom:14px"><h3>Overview — all businesses</h3>'+
+    '<div class="ov-stats">'+stat(t.businesses,'Businesses')+stat(t.keywords,'Keywords')+stat(t.scans,'Total scans')+stat(t.scansWeek,'Scans · 7 days')+'</div>';
+  const rows=ov.businesses||[];
+  if(rows.length){
+    html+='<div style="overflow-x:auto"><table class="ovt"><thead><tr><th>Business</th><th>Avg rank</th><th>Movement</th><th>Keywords</th><th>Scans</th><th>Schedule</th><th>Last scan</th></tr></thead><tbody>'+
+      rows.map(b=>{
+        const mv=b.movement;
+        const mvh = mv==null?'<span class="mv-fl">—</span>' : (mv>0?'<span class="mv-up">▲ '+mv.toFixed(1)+'</span>' : (mv<0?'<span class="mv-dn">▼ '+Math.abs(mv).toFixed(1)+'</span>' : '<span class="mv-fl">→ 0</span>'));
+        const sch=b.schedule?'<span class="pillg'+(b.schedule.enabled?'':' off')+'">'+esc(b.schedule.frequency)+(b.schedule.enabled?'':' · paused')+'</span>':'<span class="pillg off">none</span>';
+        return '<tr onclick="selectBiz(\''+b.id+'\')"><td class="bn">'+esc(b.name)+(b.city?' <span style="color:var(--text3);font-weight:500">· '+esc(b.city)+'</span>':'')+'</td>'+
+          '<td style="font-family:var(--mono);font-weight:800;color:'+arpColor(b.avgRank)+'">'+(b.avgRank==null?'—':b.avgRank)+'</td>'+
+          '<td>'+mvh+'</td><td>'+b.keywords+'</td><td>'+b.scans+'</td><td>'+sch+'</td>'+
+          '<td style="color:var(--text3);font-family:var(--mono);font-size:11px">'+fmtShort(b.lastScanAt)+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
 }
 function schedFor(bid){ return schedules.find(s=>s.business_id===bid); }
 function renderBizList(){
