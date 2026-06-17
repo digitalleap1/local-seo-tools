@@ -18,7 +18,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -686,46 +685,6 @@ kbd{
 .ai-key-help{font-size:9.5px;color:var(--text3);margin-bottom:6px;line-height:1.4}
 .ai-key-help a{color:var(--purple);text-decoration:none}
 .ai-key-help a:hover{text-decoration:underline}
-
-/* Google Sign-in */
-.btn-google-signin{
-  display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;
-  border:1px solid var(--border);border-radius:7px;background:var(--bg2);
-  color:var(--text);font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .15s;margin-bottom:7px;justify-content:center;
-}
-.btn-google-signin:hover{border-color:#4285f4;box-shadow:0 1px 8px rgba(66,133,244,.2);transform:translateY(-1px)}
-.btn-google-signin svg{width:16px;height:16px;flex-shrink:0}
-.google-user-card{
-  display:flex;align-items:center;gap:8px;padding:8px 10px;
-  background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.25);
-  border-radius:7px;margin-bottom:8px;
-}
-.google-user-avatar{
-  width:28px;height:28px;border-radius:50%;flex-shrink:0;
-  border:2px solid rgba(22,163,74,.4);object-fit:cover;
-  background:var(--accent);display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;color:#fff;
-}
-.google-user-info{flex:1;min-width:0}
-.google-user-name{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.google-user-email{font-size:9.5px;color:var(--text2);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.btn-google-signout{
-  padding:3px 8px;border:1px solid var(--border);border-radius:5px;
-  background:var(--bg3);font-size:9.5px;cursor:pointer;color:var(--text2);
-  font-family:var(--font);
-}
-.btn-google-signout:hover{border-color:var(--danger);color:var(--danger)}
-.ai-or-divider{
-  text-align:center;font-size:9.5px;color:var(--text3);margin:7px 0;
-  font-family:var(--mono);position:relative;
-}
-.ai-or-divider::before,.ai-or-divider::after{
-  content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--border);
-}
-.ai-or-divider::before{left:0}.ai-or-divider::after{right:0}
-.gclient-row{display:flex;gap:5px;margin-bottom:7px}
-.gclient-row .finp{font-size:9.5px}
 
 /* Schema.org panel */
 .schema-card{
@@ -3057,15 +3016,11 @@ const AI_OPTS = {
   geminiKey: '', geminiModel: 'gemini-2.5-flash',
   openaiKey: '', openaiModel: 'gpt-4o-mini',
   claudeKey: '', claudeModel: 'claude-haiku-4-5-20251001',
-  googleClientId: '',
   keyword: '', brand: '', location: '', language: 'English', tone: 'Professional',
   audience: '', titleLen: 'medium', altStyle: 'descriptive', keywordCount: 8,
   slugStyle: 'title', parallel: 3, customPrompt: '',
   overwriteMode: 'empty'
 };
-let GOOGLE_TOKEN = null;
-let GOOGLE_USER = null;
-let GOOGLE_TOKEN_EXP = 0;
 const AI_PROV_LABELS = { heuristic:'Heuristic', gemini:'Gemini', openai:'OpenAI', claude:'Claude' };
 
 function aiLoadOpts(){
@@ -3090,8 +3045,7 @@ function setAiProv(name, btn){
   AI_OPTS.provider = name;
   document.querySelectorAll('.ai-prov-btn').forEach(b => b.classList.toggle('active', b.dataset.aiprov === name));
   document.getElementById('ai-prov-tag').textContent = AI_PROV_LABELS[name];
-  const geminiReady = name === 'gemini' && ((GOOGLE_TOKEN && Date.now() < GOOGLE_TOKEN_EXP) || !!AI_OPTS.geminiKey);
-  document.getElementById('ai-prov-tag').classList.toggle('ready', name === 'heuristic' || geminiReady || (name !== 'gemini' && !!AI_OPTS[name + 'Key']));
+  document.getElementById('ai-prov-tag').classList.toggle('ready', name === 'heuristic' || !!AI_OPTS[name + 'Key']);
   renderAiKeyArea();
   aiSaveOpts();
 }
@@ -3105,8 +3059,9 @@ function renderAiKeyArea(){
     </div>`;
     return;
   }
-  if(p === 'gemini'){ renderGeminiKeyArea(wrap); return; }
   const cfg = {
+    gemini: { ph:'AIzaSy...', help:'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+              models:['gemini-2.5-flash','gemini-2.5-pro','gemini-1.5-flash'] },
     openai: { ph:'sk-...', help:'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>',
               models:['gpt-4o-mini','gpt-4o','gpt-4.1-mini'] },
     claude: { ph:'sk-ant-...', help:'Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>',
@@ -3122,48 +3077,6 @@ function renderAiKeyArea(){
     <div class="ai-key-help">${cfg.help}</div>
     <div class="frow"><label class="flbl">Model</label>
       <select class="finp" onchange="AI_OPTS['${p}Model']=this.value;aiSaveOpts()">${modelOptions}</select>
-    </div>`;
-}
-function renderGeminiKeyArea(wrap){
-  const models = ['gemini-2.5-flash','gemini-2.5-pro','gemini-1.5-flash'];
-  const modelOpts = models.map(m => `<option value="${m}"${AI_OPTS.geminiModel===m?' selected':''}>${m}</option>`).join('');
-  const isOAuth = GOOGLE_TOKEN && Date.now() < GOOGLE_TOKEN_EXP;
-  let googleHtml;
-  if(isOAuth && GOOGLE_USER){
-    const avatar = GOOGLE_USER.picture
-      ? `<img class="google-user-avatar" src="${escapeHtml(GOOGLE_USER.picture)}" alt="">`
-      : `<div class="google-user-avatar">${escapeHtml((GOOGLE_USER.name||'G')[0].toUpperCase())}</div>`;
-    googleHtml = `
-      <div class="google-user-card">
-        ${avatar}
-        <div class="google-user-info">
-          <div class="google-user-name">${escapeHtml(GOOGLE_USER.name||'Google User')}</div>
-          <div class="google-user-email">${escapeHtml(GOOGLE_USER.email||'')}</div>
-        </div>
-        <button class="btn-google-signout" onclick="geminiGoogleSignOut()">Sign out</button>
-      </div>
-      <div class="ai-key-help" style="color:var(--success);margin-bottom:8px">&#10003; Gemini access active via Google OAuth &mdash; no API key needed</div>
-      <div class="ai-or-divider">or use API key instead</div>`;
-  } else {
-    googleHtml = `
-      <div class="gclient-row" title="Create at console.cloud.google.com &rarr; APIs &amp; Services &rarr; OAuth 2.0 Client ID">
-        <input class="finp" type="text" id="gclient-id-input" placeholder="Google Client ID (from console.cloud.google.com)" value="${escapeHtml(AI_OPTS.googleClientId||'')}" style="font-size:9.5px" oninput="AI_OPTS.googleClientId=this.value.trim();aiSaveOpts()">
-      </div>
-      <button class="btn-google-signin" onclick="geminiGoogleSignIn()">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Sign in with Google
-      </button>
-      <div class="ai-key-help" style="margin-bottom:4px">&#9432; Enter your OAuth Client ID above, then click Sign in to use Gemini without an API key. Or skip and enter an API key below.</div>
-      <div class="ai-or-divider">or enter API key</div>`;
-  }
-  wrap.innerHTML = `${googleHtml}
-    <div class="ai-key-wrap">
-      <input class="finp" type="password" id="ai-key-input" placeholder="AIzaSy..." value="${escapeHtml(AI_OPTS.geminiKey||'')}" oninput="AI_OPTS.geminiKey=this.value;aiSaveOpts();document.getElementById('ai-prov-tag').classList.toggle('ready',!!this.value||(!!GOOGLE_TOKEN&&Date.now()<GOOGLE_TOKEN_EXP))">
-      <button class="ai-key-toggle" onclick="aiToggleKey(this)">Show</button>
-    </div>
-    <div class="ai-key-help">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
-    <div class="frow"><label class="flbl">Model</label>
-      <select class="finp" onchange="AI_OPTS.geminiModel=this.value;aiSaveOpts()">${modelOpts}</select>
     </div>`;
 }
 function aiToggleKey(btn){
@@ -3274,18 +3187,11 @@ async function aiCallProvider(file){
 
 async function aiCallGemini(file, dataUrl){
   const key = AI_OPTS.geminiKey;
-  const useOAuth = GOOGLE_TOKEN && Date.now() < GOOGLE_TOKEN_EXP;
-  if(!key && !useOAuth) throw new Error('No Gemini API key and not signed in with Google');
+  if(!key) throw new Error('No Gemini API key');
   const base64 = dataUrl.split(',')[1];
   const mime = dataUrl.match(/^data:(.+?);/)?.[1] || 'image/jpeg';
-  let url, headers;
-  if(useOAuth){
-    url = `https://generativelanguage.googleapis.com/v1beta/models/${AI_OPTS.geminiModel}:generateContent`;
-    headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${GOOGLE_TOKEN}` };
-  } else {
-    url = `https://generativelanguage.googleapis.com/v1beta/models/${AI_OPTS.geminiModel}:generateContent?key=${encodeURIComponent(key)}`;
-    headers = { 'Content-Type':'application/json' };
-  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${AI_OPTS.geminiModel}:generateContent?key=${encodeURIComponent(key)}`;
+  const headers = { 'Content-Type':'application/json' };
   const body = {
     contents: [{ role:'user', parts:[
       { text: aiSystemPrompt(file) },
@@ -3882,48 +3788,6 @@ function autoFillFromMetadata(f){
       .filter(s=>s.length>2&&s.length<30&&!/^[0-9.:\-]+$/.test(s)&&!/^(steps|cfg|sampler|model|seed|size|lora|version|negative|prompt)/.test(s))
       .slice(0,12);
   }
-}
-
-// =========================================================
-//  GOOGLE OAUTH FOR GEMINI
-// =========================================================
-function geminiGoogleSignIn(){
-  const clientId = AI_OPTS.googleClientId;
-  if(!clientId){
-    toast('Paste your Google Client ID in the field above first', 'warn');
-    document.getElementById('gclient-id-input')?.focus();
-    return;
-  }
-  if(!window.google?.accounts?.oauth2){
-    toast('Google sign-in script not loaded yet — try again in a moment', 'warn'); return;
-  }
-  const tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: clientId,
-    scope: 'https://www.googleapis.com/auth/generativelanguage email profile openid',
-    callback: async response => {
-      if(response.error){ toast('Google sign-in failed: ' + response.error, 'err'); return; }
-      GOOGLE_TOKEN = response.access_token;
-      GOOGLE_TOKEN_EXP = Date.now() + ((response.expires_in || 3599) * 1000);
-      try {
-        const r = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { 'Authorization': 'Bearer ' + GOOGLE_TOKEN }
-        });
-        GOOGLE_USER = await r.json();
-      } catch(_){ GOOGLE_USER = { name:'Google User', email:'' }; }
-      renderAiKeyArea();
-      document.getElementById('ai-prov-tag').classList.add('ready');
-      toast('Signed in as ' + (GOOGLE_USER.email || 'Google User') + ' — Gemini ready!', 'success');
-    }
-  });
-  tokenClient.requestAccessToken({ prompt:'select_account' });
-}
-function geminiGoogleSignOut(){
-  if(GOOGLE_TOKEN && window.google?.accounts?.oauth2)
-    google.accounts.oauth2.revoke(GOOGLE_TOKEN, () => {});
-  GOOGLE_TOKEN = null; GOOGLE_USER = null; GOOGLE_TOKEN_EXP = 0;
-  renderAiKeyArea();
-  document.getElementById('ai-prov-tag').classList.remove('ready');
-  toast('Signed out from Google');
 }
 
 // =========================================================
