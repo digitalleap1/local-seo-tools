@@ -789,6 +789,70 @@ kbd{
 .ai-status.busy{color:var(--amber);background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.3)}
 .ai-status.ok{color:var(--success);background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)}
 .ai-status.err{color:var(--danger);background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.3)}
+
+/* ---- Image Properties / Intelligence Card ---- */
+.prop-card{
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  overflow:hidden;margin-bottom:10px;
+  background:var(--bg2);
+}
+.prop-card-head{
+  display:flex;align-items:center;gap:8px;padding:9px 12px;
+  background:var(--bg3);cursor:pointer;user-select:none;border-bottom:1px solid var(--border);
+}
+.prop-card-head:hover{background:var(--bg4)}
+.prop-head-title{font-size:10.5px;font-weight:700;color:var(--text2);font-family:var(--mono);letter-spacing:.4px;text-transform:uppercase;flex:1}
+.prop-arrow{width:8px;height:8px;border-right:1.5px solid var(--text3);border-bottom:1.5px solid var(--text3);transform:rotate(45deg);transition:transform .2s;flex-shrink:0}
+.prop-card.closed .prop-arrow{transform:rotate(-45deg)}
+.prop-card.closed .prop-card-body{display:none}
+.prop-card-body{padding:8px 12px 10px}
+.prop-source-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 9px;
+  border-radius:20px;font-size:10.5px;font-weight:700;border:1px solid;
+  max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex-shrink:0;
+}
+.prop-source-badge svg{flex-shrink:0}
+.prop-table{width:100%;border-collapse:collapse;margin-bottom:4px}
+.prop-table .prop-row:hover td{background:var(--accent-soft)}
+.prop-label{
+  font-size:9.5px;font-weight:700;color:var(--text3);font-family:var(--mono);
+  padding:3px 8px 3px 0;vertical-align:top;width:90px;white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.4px;
+}
+.prop-val{
+  font-size:10.5px;color:var(--text);padding:3px 0;
+  word-break:break-word;vertical-align:top;
+}
+.prop-val.mono{font-family:var(--mono);font-size:10px}
+.prop-section-title{
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  color:var(--text3);padding:6px 0 3px;font-family:var(--mono);
+  border-top:1px solid var(--border);margin-top:4px;
+}
+.prop-chunk-val{
+  font-size:9.5px;font-family:var(--mono);color:var(--text2);
+  background:var(--bg3);border-radius:5px;padding:6px 8px;
+  margin:2px 0 4px;word-break:break-all;max-height:80px;overflow-y:auto;
+  white-space:pre-wrap;line-height:1.5;
+}
+.prop-apply-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;margin-top:8px;padding:7px;border-radius:7px;
+  background:rgba(13,148,136,.08);border:1px solid rgba(13,148,136,.25);
+  color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);
+  transition:all .15s;
+}
+.prop-apply-btn:hover{background:rgba(13,148,136,.15);border-color:var(--teal)}
+/* Source badge in file list */
+.fi-src-tag{
+  font-size:8.5px;font-weight:700;font-family:var(--mono);
+  padding:1px 5px;border-radius:3px;margin-left:3px;
+  opacity:.9;vertical-align:middle;display:inline-block;
+}
+.fi-src-tag.ai{background:rgba(16,163,127,.15);color:#10a37f;border:1px solid rgba(16,163,127,.3)}
+.fi-src-tag.camera{background:rgba(37,99,235,.1);color:var(--accent);border:1px solid rgba(37,99,235,.2)}
+.fi-src-tag.app{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
 </style>
 </head>
 <body>
@@ -935,6 +999,7 @@ kbd{
       </div>
 
       <div id="gps-editor" style="display:none" class="ep-inner">
+        <div id="prop-card-wrap"></div>
         <div class="preview-box" id="preview-box"></div>
 
         <div id="format-notice" class="fmt-notice" style="display:none"></div>
@@ -1626,9 +1691,9 @@ function handleFiles(fileList){
         obj.exifObj = { '0th':{}, Exif:{}, GPS:{}, '1st':{} };
         obj.status = 'ready';
       }
-      // Dimensions + thumb
+      // Dimensions + thumb + metadata extraction
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         obj.width = img.width; obj.height = img.height;
         const sz = 80, c = document.createElement('canvas');
         c.width = sz; c.height = sz;
@@ -1637,10 +1702,22 @@ function handleFiles(fileList){
         const w = img.width*r, h = img.height*r;
         ctx.drawImage(img, (sz-w)/2, (sz-h)/2, w, h);
         try { obj.thumb = c.toDataURL('image/jpeg',.78); } catch(_) {}
+        // Extract all metadata
+        if(obj.ext === 'png') {
+          obj.pngChunks = await parsePngChunks(obj.dataUrl);
+        } else if(obj.ext === 'jpg' || obj.ext === 'jpeg') {
+          const xmpXml = extractJpegXmp(obj.dataUrl);
+          if(xmpXml) obj.xmpFields = parseXmpFields(xmpXml);
+        }
+        obj.sourceInfo = detectImageSource(obj);
+        autoFillFromMetadata(obj);
         updateFileItem(idx);
         if(SEL === idx) loadIntoEditor(idx);
       };
-      img.onerror = () => { updateFileItem(idx); if(SEL === idx) loadIntoEditor(idx); };
+      img.onerror = () => {
+        obj.sourceInfo = detectImageSource(obj);
+        updateFileItem(idx); if(SEL === idx) loadIntoEditor(idx);
+      };
       img.src = obj.dataUrl;
       updateFileItem(idx);
       updateStats();
@@ -1668,7 +1745,7 @@ function renderFileItem(idx){
     <div class="fi-thumb" id="ft-${idx}">${label}</div>
     <div class="fi-info">
       <div class="fi-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
-      <div class="fi-meta">${formatBytes(f.file.size)} <span id="fd-${idx}"></span></div>
+      <div class="fi-meta">${formatBytes(f.file.size)} <span id="fd-${idx}"></span><span id="fs-${idx}"></span></div>
     </div>
     <div class="fi-badge" id="fb-${idx}"></div>
     <button class="fi-del" onclick="removeFile(event,${idx})" title="Remove">&times;</button>
@@ -1690,6 +1767,10 @@ function updateFileItem(idx){
   if(dim && f.width){
     const dur = f.duration ? ` · ${formatDuration(f.duration)}` : '';
     dim.textContent = `· ${f.width}x${f.height}${dur}`;
+  }
+  const srcEl = document.getElementById(`fs-${idx}`);
+  if(srcEl && f.sourceInfo && f.sourceInfo.category !== 'unknown'){
+    srcEl.innerHTML = ` <span class="fi-src-tag ${f.sourceInfo.category}">${escapeHtml(f.sourceInfo.label.split('/')[0].trim())}</span>`;
   }
 }
 function formatDuration(s){
@@ -1775,6 +1856,9 @@ function showNoFile(yes){
 function loadIntoEditor(idx){
   const f = FILES[idx]; if(!f) return;
   showNoFile(false);
+  // Render image intelligence card
+  const pcw = document.getElementById('prop-card-wrap');
+  if(pcw) pcw.innerHTML = buildPropertiesCard(f);
   // Preview
   const pb = document.getElementById('preview-box');
   const dim = f.width ? `${f.width}x${f.height}` : '';
@@ -3435,6 +3519,369 @@ async function aiFillAll(){
   }
   const ok = done - errors;
   toast(`AI Auto-Fill: ${ok}/${done} succeeded${errors?', '+errors+' failed':''}`, errors ? 'warn' : 'success');
+}
+
+// =========================================================
+//  IMAGE METADATA EXTRACTION + INTELLIGENCE
+// =========================================================
+function dataUrlToBinary(dataUrl){
+  const b64 = dataUrl.split(',')[1] || '';
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return out;
+}
+
+async function parsePngChunks(dataUrl){
+  try{
+    const data = dataUrlToBinary(dataUrl);
+    // Verify PNG signature
+    if(data[0]!==137||data[1]!==80||data[2]!==78||data[3]!==71) return null;
+    const view = new DataView(data.buffer);
+    const chunks = {};
+    let pos = 8;
+    while(pos+12<=data.length){
+      const len = view.getUint32(pos,false);
+      if(len<0||pos+12+len>data.length) break;
+      const type = String.fromCharCode(data[pos+4],data[pos+5],data[pos+6],data[pos+7]);
+      if(type==='IEND') break;
+      const cd = data.slice(pos+8,pos+8+len);
+      if(type==='tEXt'){
+        const ni = cd.indexOf(0);
+        if(ni>=0){
+          const key = new TextDecoder('latin1').decode(cd.slice(0,ni));
+          const val = new TextDecoder('latin1').decode(cd.slice(ni+1));
+          if(key && !key.startsWith('XML:')) chunks[key]=val;
+        }
+      } else if(type==='iTXt'){
+        const ni = cd.indexOf(0);
+        if(ni>=0){
+          const key = new TextDecoder().decode(cd.slice(0,ni));
+          let p2=ni+1;
+          const comprFlag=cd[p2++]; p2++; // skip method
+          while(p2<cd.length&&cd[p2]!==0) p2++; p2++;
+          while(p2<cd.length&&cd[p2]!==0) p2++; p2++;
+          if(!comprFlag&&key&&!key.startsWith('XML:')){
+            chunks[key]=new TextDecoder('utf-8').decode(cd.slice(p2));
+          }
+        }
+      } else if(type==='zTXt'){
+        try{
+          const ni = cd.indexOf(0);
+          if(ni>=0){
+            const key = new TextDecoder('latin1').decode(cd.slice(0,ni));
+            const compressed = cd.slice(ni+2);
+            if(window.DecompressionStream){
+              const ds = new DecompressionStream('deflate');
+              const w = ds.writable.getWriter();
+              const r = ds.readable.getReader();
+              w.write(compressed); w.close();
+              const parts=[]; let done=false;
+              while(!done){ const {value,done:d}=await r.read(); if(d){done=true;}else parts.push(value); }
+              const total=parts.reduce((s,c)=>s+c.length,0);
+              const out=new Uint8Array(total); let off=0;
+              for(const p of parts){out.set(p,off);off+=p.length;}
+              if(key) chunks[key]=new TextDecoder().decode(out);
+            }
+          }
+        }catch(_){}
+      }
+      pos+=12+len;
+    }
+    return Object.keys(chunks).length?chunks:null;
+  }catch(_){ return null; }
+}
+
+function extractJpegXmp(dataUrl){
+  try{
+    const data = dataUrlToBinary(dataUrl);
+    let pos=2;
+    while(pos+4<data.length){
+      if(data[pos]!==0xFF) break;
+      const marker=data[pos+1];
+      if(marker===0xD9||marker===0xDA) break;
+      const segLen=(data[pos+2]<<8)|data[pos+3];
+      if(marker===0xE1&&segLen>32){
+        const seg=data.slice(pos+4,pos+2+segLen);
+        // Check for XMP namespace
+        const ns=String.fromCharCode(...seg.slice(0,Math.min(32,seg.length)));
+        if(ns.startsWith('http://ns.adobe.com/xap/1.0/')){
+          const xmlStart=Array.from(seg).findIndex((b,i)=>b===60&&seg[i+1]!==63); // '<' not '<?'
+          const lt=seg.indexOf(60); // '<'
+          if(lt>=0) return new TextDecoder().decode(seg.slice(lt));
+        }
+      }
+      pos+=2+segLen;
+    }
+  }catch(_){}
+  return null;
+}
+
+function parseXmpFields(xmpXml){
+  if(!xmpXml) return null;
+  try{
+    const doc=new DOMParser().parseFromString(xmpXml,'text/xml');
+    const getNs=(ns,tag)=>{try{const els=doc.getElementsByTagNameNS(ns,tag);return els.length?els[0].textContent.trim():''}catch(_){return ''}};
+    const DC='http://purl.org/dc/elements/1.1/';
+    const XAP='http://ns.adobe.com/xap/1.0/';
+    const PS='http://ns.adobe.com/photoshop/1.0/';
+    return {
+      title: getNs(DC,'title')||getNs(XAP,'Label'),
+      description: getNs(DC,'description'),
+      creator: getNs(DC,'creator'),
+      rights: getNs(DC,'rights'),
+      software: getNs(XAP,'CreatorTool'),
+      created: getNs(XAP,'CreateDate')||getNs(PS,'DateCreated'),
+      city: getNs(PS,'City'),
+      country: getNs(PS,'Country'),
+      source: getNs(PS,'Source'),
+    };
+  }catch(_){ return null; }
+}
+
+function detectImageSource(obj){
+  const exif = obj.exifObj?.['0th']||{};
+  const software = ((exif[piexif.ImageIFD.Software]||'')+'').trim();
+  const make = ((exif[piexif.ImageIFD.Make]||'')+'').trim();
+  const model = ((exif[piexif.ImageIFD.Model]||'')+'').trim();
+  const artist = ((exif[piexif.ImageIFD.Artist]||'')+'').trim();
+  const chunks = obj.pngChunks||{};
+  const xmp = obj.xmpFields||{};
+  const all = [software,make,model,artist,chunks.Software||'',chunks.Comment||'',chunks.parameters||'',chunks.prompt||'',xmp.software||'',xmp.creator||''].join(' ').toLowerCase();
+
+  if(all.includes('dall-e')||all.includes('openai')||chunks['AI:openai']||all.includes('chatgpt'))
+    return {label:'ChatGPT / DALL-E',category:'ai',color:'#10a37f',bg:'rgba(16,163,127,.1)'};
+  if(all.includes('midjourney'))
+    return {label:'Midjourney',category:'ai',color:'#7289da',bg:'rgba(114,137,218,.1)'};
+  if(all.includes('stable diffusion')||chunks.parameters||all.includes('comfyui')||all.includes('automatic1111')||all.includes('a1111'))
+    return {label:'Stable Diffusion',category:'ai',color:'#f97316',bg:'rgba(249,115,22,.1)'};
+  if(all.includes('firefly')||all.includes('adobe firefly'))
+    return {label:'Adobe Firefly',category:'ai',color:'#ff3d6b',bg:'rgba(255,61,107,.1)'};
+  if(all.includes('bing image')||all.includes('microsoft image creator')||all.includes('designer'))
+    return {label:'Bing Image Creator',category:'ai',color:'#0078d4',bg:'rgba(0,120,212,.1)'};
+  if(all.includes('gemini')||all.includes('imagen'))
+    return {label:'Google Imagen / Gemini',category:'ai',color:'#4285f4',bg:'rgba(66,133,244,.1)'};
+  if(all.includes('photoshop')||software.toLowerCase().includes('photoshop'))
+    return {label:'Adobe Photoshop',category:'app',color:'#31a8ff',bg:'rgba(49,168,255,.1)'};
+  if(all.includes('lightroom'))
+    return {label:'Adobe Lightroom',category:'app',color:'#31a8ff',bg:'rgba(49,168,255,.1)'};
+  if(all.includes('illustrator'))
+    return {label:'Adobe Illustrator',category:'app',color:'#ff9a00',bg:'rgba(255,154,0,.1)'};
+  if(all.includes('canva'))
+    return {label:'Canva',category:'app',color:'#00C4CC',bg:'rgba(0,196,204,.1)'};
+  if(all.includes('gimp'))
+    return {label:'GIMP',category:'app',color:'#5C8DB8',bg:'rgba(92,141,184,.1)'};
+  if(all.includes('paint.net'))
+    return {label:'Paint.NET',category:'app',color:'#8b6fd1',bg:'rgba(139,111,209,.1)'};
+  if(all.includes('snapseed'))
+    return {label:'Snapseed',category:'app',color:'#4caf50',bg:'rgba(76,175,80,.1)'};
+  if(all.includes('affinity'))
+    return {label:'Affinity Photo/Designer',category:'app',color:'#7a2182',bg:'rgba(122,33,130,.1)'};
+  if(make.toLowerCase().includes('apple'))
+    return {label:`${model||'iPhone/iPad'}`,category:'camera',color:'#555',bg:'rgba(85,85,85,.1)'};
+  if(make.toLowerCase().includes('samsung'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#1428a0',bg:'rgba(20,40,160,.1)'};
+  if(make.toLowerCase().includes('google'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#4285f4',bg:'rgba(66,133,244,.1)'};
+  if(make.toLowerCase().includes('sony'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#0070d1',bg:'rgba(0,112,209,.1)'};
+  if(make.toLowerCase().includes('canon'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#cc0000',bg:'rgba(204,0,0,.1)'};
+  if(make.toLowerCase().includes('nikon'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#c8a900',bg:'rgba(200,169,0,.1)'};
+  if(make.toLowerCase().includes('fujifilm'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#cc0000',bg:'rgba(204,0,0,.1)'};
+  if(make.toLowerCase().includes('dji'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#333',bg:'rgba(51,51,51,.1)'};
+  if(make.toLowerCase().includes('gopro'))
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'#00adef',bg:'rgba(0,173,239,.1)'};
+  if(make)
+    return {label:`${make} ${model}`.trim(),category:'camera',color:'var(--text2)',bg:'var(--bg3)'};
+  if(software)
+    return {label:software.slice(0,40),category:'app',color:'var(--text2)',bg:'var(--bg3)'};
+  return {label:'Unknown source',category:'unknown',color:'var(--text3)',bg:'var(--bg3)'};
+}
+
+function getAspectRatio(w,h){
+  const gcd=(a,b)=>b===0?a:gcd(b,a%b);
+  const g=gcd(w,h);
+  const rw=w/g,rh=h/g;
+  if(rw<=20&&rh<=20) return `${rw}:${rh}`;
+  const ratio=w/h;
+  if(Math.abs(ratio-16/9)<0.02) return '16:9';
+  if(Math.abs(ratio-4/3)<0.02) return '4:3';
+  if(Math.abs(ratio-1)<0.02) return '1:1';
+  if(Math.abs(ratio-3/2)<0.02) return '3:2';
+  if(Math.abs(ratio-21/9)<0.04) return '21:9';
+  if(Math.abs(ratio-9/16)<0.02) return '9:16 (Portrait)';
+  return ratio.toFixed(2)+':1';
+}
+
+const CAT_ICONS = {
+  ai:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>`,
+  camera:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
+  app:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`,
+  unknown:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`
+};
+
+function buildPropertiesCard(f){
+  if(!f) return '';
+  const src = f.sourceInfo || {label:'Unknown',category:'unknown',color:'var(--text3)',bg:'var(--bg3)'};
+  const exif = f.exifObj?.['0th']||{};
+  const exifEx = f.exifObj?.Exif||{};
+  const chunks = f.pngChunks||{};
+  const xmp = f.xmpFields||{};
+
+  const rows=[];
+  const add=(label,val,mono)=>{ if(val&&(val+'').trim()) rows.push({label,val:(val+'').trim(),mono}); };
+
+  // File
+  add('Format', f.ext.toUpperCase()+(f.width&&f.height?` · ${f.width}×${f.height}`:'')+(f.width&&f.height?` · ${getAspectRatio(f.width,f.height)}`:''));
+  add('File size', formatBytes(f.file.size));
+  const xRes=exif[piexif.ImageIFD.XResolution];
+  if(xRes) add('Resolution', `${Math.round(xRes[0]/xRes[1])} DPI`);
+
+  // Software/Device
+  const sw=(exif[piexif.ImageIFD.Software]||'')+'';
+  const make=(exif[piexif.ImageIFD.Make]||'')+'';
+  const model=(exif[piexif.ImageIFD.Model]||'')+'';
+  if(sw) add('Software', sw.slice(0,60));
+  if(make||model) add('Device', (make+' '+model).trim().slice(0,60));
+  const lensEx=exifEx[piexif.ExifIFD.LensModel]||'';
+  if(lensEx) add('Lens', (lensEx+'').slice(0,60));
+
+  // Capture
+  const shutterArr=exifEx[piexif.ExifIFD.ExposureTime];
+  if(shutterArr) add('Shutter', `${shutterArr[0]}/${shutterArr[1]}s`);
+  const apArr=exifEx[piexif.ExifIFD.FNumber];
+  if(apArr) add('Aperture', `f/${(apArr[0]/apArr[1]).toFixed(1)}`);
+  const iso=exifEx[piexif.ExifIFD.ISOSpeedRatings];
+  if(iso) add('ISO', iso);
+  const focalArr=exifEx[piexif.ExifIFD.FocalLength];
+  if(focalArr) add('Focal length', `${Math.round(focalArr[0]/focalArr[1])}mm`);
+  const flash=exifEx[piexif.ExifIFD.Flash];
+  if(flash!==undefined) add('Flash', (flash&0x1)?'Fired':'Did not fire');
+  const dateOrig=(exifEx[piexif.ExifIFD.DateTimeOriginal]||exif[piexif.ImageIFD.DateTime]||'')+'';
+  if(dateOrig) add('Captured', dateOrig);
+
+  // Creator
+  const artist=(exif[piexif.ImageIFD.Artist]||xmp.creator||'')+'';
+  const copyright=(exif[piexif.ImageIFD.Copyright]||'')+'';
+  const desc=(exif[piexif.ImageIFD.ImageDescription]||'')+'';
+  if(artist) add('Artist', artist.slice(0,80));
+  if(copyright) add('Copyright', copyright.slice(0,80));
+  if(desc) add('Description', desc.slice(0,120));
+  if(xmp.city||xmp.country) add('XMP Location', [xmp.city,xmp.country].filter(Boolean).join(', '));
+  if(xmp.source) add('XMP Source', xmp.source.slice(0,60));
+  if(f.seo.author&&!artist) add('Author', f.seo.author);
+
+  // GPS
+  if(f.lat!==null) add('GPS Coords', `${f.lat.toFixed(6)}, ${f.lng.toFixed(6)}`, true);
+
+  const rowsHtml = rows.map(r=>`<tr class="prop-row"><td class="prop-label">${escapeHtml(r.label)}</td><td class="prop-val${r.mono?' mono':''}">${escapeHtml(r.val)}</td></tr>`).join('');
+
+  // PNG chunks (AI metadata, tEXt/zTXt/iTXt)
+  const KNOWN_CHUNK_KEYS=['parameters','prompt','workflow','Comment','Description','Source','Author','Title','Creation Time','URL','Software','Disclaimer','Warning','Copyright'];
+  const allKeys=[...new Set([...KNOWN_CHUNK_KEYS,...Object.keys(chunks)])].filter(k=>chunks[k]&&chunks[k].trim()&&!k.startsWith('_'));
+  const chunksHtml = allKeys.length ? `
+    <div class="prop-section-title">PNG / AI Metadata (${allKeys.length} chunk${allKeys.length!==1?'s':''})</div>
+    ${allKeys.map(k=>`<div style="margin-bottom:4px"><span class="prop-label" style="display:inline-block;margin-bottom:2px">${escapeHtml(k)}</span><div class="prop-chunk-val">${escapeHtml(chunks[k])}</div></div>`).join('')}` : '';
+
+  const hasData = rows.length>0||allKeys.length>0;
+  const catIcon = CAT_ICONS[src.category]||CAT_ICONS.unknown;
+
+  return `<div class="prop-card" id="prop-card">
+    <div class="prop-card-head" onclick="this.closest('.prop-card').classList.toggle('closed')">
+      <div class="prop-source-badge" style="background:${src.bg};border-color:${src.color}30;color:${src.color}">
+        ${catIcon} <span>${escapeHtml(src.label)}</span>
+      </div>
+      <div class="prop-head-title">&nbsp;Image Properties</div>
+      <span class="prop-arrow"></span>
+    </div>
+    <div class="prop-card-body">
+      ${rows.length?`<table class="prop-table">${rowsHtml}</table>`:'<div style="color:var(--text3);font-size:10.5px;padding:4px 0">No embedded metadata found</div>'}
+      ${chunksHtml}
+      ${hasData?`<button class="prop-apply-btn" onclick="autoApplyProperties()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg> Auto-fill SEO &amp; EXIF fields from detected metadata</button>`:''}
+    </div>
+  </div>`;
+}
+
+function autoApplyProperties(){
+  if(SEL<0||!FILES[SEL]) return;
+  const f=FILES[SEL];
+  const exif=f.exifObj?.['0th']||{};
+  const exifEx=f.exifObj?.Exif||{};
+  const chunks=f.pngChunks||{};
+  const xmp=f.xmpFields||{};
+  let changed=0;
+  const fill=(field,val,maxLen)=>{
+    const v=(val||'').trim().slice(0,maxLen||200);
+    if(v&&!f.seo[field]){f.seo[field]=v;changed++;}
+  };
+  // Title
+  fill('title', chunks.Title||xmp.title||(xpRead(exif[XP_TITLE])||''), 120);
+  // Alt / Description
+  fill('alt', chunks.Comment||chunks.Description||xmp.description||(exif[piexif.ImageIFD.ImageDescription]||'')+'', 200);
+  // Author
+  fill('author', chunks.Author||xmp.creator||(exif[piexif.ImageIFD.Artist]||'')+'', 100);
+  // Copyright
+  fill('copyright', (exif[piexif.ImageIFD.Copyright]||'')+'', 100);
+  // Credit
+  fill('credit', chunks.Credit||chunks.Source||xmp.source||'', 100);
+  // Caption
+  fill('caption', (chunks.Comment||xmp.description||'').slice(0,200), 200);
+  // Subject
+  fill('subject', (chunks.Title||xmp.title||'').slice(0,120), 120);
+  // Auto-slug from title
+  if(f.seo.title&&!f.seo.slug){
+    f.seo.slug=slugify(f.seo.title);changed++;
+  }
+  // Keywords from SD prompt/parameters or PNG chunks
+  const promptText = chunks.parameters||chunks.prompt||'';
+  if(promptText&&f.kw.length===0){
+    const kwds = promptText
+      .split(/[,\n()\[\]|]+/).map(s=>s.trim().toLowerCase())
+      .filter(s=>s.length>2&&s.length<30&&!/^[0-9.:\-]+$/.test(s)&&!/^(steps|cfg|sampler|model|seed|size|lora|version|negative|prompt)/.test(s))
+      .slice(0,12);
+    if(kwds.length){f.kw=[...new Set(kwds)];changed++;}
+  }
+  // Capture date → meta date fields
+  const dateOrig=(exifEx[piexif.ExifIFD.DateTimeOriginal]||'')+'';
+  if(dateOrig&&document.getElementById('m_DTO')&&!document.getElementById('m_DTO').value){
+    try{
+      const dt=dateOrig.replace(/^(\d{4}):(\d{2}):(\d{2})/,'$1-$2-$3');
+      document.getElementById('m_DTO').value=dt;
+    }catch(_){}
+  }
+  // Software → EXIF software field
+  const sw=(exif[piexif.ImageIFD.Software]||'')+'';
+  if(sw&&document.getElementById('m_Software')&&!document.getElementById('m_Software').value){
+    document.getElementById('m_Software').value=sw.slice(0,60);
+  }
+  loadSeoIntoUI(f);
+  computeSeoScore();
+  markDirty();
+  if(changed>0) toast(`Auto-filled ${changed} field${changed!==1?'s':''} from image metadata`, 'success');
+  else toast('All fields already filled — nothing to auto-fill', 'info');
+}
+
+function autoFillFromMetadata(f){
+  // Called once at load time — only fills empty fields silently
+  const exif=f.exifObj?.['0th']||{};
+  const chunks=f.pngChunks||{};
+  const xmp=f.xmpFields||{};
+  if(!f.seo.title) f.seo.title=(chunks.Title||xmp.title||xpRead(exif[XP_TITLE])||'').trim().slice(0,120);
+  if(!f.seo.alt) f.seo.alt=(chunks.Comment||chunks.Description||xmp.description||(exif[piexif.ImageIFD.ImageDescription]||'')+'').trim().slice(0,200);
+  if(!f.seo.author) f.seo.author=(chunks.Author||xmp.creator||(exif[piexif.ImageIFD.Artist]||'')+'').trim().slice(0,100);
+  if(!f.seo.copyright) f.seo.copyright=((exif[piexif.ImageIFD.Copyright]||'')+'').trim().slice(0,100);
+  if(!f.seo.credit) f.seo.credit=(chunks.Credit||chunks.Source||xmp.source||'').trim().slice(0,100);
+  if(f.seo.title&&!f.seo.slug) f.seo.slug=slugify(f.seo.title);
+  const promptText=chunks.parameters||chunks.prompt||'';
+  if(promptText&&f.kw.length===0){
+    f.kw=promptText.split(/[,\n()\[\]|]+/).map(s=>s.trim().toLowerCase())
+      .filter(s=>s.length>2&&s.length<30&&!/^[0-9.:\-]+$/.test(s)&&!/^(steps|cfg|sampler|model|seed|size|lora|version|negative|prompt)/.test(s))
+      .slice(0,12);
+  }
 }
 
 // =========================================================
