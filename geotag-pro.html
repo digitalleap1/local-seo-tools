@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeoTag Pro - Bulk Photo & Video Geotagging + Image SEO Suite</title>
+<title>GEO tag tool - Bulk Photo & Video Geotagging + Image SEO Suite</title>
 <meta name="description" content="Bulk geotag JPG. Edit EXIF, generate SEO keywords, alt text, slugs. GPX + JSON sidecar export. 100% client-side.">
+<link rel="icon" type="image/svg+xml" href="geotag-logo.svg">
+<link rel="alternate icon" href="geotag-logo.svg">
 
 <script>
 (function(){
@@ -80,6 +82,7 @@ input,select,textarea{font-family:var(--mono);outline:none}
   box-shadow:var(--shadow-sm);z-index:200;
 }
 .logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-img{height:40px;width:auto;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
 .logo-icon{
   width:32px;height:32px;
   background:linear-gradient(135deg,var(--accent),var(--teal));
@@ -819,11 +822,7 @@ kbd{
 <!-- HEADER -->
 <div id="header">
   <div class="logo-wrap">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-    </div>
-    <span class="logo-name">GeoTag<span>Pro</span></span>
-    <span class="logo-tag">PHOTO · VIDEO · SEO</span>
+    <img src="geotag-logo.svg" alt="GEO tag tool" class="logo-img">
   </div>
   <div class="hdr-sep"></div>
   <div class="hdr-stat">Files <strong id="h-count">0</strong></div>
