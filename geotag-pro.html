@@ -26,11 +26,12 @@
 :root {
   --bg:#f3f6fb; --bg2:#ffffff; --bg3:#e9eef7; --bg4:#dde4f0;
   --border:#d1d9e8; --border2:#c2cde0;
-  --accent:#2563eb; --accent-h:#1d4ed8; --accent-soft:rgba(37,99,235,.08);
+  --accent:#e91e8c; --accent-h:#c9147a; --accent-soft:rgba(233,30,140,.08);
+  --navy:#1b2652; --navy-light:#243070;
   --teal:#0d9488; --teal-h:#0f766e;
   --amber:#d97706; --amber-soft:rgba(217,119,6,.1);
   --danger:#dc2626; --success:#16a34a;
-  --purple:#7c3aed; --pink:#db2777;
+  --purple:#7c3aed; --pink:#e91e8c;
   --text:#0f1a2e; --text2:#5b6b88; --text3:#8a9ab5;
   --shadow-sm:0 1px 3px rgba(15,26,46,.07);
   --shadow-md:0 4px 14px rgba(15,26,46,.09);
@@ -43,11 +44,12 @@
 [data-theme="dark"]{
   --bg:#06101f; --bg2:#0c1828; --bg3:#142236; --bg4:#1c2e45;
   --border:#1e2d44; --border2:#2a3b56;
-  --accent:#3b82f6; --accent-h:#60a5fa; --accent-soft:rgba(59,130,246,.12);
+  --accent:#e91e8c; --accent-h:#f040a0; --accent-soft:rgba(233,30,140,.15);
+  --navy:#1b2652; --navy-light:#243070;
   --teal:#14b8a6; --teal-h:#2dd4bf;
   --amber:#f59e0b; --amber-soft:rgba(245,158,11,.12);
   --danger:#ef4444; --success:#22c55e;
-  --purple:#a78bfa; --pink:#ec4899;
+  --purple:#a78bfa; --pink:#e91e8c;
   --text:#e2ecf8; --text2:#7e95b8; --text3:#506a8c;
   --shadow-sm:0 1px 3px rgba(0,0,0,.4);
   --shadow-md:0 4px 14px rgba(0,0,0,.5);
@@ -77,9 +79,9 @@ input,select,textarea{font-family:var(--mono);outline:none}
 
 /* ---------- HEADER ---------- */
 #header{
-  height:56px;background:var(--bg2);border-bottom:1px solid var(--border);
+  height:56px;background:var(--navy);border-bottom:1px solid var(--navy-light);
   display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;
-  box-shadow:var(--shadow-sm);z-index:200;
+  box-shadow:0 2px 8px rgba(27,38,82,.35);z-index:200;
 }
 .logo-wrap{display:flex;align-items:center;gap:9px}
 .logo-img{height:40px;width:auto;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
@@ -97,25 +99,16 @@ input,select,textarea{font-family:var(--mono);outline:none}
   color:var(--teal);border:1px solid var(--teal);
   border-radius:4px;padding:1.5px 6px;letter-spacing:.6px;
 }
-.hdr-sep{width:1px;height:24px;background:var(--border)}
-.hdr-stat{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px}
-.hdr-stat strong{color:var(--text);font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
-.hdr-stat.geo strong{color:var(--teal)}
-.hdr-stat.mod strong{color:var(--amber)}
+.hdr-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.hdr-stat{font-size:11.5px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:5px}
+.hdr-stat strong{color:#fff;font-size:13px;font-family:var(--mono);font-weight:700;min-width:18px;text-align:center}
+.hdr-stat.geo strong{color:#5ee8df}
+.hdr-stat.mod strong{color:#fbbf24}
 .hdr-spacer{flex:1}
-
-.hdr-link{
-  display:flex;align-items:center;gap:5px;padding:6px 12px;
-  border:1px solid var(--border);border-radius:7px;
-  background:var(--bg3);color:var(--text);font-size:11.5px;font-weight:600;
-  text-decoration:none;transition:all .15s;
-}
-.hdr-link:hover{border-color:var(--purple);color:var(--purple);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
-.hdr-link svg{width:13px;height:13px}
 .theme-toggle{
   display:flex;align-items:center;gap:6px;padding:6px 11px;
-  border:1px solid var(--border);border-radius:20px;
-  background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:600;
+  border:1px solid rgba(255,255,255,.25);border-radius:20px;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:11.5px;font-weight:600;
   transition:all .2s;
 }
 .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
@@ -829,38 +822,6 @@ kbd{
   <div class="hdr-stat geo">Geo <strong id="h-geo">0</strong></div>
   <div class="hdr-stat mod">Edited <strong id="h-mod">0</strong></div>
   <div class="hdr-spacer"></div>
-  <a href="ai-seo-scanner.html" class="hdr-link" title="AI-powered bulk SEO scanner" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
-    AI SEO Scanner
-  </a>
-  <a href="tools.html" class="hdr-link" title="Convert / Compress / Resize / Crop / Optimize">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-    Image Tools
-  </a>
-  <a href="ai-content-writer.html" class="hdr-link" title="AI Content & Blog Writer (AEO/GEO/SXO/EEAT)" style="border-color:rgba(109,40,217,.4);color:#6d28d9">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-    Content Writer
-  </a>
-  <a href="citation-finder.html" class="hdr-link" title="Citation Finder Pro" style="border-color:rgba(37,99,235,.4);color:#2563eb">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-    Citations
-  </a>
-  <a href="gbp-audit.html" class="hdr-link" title="GBP Local Audit" style="border-color:rgba(217,119,6,.4);color:#d97706">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    GBP Audit
-  </a>
-  <a href="nap-checker.html" class="hdr-link" title="NAP Consistency Checker" style="border-color:rgba(124,58,237,.4);color:#7c3aed">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
-    NAP
-  </a>
-  <a href="dashboard.html" class="hdr-link" title="Unified Dashboard & Report" style="border-color:rgba(37,99,235,.4);color:#2563eb">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-    Dashboard
-  </a>
-  <a href="ai-assistant.html" class="hdr-link" title="AI Local SEO Assistant" style="border-color:rgba(37,99,235,.4);color:#2563eb">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
-    AI
-  </a>
   <button class="btn sm" onclick="clearAllFiles()" title="Clear all files">Clear All</button>
   <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
     <svg id="t-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -1399,16 +1360,12 @@ kbd{
 <div id="footer">
   <span class="dev-tag">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-    
+    <strong>GEO tag tool</strong>
   </span>
-  <span class="dev-by">|</span>
-  <a href="tel:+919797366099" title="Call">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-    +91 97973 66099
-  </a>
-  <a href="mailto:itsmukeshweb@gmail.com" title="Email">
+  <span class="dev-by">by <strong>Digital Leap</strong></span>
+  <a href="mailto:info@digitalleapmarketing.com" title="Email">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-    itsmukeshweb@gmail.com
+    info@digitalleapmarketing.com
   </a>
   <span class="ft-spacer"></span>
   <span class="ft-stat">100% client-side &middot; No uploads &middot; Privacy first</span>
